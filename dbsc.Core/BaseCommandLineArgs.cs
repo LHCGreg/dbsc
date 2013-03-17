@@ -156,6 +156,11 @@ namespace dbsc.Core
                 Environment.Exit(0);
             }
 
+            if (m_operation == null)
+            {
+                throw new OptionException(string.Format("No operation specified. {0} -h for help.", GetProgramNameWithExtension()), "<>");
+            }
+
             if (SourceDb != null && SourceDbServer == null)
             {
                 throw new OptionException("sourceDbServer must be specified if importing data.", "sourceDb");
