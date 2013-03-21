@@ -7,9 +7,40 @@ namespace dbsc.Core
 {
     public interface IDbscDbConnection : IDisposable
     {
+        /// <summary>
+        /// Executes a user-provided script - an upgrade script or a DB creation script.
+        /// </summary>
+        /// <param name="sql"></param>
+        void ExecuteSqlScript(string sql);
+
+        /// <summary>
+        /// Executes SQL requested by the DBSC engine itself, not a user-provided script.
+        /// </summary>
+        /// <param name="sql"></param>
         void ExecuteSql(string sql);
+
+        /// <summary>
+        /// Executes SQL requested by the DBSC engine itself, not a user-provided script.
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="sqlParams"></param>
         void ExecuteSql(string sql, IDictionary<string, object> sqlParams);
+
+        /// <summary>
+        /// Runs a query requested by the DBSC engine itself, not a user-provided script.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="sql"></param>
+        /// <returns></returns>
         IEnumerable<T> Query<T>(string sql);
+
+        /// <summary>
+        /// Runs a query requested by the DBSC engine itself, not a user-provided script.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="sql"></param>
+        /// <param name="sqlParams"></param>
+        /// <returns></returns>
         IEnumerable<T> Query<T>(string sql, IDictionary<string, object> sqlParams);
     }
 }

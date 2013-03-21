@@ -22,7 +22,7 @@ namespace dbsc.Core
         protected abstract string MetadataPropertyNameColumn { get; }
         protected abstract string MetadataPropertyValueColumn { get; }
         protected abstract bool MetaDataTableExists(IDbscDbConnection conn);
-        protected abstract void ImportData(IDbscDbConnection targetConn, IDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options);
+        protected abstract void ImportData(IDbscDbConnection targetConn, IDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo);
         protected abstract ICollection<string> GetTableNamesExceptMetadata(IDbscDbConnection conn);
 
         public void Checkout(CheckoutOptions options)
@@ -68,7 +68,7 @@ namespace dbsc.Core
             using (IDbscDbConnection conn = OpenConnection(options.TargetDatabase))
             {
                 InitializeDatabase(conn, sqlStack.MasterDatabaseName);
-                UpdateDatabase(conn, sqlStack, options.Revision, options.ImportOptions);
+                UpdateDatabase(conn, sqlStack, options.Revision, options.ImportOptions, options.TargetDatabase);
             }
         }
 
@@ -79,7 +79,7 @@ namespace dbsc.Core
             {
                 string creationSql = creationTemplate.Replace("$DatabaseName$", targetDatabase.Database);
                 Console.WriteLine("Creating database {0} on {1}.", targetDatabase.Database, targetDatabase.Server);
-                masterDatabaseConnection.ExecuteSql(creationSql);
+                masterDatabaseConnection.ExecuteSqlScript(creationSql);
                 Console.WriteLine("Created database {0} on {1}.", targetDatabase.Database, targetDatabase.Server);
             }
         }
@@ -177,11 +177,11 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 {
                     throw new DbscException(string.Format("Target database {0} on {1} was not created with dbsc and cannot be updated.", options.TargetDatabase.Database, options.TargetDatabase.Server));
                 }
-                UpdateDatabase(conn, sqlStack, options.Revision, options.ImportOptions);
+                UpdateDatabase(conn, sqlStack, options.Revision, options.ImportOptions, options.TargetDatabase);
             }
         }
 
-        private void UpdateDatabase(IDbscDbConnection conn, SqlStack sqlStack, int? revision, ImportOptions importOptions)
+        private void UpdateDatabase(IDbscDbConnection conn, SqlStack sqlStack, int? revision, ImportOptions importOptions, DbConnectionInfo targetConnectionInfo)
         {
             string versionString = GetMetadataProperty(conn, RevisionPropertyName);
             int versionBeforeUpdate = int.Parse(versionString); // TODO: tryparse
@@ -218,7 +218,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
 
                 // Run upgrade script
                 string upgradeScriptSql = File.ReadAllText(upgradeScriptPath);
-                conn.ExecuteSql(upgradeScriptSql);
+                conn.ExecuteSqlScript(upgradeScriptSql);
 
                 // Update Version metadata
                 string newVersionString = revisionNumber.ToString(CultureInfo.InvariantCulture);
@@ -230,7 +230,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 {
                     using (IDbscDbConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
                     {
-                        ImportData(conn, sourceConn, importOptions);
+                        ImportData(conn, sourceConn, importOptions, targetConnectionInfo);
                     }
                 }
             }
@@ -240,14 +240,14 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
             {
                 using (IDbscDbConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
                 {
-                    ImportData(conn, sourceConn, importOptions);
+                    ImportData(conn, sourceConn, importOptions, targetConnectionInfo);
                 }
             }
 
             Console.WriteLine("At revision {0}", currentVersion);
         }
 
-        private void ImportData(IDbscDbConnection targetConn, IDbscDbConnection sourceConn, ImportOptions importOptions)
+        private void ImportData(IDbscDbConnection targetConn, IDbscDbConnection sourceConn, ImportOptions importOptions, DbConnectionInfo targetConnectionInfo)
         {
             Console.WriteLine("Beginning import...");
             Stopwatch timer = Stopwatch.StartNew();
@@ -264,7 +264,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 tablesToImport = tablesExceptMetadata;
             }
 
-            ImportData(targetConn, sourceConn, tablesToImport, tablesExceptMetadata, importOptions);
+            ImportData(targetConn, sourceConn, tablesToImport, tablesExceptMetadata, importOptions, targetConnectionInfo);
 
             timer.Stop();
             Console.WriteLine("Import complete! Took {0}", timer.Elapsed);

@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dapper">
+      <HintPath>..\lib\Dapper\Dapper.dll</HintPath>
+    </Reference>
     <Reference Include="NDesk.Options">
       <HintPath>..\lib\NDesk.Options\NDesk.Options.dll</HintPath>
     </Reference>
@@ -44,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseCommandLineArgs.cs" />
+    <Compile Include="BaseDbscDbConnection.cs" />
     <Compile Include="CheckoutOptions.cs" />
     <Compile Include="DbConnectionInfo.cs" />
     <Compile Include="DbscApp.cs" />

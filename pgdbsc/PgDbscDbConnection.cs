@@ -8,60 +8,30 @@ using dbsc.Core;
 
 namespace dbsc.Postgres
 {
-    class PgDbscDbConnection : IDbscDbConnection
+    class PgDbscDbConnection : BaseDbscDbConnection
     {
         public NpgsqlConnection Connection { get; private set; }
         
         public PgDbscDbConnection(string connectionString)
+            : base(OpenConnection(connectionString))
         {
-            Connection = new NpgsqlConnection(connectionString);
-            Connection.Open();
+            Connection = (NpgsqlConnection)BaseConnection;
+        }
+
+        private static NpgsqlConnection OpenConnection(string connectionString)
+        {
+            NpgsqlConnection conn = new NpgsqlConnection(connectionString);
+            conn.Open();
+            return conn;
         }
         
-        public void ExecuteSql(string sql)
+        public override void ExecuteSqlScript(string sql)
         {
-            ExecuteSql(sql, null);
-        }
-
-        public void ExecuteSql(string sql, IDictionary<string, object> sqlParams)
-        {
-            DynamicParameters dapperParams = null;
-            if (sqlParams != null)
-            {
-                dapperParams = new DynamicParameters(sqlParams);
-            }
-
             Connection.Notice += OnNotice;
             Connection.Notification += OnNotification;
             try
             {
-                Connection.Execute(sql, dapperParams);
-            }
-            finally
-            {
-                Connection.Notice -= OnNotice;
-                Connection.Notification -= OnNotification;
-            }
-        }
-
-        public IEnumerable<T> Query<T>(string sql)
-        {
-            return Query<T>(sql, null);
-        }
-
-        public IEnumerable<T> Query<T>(string sql, IDictionary<string, object> sqlParams)
-        {
-            DynamicParameters dapperParams = null;
-            if (sqlParams != null)
-            {
-                dapperParams = new DynamicParameters(sqlParams);
-            }
-
-            Connection.Notice += OnNotice;
-            Connection.Notification += OnNotification;
-            try
-            {
-                return Connection.Query<T>(sql, dapperParams);
+                Connection.Execute(sql);
             }
             finally
             {
@@ -80,7 +50,7 @@ namespace dbsc.Postgres
             Console.WriteLine("{0}: {1}", e.Notice.Severity, e.Notice.Message);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             Connection.Dispose();
         }

@@ -53,12 +53,12 @@ namespace dbsc.Postgres
         {
             get
             {
-                return string.Format(
+                return
 @"CREATE TABLE dbsc_metadata
 (
     property_name text NOT NULL PRIMARY KEY,
     property_value text
-)");
+)";
             }
         }
 
@@ -120,7 +120,7 @@ AND table_name = 'dbsc_metadata'";
             public string def { get; set; }
         }
 
-        protected override void ImportData(IDbscDbConnection targetConn, IDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options)
+        protected override void ImportData(IDbscDbConnection targetConn, IDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo)
         {
             PgDbscDbConnection pgTargetConn = (PgDbscDbConnection)targetConn;
             PgDbscDbConnection pgSourceConn = (PgDbscDbConnection)sourceConn;
