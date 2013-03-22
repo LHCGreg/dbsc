@@ -141,12 +141,13 @@ AND TABLE_NAME <> 'dbsc_metadata'";
 JOIN sys.objects Obj ON Ind.object_id = Obj.object_id
 JOIN sys.schemas Sch ON Obj.schema_id = Sch.schema_id
 JOIN INFORMATION_SCHEMA.TABLES AS Tab ON Obj.name = Tab.TABLE_NAME AND Sch.name = Tab.TABLE_SCHEMA -- Only indexes on normal tables, not system tables
-WHERE Ind.type <> 1 -- No clustered indexes";
+WHERE Ind.type <> 1 -- No clustered indexes
+AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are heaps and have an index with a null name";
 
                 nonClusteredIndexes = sqlServerTargetConn.Query<Index>(indexQuerySql).ToList();
                 foreach (Index index in nonClusteredIndexes)
                 {
-                    string disableIndexSql = string.Format("ALTER INDEX {0} ON {1} DISABLE", index.IndexName, QuoteSqlServerIdentifier(index.TableSchema, index.TableName));
+                    string disableIndexSql = string.Format("ALTER INDEX {0} ON {1} DISABLE", QuoteSqlServerIdentifier(index.IndexName), QuoteSqlServerIdentifier(index.TableSchema, index.TableName));
                     sqlServerTargetConn.Execute(disableIndexSql);
                 }
 
@@ -239,7 +240,7 @@ WHERE Ind.type <> 1 -- No clustered indexes";
                 Stopwatch rebuildIndexTimer = Stopwatch.StartNew();
                 foreach (Index index in nonClusteredIndexes)
                 {
-                    string disableIndexSql = string.Format("ALTER INDEX {0} ON {1} REBUILD", index.IndexName, QuoteSqlServerIdentifier(index.TableSchema, index.TableName));
+                    string disableIndexSql = string.Format("ALTER INDEX {0} ON {1} REBUILD", QuoteSqlServerIdentifier(index.IndexName), QuoteSqlServerIdentifier(index.TableSchema, index.TableName));
                     sqlServerTargetConn.Execute(disableIndexSql);
                 }
 
