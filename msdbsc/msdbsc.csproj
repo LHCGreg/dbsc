@@ -15,6 +15,15 @@
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
@@ -22,15 +31,6 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -67,6 +67,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="license.rtf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\lib\Dapper\dapper_license.txt">
@@ -77,6 +80,8 @@
       <Link>ndesk_options_license.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Installer\installer.wxs" />
+    <Content Include="Installer\bundle.wxs" />
     <Content Include="license.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -95,4 +100,11 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="BuildInstaller" DependsOnTargets="Build">
+    <Exec Command="candle.exe -ext WiXNetFxExtension -ext WixUIExtension -pedantic $(ProjectDir)Installer\installer.wxs" WorkingDirectory="$(OutDir)" />
+    <Exec Command="light.exe -ext WiXNetFxExtension -ext WixUIExtension -pedantic installer.wixobj" WorkingDirectory="$(OutDir)" />
+    <Exec Command="candle.exe -ext WiXNetFxExtension -ext WixBalExtension -ext WixUtilExtension -pedantic &quot;-dSMO11x86MSI=$(SMO11x86MSI)&quot; $(ProjectDir)Installer\bundle.wxs" WorkingDirectory="$(OutDir)" />
+    <Exec Command="light.exe -ext WiXNetFxExtension -ext WixBalExtension -ext WixUtilExtension -pedantic bundle.wixobj" WorkingDirectory="$(OutDir)" />
+    <Move SourceFiles="$(OutDir)bundle.exe" DestinationFiles="$(OutDir)msdbsc-2.0.0-setup.exe" />
+  </Target>
 </Project>

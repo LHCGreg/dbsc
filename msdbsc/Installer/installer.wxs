@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+  <!-- -ext WiXNetFxExtension -->
+  <!-- -ext WixUIExtension -->
+
+  <!-- TODO: "Install only for current user" -->
+  <!-- TODO: One installer for everything, selectable features? -->
+  <!-- TODO: Integrate into build process -->
+  <Product Name='DBSC for Microsoft SQL Server' Id='85AFBD98-CAB3-45E4-9966-1A08478F85AD' UpgradeCode='4ACC01B6-DC11-4D38-8191-2D53B2DCE204'
+      Language='1033' Codepage='1252' Version='2.0.0' Manufacturer='Greg Najda'>
+    <Package Id='*' Description="DBSC for Microsoft SQL Server 2.0.0" Manufacturer='Greg Najda' Languages='1033'
+             Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>
+    <Media Id='1' Cabinet='msdbsc.cab' EmbedCab='yes' />
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <UIRef Id="WixUI_InstallDir"/>
+    <UIRef Id="WixUI_ErrorProgressText" />
+    <WixVariable Id="WixUILicenseRtf" Value="SourceDir\license.rtf" />
+
+    <MajorUpgrade DowngradeErrorMessage="A later version of DBSC for Microsoft SQL Server is already installed." />
+
+    <PropertyRef Id="NETFRAMEWORK40FULL"/>
+    <Condition Message="DBSC for Microsoft SQL Server requires .NET 4.0 to be installed.">Installed OR NETFRAMEWORK40FULL</Condition>
+
+    <Property Id="SMO11X86INSTALLED">
+      <ComponentSearch Id="SMO11x86Search" Guid="{8CADE366-1FC9-4E3A-B33D-711C3812C428}" Type="file" />
+    </Property>
+
+    <Condition Message="DBSC for Microsoft SQL Server requires the 32-bit version of SQL Management Objects to be installed.">Installed OR SMO11X86INSTALLED</Condition>
+
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='ProgramFilesFolder' Name='PFiles'>
+        <Directory Id='INSTALLDIR' Name='DBSC for SQL Server'>
+          <Component Id="Dapper.dll" Guid="{AE75F10F-66DB-4CD9-82A7-4A21F06538F6}">
+            <File Id="Dapper.dll" KeyPath="yes" Source="SourceDir\Dapper.dll" />
+          </Component>
+          <Component Id="dapper_license.txt" Guid="{140F1D95-6B50-4B06-8619-80456AFE38C0}">
+            <File Id="dapper_license.txt" KeyPath="yes" Source="SourceDir\dapper_license.txt" />
+          </Component>
+          <Component Id="dbsc.Core.dll" Guid="{820EF55A-7ACB-44A6-A66E-4A3D0A84A5F9}">
+            <File Id="dbsc.Core.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.dll" />
+          </Component>
+          <Component Id="license.txt" Guid="{22E951A1-67B3-4A0F-ACA8-AFACFACE6B64}">
+            <File Id="license.txt" KeyPath="yes" Source="SourceDir\license.txt" />
+          </Component>
+          <Component Id="msdbsc.exe" Guid="{6687A181-6AF1-4A66-AAC0-50710A7F3F2A}">
+            <File Id="msdbsc.exe" KeyPath="yes" Source="SourceDir\msdbsc.exe" />
+          </Component>
+          <Component Id="msdbsc.exe.config" Guid="{FC728195-BB03-4969-8124-6E0464F4317A}">
+            <File Id="msdbsc.exe.config" KeyPath="yes" Source="SourceDir\msdbsc.exe.config" />
+          </Component>
+          <Component Id="NDesk.Options.dll" Guid="{13D13D27-DC42-4F12-8216-C3AB2D53BF60}">
+            <File Id="NDesk.Options.dll" KeyPath="yes" Source="SourceDir\NDesk.Options.dll" />
+          </Component>
+          <Component Id="ndesk_options_license.txt" Guid="{184476B8-6658-49CC-8A4E-14E32BD7A544}">
+            <File Id="ndesk_options_license.txt" KeyPath="yes" Source="SourceDir\ndesk_options_license.txt" />
+          </Component>
+          <Component Id="notice.txt" Guid="{8C4FFF7D-749D-4C14-8431-EF04AAA70A62}">
+            <File Id="notice.txt" KeyPath="yes" Source="SourceDir\notice.txt" />
+          </Component>
+          <Component Id="readme.txt" Guid="{687A135A-5904-4089-A807-AAC2E0E746B8}">
+            <File Id="readme.txt" KeyPath="yes" Source="SourceDir\readme.txt" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <DirectoryRef Id="TARGETDIR">
+      <!-- TODO: Alter non-system environment variable if only installing for current user. -->
+      <Component Id='AddToPath' Guid='{415BA4D2-13CB-4F6F-A76A-1139E9B22CFB}' KeyPath='yes'>
+        <Environment Id ='PATH' Name='PATH' Value='[INSTALLDIR]' System='yes' Permanent='no' Action='set' Part='last' />
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="msdbsc" Title="msdbsc" Description="DBSC for Microsoft SQL Server." Display="expand"
+             ConfigurableDirectory="INSTALLDIR" Level="1" Absent="disallow" InstallDefault="local" AllowAdvertise="no">
+      <ComponentRef Id="AddToPath"/>
+      <ComponentRef Id="Dapper.dll"/>
+      <ComponentRef Id="dapper_license.txt"/>
+      <ComponentRef Id="dbsc.Core.dll"/>
+      <ComponentRef Id="license.txt"/>
+      <ComponentRef Id="msdbsc.exe"/>
+      <ComponentRef Id="msdbsc.exe.config"/>
+      <ComponentRef Id="NDesk.Options.dll"/>
+      <ComponentRef Id="ndesk_options_license.txt"/>
+      <ComponentRef Id="notice.txt"/>
+      <ComponentRef Id="readme.txt"/>
+    </Feature>
+  </Product>
+</Wix>

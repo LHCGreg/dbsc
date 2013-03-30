@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
+     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <!-- -ext WiXNetFxExtension -->
+  <!-- -ext WixBalExtension -->
+  <!-- -ext WixUtilExtension -->
+  <Bundle Manufacturer="Greg Najda" Name="DBSC for Microsoft SQL Server 2.0.0" UpgradeCode="{BDDCB5F9-5462-4928-9EA7-DB704CF14A03}" Version="2.0.0">
+    <util:ComponentSearch Guid="{8CADE366-1FC9-4E3A-B33D-711C3812C428}" Variable="SMO11X86INSTALLED" />
+
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
+      <bal:WixStandardBootstrapperApplication SuppressOptionsUI="yes" LicenseUrl="" />
+      <!-- license is already in the main msi-->
+    </BootstrapperApplicationRef>
+    <Chain>
+      <PackageGroupRef Id="NetFx40Web"/>
+      <MsiPackage Id="MSO11x86Package" DisplayInternalUI="yes"
+                  EnableFeatureSelection="yes" SourceFile="$(var.SMO11x86MSI)" InstallCondition="NOT SMO11X86INSTALLED">
+      </MsiPackage>
+      <MsiPackage Id="msdbscPackage" EnableFeatureSelection="yes" SourceFile="installer.msi" DisplayInternalUI="yes" />
+    </Chain>
+  </Bundle>
+</Wix>
