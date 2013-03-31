@@ -60,9 +60,6 @@ It could be run standalone but the user would get an error message if .NET 4.0 o
           <Component Id="notice.txt" Guid="{8C4FFF7D-749D-4C14-8431-EF04AAA70A62}">
             <File Id="notice.txt" KeyPath="yes" Source="SourceDir\notice.txt" />
           </Component>
-          <Component Id="readme.txt" Guid="{687A135A-5904-4089-A807-AAC2E0E746B8}">
-            <File Id="readme.txt" KeyPath="yes" Source="SourceDir\readme.txt" />
-          </Component>
         </Directory>
       </Directory>
     </Directory>
@@ -86,7 +83,6 @@ It could be run standalone but the user would get an error message if .NET 4.0 o
       <ComponentRef Id="NDesk.Options.dll"/>
       <ComponentRef Id="ndesk_options_license.txt"/>
       <ComponentRef Id="notice.txt"/>
-      <ComponentRef Id="readme.txt"/>
     </Feature>
   </Product>
 </Wix>
