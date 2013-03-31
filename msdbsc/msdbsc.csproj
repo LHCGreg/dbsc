@@ -106,6 +106,6 @@
     <Exec Command="light.exe -ext WiXNetFxExtension -ext WixUIExtension -pedantic installer.wixobj" WorkingDirectory="$(OutDir)" />
     <Exec Command="candle.exe -ext WiXNetFxExtension -ext WixBalExtension -ext WixUtilExtension -pedantic &quot;-dSMO11x86MSI=$(SMO11x86MSI)&quot; &quot;-dSqlClrTypesx86MSI=$(SqlClrTypes2012x86MSI)&quot; $(ProjectDir)Installer\bundle.wxs" WorkingDirectory="$(OutDir)" />
     <Exec Command="light.exe -ext WiXNetFxExtension -ext WixBalExtension -ext WixUtilExtension -pedantic bundle.wixobj" WorkingDirectory="$(OutDir)" />
-    <Move SourceFiles="$(OutDir)bundle.exe" DestinationFiles="$(OutDir)msdbsc-2.0.0-setup.exe" />
+    <Move SourceFiles="$(OutDir)bundle.exe" DestinationFiles="$(OutDir)sql_server_msdbsc-2.0.0-setup.exe" />
   </Target>
 </Project>
