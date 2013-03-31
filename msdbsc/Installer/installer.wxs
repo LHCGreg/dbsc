@@ -1,4 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- This is the WiX file defining the installer for msdbsc. It is intended to be included in the installation bundle (bundle.wxs).
+It could be run standalone but the user would get an error message if .NET 4.0 or x86 SMO 11 is not installed. -->
+
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
   <!-- -ext WiXNetFxExtension -->
   <!-- -ext WixUIExtension -->
