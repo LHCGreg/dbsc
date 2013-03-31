@@ -82,13 +82,11 @@
     </Content>
     <Content Include="Installer\installer.wxs" />
     <Content Include="Installer\bundle.wxs" />
+    <Content Include="Installer\installer_readme.txt" />
     <Content Include="license.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="notice.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="readme.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
