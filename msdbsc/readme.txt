@@ -1,1 +1,1 @@
-﻿﻿Requires .NET 4.0 (http://www.microsoft.com/en-us/download/details.aspx?id=17851) and ENU\x86\SharedManagementObjects.msi and ENU\x86\SQLSysClrTypes.msi from http://www.microsoft.com/en-us/download/details.aspx?id=35580
+﻿Requires .NET 4.0 (http://www.microsoft.com/en-us/download/details.aspx?id=17851) and ENU\x86\SharedManagementObjects.msi and ENU\x86\SQLSysClrTypes.msi from http://www.microsoft.com/en-us/download/details.aspx?id=35580
