@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- This is the WiX file defining the installer for pgdbsc. It is intended to be included in the installation bundle (bundle.wxs).
+It could be run standalone but the user would get an error message if .NET 4.0 is not installed. -->
+
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+  <!-- -ext WiXNetFxExtension -->
+  <!-- -ext WixUIExtension -->
+
+  <!-- TODO: One installer for everything, selectable features? -->
+  <Product Name='DBSC for PostgreSQL' Id='{355B1DEE-BA74-496C-97F0-794E163D2977}' UpgradeCode='{543D4029-0E75-4FEA-9B2C-A0E03823889A}'
+      Language='1033' Codepage='1252' Version='2.0.0' Manufacturer='Greg Najda'>
+    <Package Id='*' Description="DBSC for PostgreSQL 2.0.0" Manufacturer='Greg Najda' Languages='1033'
+             Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>
+    <Media Id='1' Cabinet='pgdbsc.cab' EmbedCab='yes' />
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <UIRef Id="WixUI_InstallDir"/>
+    <UIRef Id="WixUI_ErrorProgressText" />
+    <WixVariable Id="WixUILicenseRtf" Value="SourceDir\license.rtf" />
+
+    <MajorUpgrade DowngradeErrorMessage="A later version of DBSC for PostgreSQL is already installed." />
+
+    <PropertyRef Id="NETFRAMEWORK40FULL"/>
+    <Condition Message="DBSC for PostgreSQL requires .NET 4.0 to be installed.">Installed OR NETFRAMEWORK40FULL</Condition>
+
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='ProgramFilesFolder' Name='PFiles'>
+        <Directory Id='INSTALLDIR' Name='DBSC for PostgreSQL'>
+          <Component Id="Dapper.dll" Guid="{38902832-5320-49E0-9B2F-BBBA03AB10A8}">
+            <File Id="Dapper.dll" KeyPath="yes" Source="SourceDir\Dapper.dll" />
+          </Component>
+          <Component Id="dapper_license.txt" Guid="{1609D93A-AA0D-4464-97FB-BD5EA0017BBB}">
+            <File Id="dapper_license.txt" KeyPath="yes" Source="SourceDir\dapper_license.txt" />
+          </Component>
+          <Component Id="dbsc.Core.dll" Guid="{E0A7E10B-C60D-49D8-9F42-62C7BAE8BEF2}">
+            <File Id="dbsc.Core.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.dll" />
+          </Component>
+          <Component Id="license.txt" Guid="{70D8273B-1C2A-49BB-8F92-3B737EC91F71}">
+            <File Id="license.txt" KeyPath="yes" Source="SourceDir\license.txt" />
+          </Component>
+          <Component Id="MiscUtil.dll" Guid="{90BB94BD-42EB-403A-8DD2-D0B5894E8468}">
+            <File Id="MiscUtil.dll" KeyPath="yes" Source="SourceDir\MiscUtil.dll" />
+          </Component>
+          <Component Id="misc_util_licence.txt" Guid="{A2D0630B-19EE-4DEA-86CA-CC0167633161}">
+            <File Id="misc_util_licence.txt" KeyPath="yes" Source="SourceDir\misc_util_licence.txt" />
+          </Component>
+          <Component Id="Mono.Security.dll" Guid="{8CBECC67-F7AA-48FE-A78D-541FE77A83CB}">
+            <File Id="Mono.Security.dll" KeyPath="yes" Source="SourceDir\Mono.Security.dll" />
+          </Component>
+          <Component Id="mono_security_license.txt" Guid="{6E11FC18-6CB7-4186-B5CB-914A2C5E56D9}">
+            <File Id="mono_security_license.txt" KeyPath="yes" Source="SourceDir\mono_security_license.txt" />
+          </Component>
+          <Component Id="NDesk.Options.dll" Guid="{6C87F8C6-6CDE-4258-903C-CB058C917B67}">
+            <File Id="NDesk.Options.dll" KeyPath="yes" Source="SourceDir\NDesk.Options.dll" />
+          </Component>
+          <Component Id="ndesk_options_license.txt" Guid="{4BA84955-8776-4614-91EA-350F1D4EB595}">
+            <File Id="ndesk_options_license.txt" KeyPath="yes" Source="SourceDir\ndesk_options_license.txt" />
+          </Component>
+          <Component Id="notice.txt" Guid="{D4ADF2CA-8424-4AD7-9D5F-9BF21CCDC8B9}">
+            <File Id="notice.txt" KeyPath="yes" Source="SourceDir\notice.txt" />
+          </Component>
+          <Component Id="Npgsql.dll" Guid="{F1279271-7EC1-486B-8E49-F04086410ACB}">
+            <File Id="Npgsql.dll" KeyPath="yes" Source="SourceDir\Npgsql.dll" />
+          </Component>
+          <Component Id="npgsql_license.txt" Guid="{41A8DCCE-0183-406B-A9EE-725C80E66376}">
+            <File Id="npgsql_license.txt" KeyPath="yes" Source="SourceDir\npgsql_license.txt" />
+          </Component>
+          <Component Id="pgdbsc.exe" Guid="{C0905658-FA71-47C8-8B54-10A425D501EC}">
+            <File Id="pgdbsc.exe" KeyPath="yes" Source="SourceDir\pgdbsc.exe" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id='AddToPath' Guid='{DF95C1BA-39A5-4E93-B281-CD2E7C21973D}' KeyPath='yes'>
+        <Environment Id='PATH' Name='PATH' Value='[INSTALLDIR]' System='yes' Permanent='no' Action='set' Part='last' />
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="pgdbsc" Title="pgdbsc" Description="DBSC for PostgreSQL" Display="expand"
+             ConfigurableDirectory="INSTALLDIR" Level="1" Absent="disallow" InstallDefault="local" AllowAdvertise="no">
+      <ComponentRef Id="AddToPath"/>
+      <ComponentRef Id="Dapper.dll"/>
+      <ComponentRef Id="dapper_license.txt"/>
+      <ComponentRef Id="dbsc.Core.dll"/>
+      <ComponentRef Id="license.txt"/>
+      <ComponentRef Id="MiscUtil.dll"/>
+      <ComponentRef Id="misc_util_licence.txt"/>
+      <ComponentRef Id="Mono.Security.dll"/>
+      <ComponentRef Id="mono_security_license.txt"/>
+      <ComponentRef Id="NDesk.Options.dll"/>
+      <ComponentRef Id="ndesk_options_license.txt"/>
+      <ComponentRef Id="notice.txt"/>
+      <ComponentRef Id="Npgsql.dll"/>
+      <ComponentRef Id="npgsql_license.txt"/>
+      <ComponentRef Id="pgdbsc.exe"/>
+    </Feature>
+  </Product>
+</Wix>

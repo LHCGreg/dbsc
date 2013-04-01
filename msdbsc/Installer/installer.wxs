@@ -6,7 +6,6 @@ It could be run standalone but the user would get an error message if .NET 4.0 o
   <!-- -ext WiXNetFxExtension -->
   <!-- -ext WixUIExtension -->
 
-  <!-- TODO: "Install only for current user" -->
   <!-- TODO: One installer for everything, selectable features? -->
   <Product Name='DBSC for Microsoft SQL Server' Id='85AFBD98-CAB3-45E4-9966-1A08478F85AD' UpgradeCode='4ACC01B6-DC11-4D38-8191-2D53B2DCE204'
       Language='1033' Codepage='1252' Version='2.0.0' Manufacturer='Greg Najda'>
@@ -65,7 +64,6 @@ It could be run standalone but the user would get an error message if .NET 4.0 o
     </Directory>
 
     <DirectoryRef Id="TARGETDIR">
-      <!-- TODO: Alter non-system environment variable if only installing for current user. -->
       <Component Id='AddToPath' Guid='{415BA4D2-13CB-4F6F-A76A-1139E9B22CFB}' KeyPath='yes'>
         <Environment Id ='PATH' Name='PATH' Value='[INSTALLDIR]' System='yes' Permanent='no' Action='set' Part='last' />
       </Component>
