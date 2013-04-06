@@ -30,6 +30,10 @@ namespace dbsc.Core
         }
 
         public string TargetDb { get; private set; }
+
+        private string m_targetDbServer = "localhost";
+        public string TargetDbServer { get { return m_targetDbServer; } set { m_targetDbServer = value; } }
+
         public string Username { get; private set; }
         public string Password { get; private set; }
 
@@ -72,6 +76,27 @@ namespace dbsc.Core
             return lines.Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
         }
 
+        public virtual CheckoutOptions GetCheckoutOptions()
+        {
+            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, username: Username, password: Password);
+            CheckoutOptions options = new CheckoutOptions(targetDbInfo);
+            options.CreationTemplate = GetDbCreationTemplate();
+            options.Directory = ScriptDirectory;
+            options.Revision = Revision;
+            options.ImportOptions = GetImportOptions();
+            return options;
+        }
+
+        public virtual UpdateOptions GetUpdateOptions()
+        {
+            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, username: Username, password: Password);
+            UpdateOptions options = new UpdateOptions(targetDbInfo);
+            options.Directory = ScriptDirectory;
+            options.Revision = Revision;
+            options.ImportOptions = GetImportOptions();
+            return options;
+        }
+
         public virtual ImportOptions GetImportOptions()
         {
             if (SourceDbServer == null)
@@ -90,7 +115,7 @@ namespace dbsc.Core
                 { "?|h|help", "Show this message and exit.", argExistence => ShowHelp = (argExistence != null) },
                 { "v|version", "Show version information and exit.", argExistence => ShowVersion = (argExistence != null) },
                 { "targetDb=", "Target database name to create or update. Defaults to the master database name detected from script names.", arg => TargetDb = arg },
-                // targetDbServer handled in derived classes because default is different
+                { "targetDbServer=", "Server of the target database. Defaults to localhost.", arg => TargetDbServer = arg },
                 { "u|username=", "Username to use to log in to the target database. If not specified, log in with integrated security.", arg => Username = arg },
                 { "p|password=", "Password to use to log in to the target database. If not specified, log in with integrated security.", arg => Password = arg },
                 { "dir|scriptDirectory=", "Directory with sql scripts to run. If not specified, defaults to the current directory.", arg => ScriptDirectory = arg },

@@ -9,40 +9,9 @@ namespace dbsc.Postgres
 {
     class CommandLineArgs : BaseCommandLineArgs
     {
-        private string m_targetDbServer = "localhost";
-        public string TargetDbServer { get { return m_targetDbServer; } set { m_targetDbServer = value; } }
-        
         public CommandLineArgs()
         {
             ;
-        }
-
-        public override OptionSet GetOptionSet()
-        {
-            OptionSet options = base.GetOptionSet();
-            options.Add("targetDbServer=", "Server of the target database. Defaults to localhost.", arg => TargetDbServer = arg);
-            return options;
-        }
-
-        public CheckoutOptions GetCheckoutOptions()
-        {
-            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, username: Username, password: Password);
-            CheckoutOptions options = new CheckoutOptions(targetDbInfo);
-            options.CreationTemplate = GetDbCreationTemplate();
-            options.Directory = ScriptDirectory;
-            options.Revision = Revision;
-            options.ImportOptions = GetImportOptions();
-            return options;
-        }
-
-        public UpdateOptions GetUpdateOptions()
-        {
-            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, username: Username, password: Password);
-            UpdateOptions options = new UpdateOptions(targetDbInfo);
-            options.Directory = ScriptDirectory;
-            options.Revision = Revision;
-            options.ImportOptions = GetImportOptions();
-            return options;
         }
     }
 }
