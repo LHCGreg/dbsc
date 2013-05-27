@@ -34,6 +34,22 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dapper">
       <HintPath>..\lib\Dapper\Dapper.dll</HintPath>
@@ -98,13 +114,11 @@
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
+    <Error Condition="'$(Platform)' != 'x86'" Text="msdbsc must be built targeting x86 because of a dependency on the x86 version of SQL Management Objects." />
   </Target>
   <Target Name="AfterBuild">
   </Target>
-  -->
   <Target Name="BuildInstaller" DependsOnTargets="Build">
     <Exec Command="candle.exe -ext WiXNetFxExtension -ext WixUIExtension -pedantic $(ProjectDir)Installer\installer.wxs" WorkingDirectory="$(OutDir)" />
     <Exec Command="light.exe -ext WiXNetFxExtension -ext WixUIExtension -pedantic installer.wixobj" WorkingDirectory="$(OutDir)" />
