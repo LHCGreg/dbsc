@@ -1,0 +1,11 @@
+﻿mydbsc
+Copyright 2013 Greg Najda, licensed under the GPL version 3 (gpl.txt)
+
+
+mydbsc uses the following libraries:
+
+NDesk.Options is copyright NDesk.org and is licensed under the MIT/X11 license (ndesk_options_license.txt).
+
+Dapper is Copyright (c) 2012 Sam Saffron and Marc Gravell and is licensed under the Apache License 2.0 (dapper_license.txt).
+
+MySQL.Data Copyright (c) 2004, 2011, Oracle and/or its affiliates and is licensed under the GPL version 2 (mysql_.data_license.txt). See "mysql.data Licenses for Third-Party Components" folder for license acknowledgements for software used by MySQL.Data.
