@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NDesk.Options;
 using System.IO;
 using System.Reflection;
+using NDesk.Options;
 
 namespace dbsc.Core
 {
@@ -101,7 +101,7 @@ namespace dbsc.Core
         {
             if (SourceDbServer == null)
                 return null;
-            
+
             DbConnectionInfo sourceDbInfo = new DbConnectionInfo(server: SourceDbServer, database: SourceDb, username: SourceUsername, password: SourcePassword);
             ImportOptions importOptions = new ImportOptions(sourceDbInfo);
             importOptions.TablesToImport = GetImportTableList();
@@ -117,14 +117,14 @@ namespace dbsc.Core
                 { "targetDb=", "Target database name to create or update. Defaults to the master database name detected from script names.", arg => TargetDb = arg },
                 { "targetDbServer=", "Server of the target database. Defaults to localhost.", arg => TargetDbServer = arg },
                 { "u|username=", "Username to use to log in to the target database. If not specified, log in with integrated security.", arg => Username = arg },
-                { "p|password=", "Password to use to log in to the target database. If not specified, log in with integrated security.", arg => Password = arg },
+                { "p|password=", "Password to use to log in to the target database. If not specified and username is not specified, log in with integrated security. If not specified and username is specified, you will be prompted for your password.", arg => Password = arg },
                 { "dir|scriptDirectory=", "Directory with sql scripts to run. If not specified, defaults to the current directory.", arg => ScriptDirectory = arg },
                 { "r=", "Revision number to check out or update up to. If not specified, goes up to the highest available revision.", arg => Revision = int.Parse(arg) }, // TODO: tryparse and throw friendly error
                 { "dbCreateTemplate=", "File with a template to use when creating the database in a checkout. $DatabaseName$ will be replaced with the database name. If not specified, a simple \"CREATE DATABASE $DatabaseName$\" will be used. This is a good place to set database options or grant permissions.", arg => DbTemplateFilePath = arg },
                 { "sourceDbServer=", "Database server to import data from. Data will be imported when the target database's revision matches the source database's revision. The source database must have been created using dbsc.", arg => SourceDbServer = arg },
                 { "sourceDb=", "Database to import data from. If not specified, defaults to the master database name.", arg => SourceDb = arg },
                 { "sourceUsername=", "Username to use to log in to the source database. If not specified, uses integrated security.", arg => SourceUsername = arg },
-                { "sourcePassword=", "Password to use to log in to the source database.", arg => SourcePassword = arg },
+                { "sourcePassword=", "Password to use to log in to the source database. If not specified and username is not specified, uses integrated security. If not specified and username is specified, you will be prompted for your password.", arg => SourcePassword = arg },
                 { "importTableList=", "File with a list of tables to import from the source database, one per line. If not specified, all tables will be imported.", arg => ImportTableListPath = arg },
                 { "<>", arg => SetCommand(arg) }
             };
@@ -200,6 +200,69 @@ namespace dbsc.Core
             {
                 throw new OptionException("sourceDbServer must be specified if importing data.", "sourcePassword");
             }
+
+            if (Username != null && Password == null)
+            {
+                Console.Write("Password for {0} on {1}: ", Username, TargetDbServer);
+                Password = ReadPassword("username");
+            }
+
+            if (SourceUsername != null && SourcePassword == null)
+            {
+                Console.Write("Password for {0} on {1}: ", SourceUsername, SourceDbServer);
+                SourcePassword = ReadPassword("sourceUsername");
+            }
+        }
+
+        private string ReadPassword(string userOptionName)
+        {
+            // If Console.ReadKey returns a ConsoleKeyInfo with KeyChar and Key of 0 on Mono, stdin or stdout is redirected.
+            // stdout being redirected affecting the value of Console.ReadKey is a bug (https://bugzilla.xamarin.com/show_bug.cgi?id=12552).
+            // Returning 0 when stdin is redirected is also a bug (https://bugzilla.xamarin.com/show_bug.cgi?id=12551).
+            // The documented behavior is to throw an InvalidOperationException.
+
+            bool runningOnMono = Type.GetType("Mono.Runtime") != null;
+            StringBuilder textEntered = new StringBuilder();
+
+            while (true)
+            {
+                ConsoleKeyInfo key;
+                try
+                {
+                    key = Console.ReadKey(intercept: true);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Console.ReadKey throws InvalidOperationException if stdin is not a console
+                    // .NET 4.5 provides Console.IsInputRedirected.
+                    // Switch to 4.5 once Linux distros start packaging a Mono version that support 4.5.
+                    throw new OptionException("Cannot prompt for password because stdin is redirected.", userOptionName);
+                }
+                if (runningOnMono && key.KeyChar == '\0' && (int)key.Key == 0)
+                {
+                    throw new OptionException("Cannot prompt for password because stdin is redirected.", userOptionName);
+                }
+
+                if (key.Key == ConsoleKey.Enter)
+                {
+                    Console.WriteLine();
+                    break;
+                }
+                else if (key.Key == ConsoleKey.Backspace)
+                {
+                    if (textEntered.Length > 0)
+                    {
+                        textEntered.Length = textEntered.Length - 1;
+                    }
+                }
+                else
+                {
+                    char c = key.KeyChar;
+                    textEntered.Append(c);
+                }
+            }
+
+            return textEntered.ToString();
         }
 
         public void DisplayHelp(TextWriter writer)
