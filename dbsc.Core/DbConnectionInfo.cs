@@ -11,20 +11,26 @@ namespace dbsc.Core
         public string Database { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+
+        /// <summary>
+        /// If null, use the normal port for the database.
+        /// </summary>
+        public int? Port { get; set; }
         public int TimeoutInSeconds { get; set; }
 
-        public DbConnectionInfo(string server, string database, string username, string password)
+        public DbConnectionInfo(string server, string database, int? port, string username, string password)
         {
             Server = server;
             Database = database;
             Username = username;
             Password = password;
+            Port = port;
             TimeoutInSeconds = 60 * 60 * 24 * 7; // 1 week - plenty of time for imports
         }
 
         public virtual DbConnectionInfo Clone()
         {
-            return new DbConnectionInfo(server: Server, database: Database, username: Username, password: Password);
+            return new DbConnectionInfo(server: Server, database: Database, port: Port, username: Username, password: Password);
         }
     }
 }

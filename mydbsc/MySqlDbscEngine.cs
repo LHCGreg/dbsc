@@ -8,6 +8,7 @@ using dbsc.Core;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace dbsc.MySql
 {
@@ -171,7 +172,9 @@ AND TABLE_TYPE = 'BASE TABLE'";
                 try
                 {
                     Stopwatch mysqldumpTimer = Stopwatch.StartNew();
-                    string mysqldumpArgs = string.Format("--no-defaults --skip-comments --skip-add-drop-table --no-create-info --no-autocommit {0} {1} {2} {3} {4}",
+                    string mysqldumpArgs = string.Format("--no-defaults --skip-comments --skip-add-drop-table --no-create-info --no-autocommit {0} {1} {2} {3} {4} {5} {6}",
+                        QuoteCommandLineArg(string.Format("--host={0}", options.SourceDatabase.Server)),
+                        options.SourceDatabase.Port != null ? QuoteCommandLineArg(string.Format(CultureInfo.InvariantCulture, "--port={0}", options.SourceDatabase.Port.Value)) : "",
                         QuoteCommandLineArg(string.Format("--user={0}", options.SourceDatabase.Username)),
                         QuoteCommandLineArg(string.Format("--password={0}", options.SourceDatabase.Password)),
                         QuoteCommandLineArg(string.Format("--result-file={0}", tempFilePath)),
@@ -216,38 +219,31 @@ AND TABLE_TYPE = 'BASE TABLE'";
                 try
                 {
                     Stopwatch importDumpTimer = Stopwatch.StartNew();
-                    string mysqlArgs = string.Format("{0} {1} {2} {3}",
+                    string mysqlArgs = string.Format("{0} {1} {2} {3} {4}",
                         QuoteCommandLineArg(string.Format("--database={0}", targetConnectionInfo.Database)),
                         QuoteCommandLineArg(string.Format("--host={0}", targetConnectionInfo.Server)),
+                        targetConnectionInfo.Port != null ? QuoteCommandLineArg(string.Format(CultureInfo.InvariantCulture, "--port={0}", targetConnectionInfo.Port.Value)) : "",
                         QuoteCommandLineArg(string.Format("--user={0}", targetConnectionInfo.Username)),
                         QuoteCommandLineArg(string.Format("--password={0}", targetConnectionInfo.Password))
                     );
 
                     Process mysql = new Process()
                     {
-                        // TODO: args for mysql
-
                         StartInfo = new ProcessStartInfo("mysql", mysqlArgs)
                         {
                             CreateNoWindow = true,
                             ErrorDialog = false,
                             RedirectStandardError = true,
-                            //RedirectStandardOutput = true,
                             RedirectStandardInput = true,
                             UseShellExecute = false
                         }
                     };
 
-                    //object consoleLock = new object();
-
-                    //mysql.OutputDataReceived += (sender, e) => { lock (consoleLock) { Console.WriteLine(e.Data); } };
-                    //mysql.ErrorDataReceived += (sender, e) => { lock (consoleLock) { Console.WriteLine(e.Data); } };
                     mysql.ErrorDataReceived += (sender, e) => { Console.WriteLine(e.Data); };
                     using (FileStream dumpFile = File.OpenRead(tempFilePath))
                     using (mysql)
                     {
                         mysql.Start();
-                        //mysql.BeginOutputReadLine();
                         mysql.BeginErrorReadLine();
                         dumpFile.CopyTo(mysql.StandardInput.BaseStream);
                         mysql.StandardInput.BaseStream.Flush();

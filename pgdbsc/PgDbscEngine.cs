@@ -32,7 +32,12 @@ namespace dbsc.Postgres
             builder.Database = connectionInfo.Database;
             builder.Host = connectionInfo.Server;
 
-            // Do not set this to true! Imports get weird threading issues if you do - probably a pug in Npgsql
+            if (connectionInfo.Port != null)
+            {
+                builder.Port = connectionInfo.Port.Value;
+            }
+
+            // Do not set this to true! Imports get weird threading issues if you do - probably a bug in Npgsql
             builder.SyncNotification = false;
 
             if (connectionInfo.Username == null)

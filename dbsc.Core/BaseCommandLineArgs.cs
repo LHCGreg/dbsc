@@ -34,6 +34,8 @@ namespace dbsc.Core
         private string m_targetDbServer = "localhost";
         public string TargetDbServer { get { return m_targetDbServer; } set { m_targetDbServer = value; } }
 
+        public int? TargetDbPort { get; private set; }
+
         public string Username { get; private set; }
         public string Password { get; private set; }
 
@@ -65,6 +67,7 @@ namespace dbsc.Core
         public string SourceDb { get; private set; }
         public string SourceUsername { get; private set; }
         public string SourcePassword { get; private set; }
+        public int SourceDbPort { get; private set; }
         public string ImportTableListPath { get; private set; }
 
         public IList<string> GetImportTableList()
@@ -78,7 +81,7 @@ namespace dbsc.Core
 
         public virtual CheckoutOptions GetCheckoutOptions()
         {
-            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, username: Username, password: Password);
+            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, port: TargetDbPort, username: Username, password: Password);
             CheckoutOptions options = new CheckoutOptions(targetDbInfo);
             options.CreationTemplate = GetDbCreationTemplate();
             options.Directory = ScriptDirectory;
@@ -89,7 +92,7 @@ namespace dbsc.Core
 
         public virtual UpdateOptions GetUpdateOptions()
         {
-            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, username: Username, password: Password);
+            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, port: TargetDbPort, username: Username, password: Password);
             UpdateOptions options = new UpdateOptions(targetDbInfo);
             options.Directory = ScriptDirectory;
             options.Revision = Revision;
@@ -102,7 +105,7 @@ namespace dbsc.Core
             if (SourceDbServer == null)
                 return null;
 
-            DbConnectionInfo sourceDbInfo = new DbConnectionInfo(server: SourceDbServer, database: SourceDb, username: SourceUsername, password: SourcePassword);
+            DbConnectionInfo sourceDbInfo = new DbConnectionInfo(server: SourceDbServer, database: SourceDb, port: SourceDbPort, username: SourceUsername, password: SourcePassword);
             ImportOptions importOptions = new ImportOptions(sourceDbInfo);
             importOptions.TablesToImport = GetImportTableList();
             return importOptions;
@@ -116,6 +119,7 @@ namespace dbsc.Core
                 { "v|version", "Show version information and exit.", argExistence => ShowVersion = (argExistence != null) },
                 { "targetDb=", "Target database name to create or update. Defaults to the master database name detected from script names.", arg => TargetDb = arg },
                 { "targetDbServer=", "Server of the target database. Defaults to localhost.", arg => TargetDbServer = arg },
+                { "port|targetDbPort=", "Port number of the target database to connect to. Defaults to the normal port. Not relevant for MS SQL Server.", arg => TargetDbPort = int.Parse(arg) },
                 { "u|username=", "Username to use to log in to the target database. If not specified, log in with integrated security.", arg => Username = arg },
                 { "p|password=", "Password to use to log in to the target database. If not specified and username is not specified, log in with integrated security. If not specified and username is specified, you will be prompted for your password.", arg => Password = arg },
                 { "dir|scriptDirectory=", "Directory with sql scripts to run. If not specified, defaults to the current directory.", arg => ScriptDirectory = arg },
@@ -123,6 +127,7 @@ namespace dbsc.Core
                 { "dbCreateTemplate=", "File with a template to use when creating the database in a checkout. $DatabaseName$ will be replaced with the database name. If not specified, a simple \"CREATE DATABASE $DatabaseName$\" will be used. This is a good place to set database options or grant permissions.", arg => DbTemplateFilePath = arg },
                 { "sourceDbServer=", "Database server to import data from. Data will be imported when the target database's revision matches the source database's revision. The source database must have been created using dbsc.", arg => SourceDbServer = arg },
                 { "sourceDb=", "Database to import data from. If not specified, defaults to the master database name.", arg => SourceDb = arg },
+                { "sourcePort|sourceDbPort=", "Port number of the source database to connect to. Defaults to the normal port. Not relevant for MS SQL Server.", arg => SourceDbPort = int.Parse(arg) },
                 { "sourceUsername=", "Username to use to log in to the source database. If not specified, uses integrated security.", arg => SourceUsername = arg },
                 { "sourcePassword=", "Password to use to log in to the source database. If not specified and username is not specified, uses integrated security. If not specified and username is specified, you will be prompted for your password.", arg => SourcePassword = arg },
                 { "importTableList=", "File with a list of tables to import from the source database, one per line. If not specified, all tables will be imported.", arg => ImportTableListPath = arg },

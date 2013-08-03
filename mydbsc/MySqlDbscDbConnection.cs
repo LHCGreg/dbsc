@@ -49,6 +49,10 @@ namespace dbsc.MySql
             }
 
             builder.Server = connectionInfo.Server;
+            if (connectionInfo.Port != null)
+            {
+                builder.Port = (uint)connectionInfo.Port.Value;
+            }
 
             string connString = builder.ToString();
             return connString;
