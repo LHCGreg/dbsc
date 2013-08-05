@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\Debug %28x86%29\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -28,14 +28,14 @@
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Release %28x86%29\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\Debug %28AnyCPU%29\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -44,7 +44,7 @@
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Release %28AnyCPU%29\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -113,8 +113,12 @@
       <Link>npgsql_license.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Installer\bundle.wxs" />
-    <Content Include="Installer\installer.wxs" />
+    <Content Include="Installer\bundle.wxs">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Installer\installer.wxs">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Installer\installer_readme.txt" />
     <Content Include="license.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -122,6 +126,7 @@
     <Content Include="notice.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="version.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="license.rtf">
@@ -129,17 +134,6 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
-  <Target Name="BuildInstaller" DependsOnTargets="Build">
-    <Exec Command="candle.exe -ext WiXNetFxExtension -ext WixUIExtension -pedantic $(ProjectDir)Installer\installer.wxs" WorkingDirectory="$(OutDir)" />
-    <Exec Command="light.exe -ext WiXNetFxExtension -ext WixUIExtension -pedantic installer.wixobj" WorkingDirectory="$(OutDir)" />
-    <Exec Command="candle.exe -ext WiXNetFxExtension -ext WixBalExtension -pedantic $(ProjectDir)Installer\bundle.wxs" WorkingDirectory="$(OutDir)" />
-    <Exec Command="light.exe -ext WiXNetFxExtension -ext WixBalExtension -pedantic -out postgresql_pgdbsc-2.0.0-setup.exe bundle.wixobj" WorkingDirectory="$(OutDir)" />
-  </Target>
+  <Import Project="..\common_csproj.targets" />
+  <Import Project="pgdbsc.targets" />
 </Project>

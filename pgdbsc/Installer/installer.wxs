@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<!-- This is the WiX file defining the installer for pgdbsc. It is intended to be included in the installation bundle (bundle.wxs).
+<!-- This is the WiX file defining the installer for pgdbsc.
+The installer generated is intended to be included in the installation bundle (bundle.wxs).
 It could be run standalone but the user would get an error message if .NET 4.0 is not installed. -->
 
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
   <!-- -ext WiXNetFxExtension -->
   <!-- -ext WixUIExtension -->
 
-  <!-- TODO: One installer for everything, selectable features? -->
   <Product Name='DBSC for PostgreSQL' Id='{355B1DEE-BA74-496C-97F0-794E163D2977}' UpgradeCode='{543D4029-0E75-4FEA-9B2C-A0E03823889A}'
-      Language='1033' Codepage='1252' Version='2.0.0' Manufacturer='Greg Najda'>
-    <Package Id='*' Description="DBSC for PostgreSQL 2.0.0" Manufacturer='Greg Najda' Languages='1033'
+      Language='1033' Codepage='1252' Version='$(var.VersionWithoutBuild)' Manufacturer='Greg Najda'>
+    <Package Id='*' Description="DBSC for PostgreSQL $(var.VersionWithoutBuild)" Manufacturer='Greg Najda' Languages='1033'
              Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>
     <Media Id='1' Cabinet='pgdbsc.cab' EmbedCab='yes' />
 

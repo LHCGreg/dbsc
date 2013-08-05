@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildThisFileDirectory)common.targets"/>
+
+  <!-- Can't do up-to-date checking of creating the dynamic assembly info file until SetVersionProperties has run -->
+  <Target Name="CreateDynamicAssemblyInfo" DependsOnTargets="SetVersionProperties;_CreateDynamicAssemblyInfo">
+
+  </Target>
+
+  <Target Name="_CreateDynamicAssemblyInfo" Inputs="$(MSBuildThisFileFullPath)" Outputs="Properties\AssemblyInfo_$(Version).cs">
+    <MSBuild.Community.Tasks.AssemblyInfo CodeLanguage="CS" OutputFile="Properties\AssemblyInfo_$(Version).cs"
+                  AssemblyVersion="$(Version)" AssemblyFileVersion="$(Version)" />
+    <ItemGroup>
+      <Compile Include="Properties\AssemblyInfo_$(Version).cs" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CleanDynamicAssemblyInfo" DependsOnTargets="SetVersionProperties">
+    <ItemGroup>
+      <DynamicAssemblyInfoFiles Include="Properties\AssemblyInfo_*.cs" />
+    </ItemGroup>
+    <Delete Files="@(DynamicAssemblyInfoFiles)" />
+  </Target>
+
+  <PropertyGroup>
+    <BuildDependsOn>
+      CreateDynamicAssemblyInfo;
+      $(BuildDependsOn)
+    </BuildDependsOn>
+  </PropertyGroup>
+
+  <Target Name="BuildInstaller" DependsOnTargets="Build;_BuildInstaller;_BuildBundle">
+
+  </Target>
+  <Target Name="_BuildInstaller">
+    <MSBuild Projects="installer.wixproj"
+             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+  </Target>
+  <Target Name="_BuildBundle">
+    <MSBuild Projects="bundle.wixproj"
+             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+  </Target>
+  <Target Name="CleanInstaller">
+    <MSBuild Projects="installer.wixproj" Targets="Clean" Condition="Exists('installer.wixproj')"
+             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+    <MSBuild Projects="bundle.wixproj" Targets="Clean" Condition="Exists('bundle.wixproj')"
+             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+  </Target>
+
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanInstaller
+    </CleanDependsOn>
+  </PropertyGroup>
+
+  <Target Name="BuildZipPackage" DependsOnTargets="_CheckZipProperties;SetVersionProperties;Build">
+    <RemoveDir Directories="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)" />
+
+    <ItemGroup>
+      <BuildOutput Include="bin\$(Configuration) ($(Platform))\**\*"
+                   Exclude="**\*.pdb;**\*.mdb;**\*.xml;**\*vshost.exe*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BuildOutput)" DestinationFolder="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)\%(RecursiveDir)" />
+    <MSBuild.ExtensionPack.Compression.Zip TaskAction="Create" ZipFileName="$(ZipNameWithoutVersion)_$(Version).zip" CompressPath="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)" />
+    <Move SourceFiles="$(ZipNameWithoutVersion)_$(Version).zip" DestinationFolder="ZipReleases" />
+    <RemoveDir Directories="ZipReleases\Staging" />
+  </Target>
+
+  <Target Name="_CheckZipProperties">
+    <Error Condition="'$(ZipNameWithoutVersion)' == ''" Text="ZipNameWithoutVersion not set" />
+  </Target>
+
+  <Target Name="CleanZipReleases">
+    <RemoveDir Directories="ZipReleases" />
+  </Target>
+
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanZipReleases
+    </CleanDependsOn>
+  </PropertyGroup>
+</Project>

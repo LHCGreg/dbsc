@@ -4,7 +4,7 @@
      xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
   <!-- -ext WiXNetFxExtension -->
   <!-- -ext WixBalExtension -->
-  <Bundle Manufacturer="Greg Najda" Name="DBSC for PostgreSQL 2.0.0" UpgradeCode="{2ECC4D5B-3A06-4E93-82EA-3051DB81BD3C}" Version="2.0.0">
+  <Bundle Manufacturer="Greg Najda" Name="DBSC for PostgreSQL $(var.VersionWithoutBuild)" UpgradeCode="{2ECC4D5B-3A06-4E93-82EA-3051DB81BD3C}" Version="$(var.VersionWithoutBuild)">
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication SuppressOptionsUI="yes" LicenseUrl="" />
       <!-- license is already in the main msi-->

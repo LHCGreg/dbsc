@@ -5,7 +5,7 @@
   <!-- -ext WiXNetFxExtension -->
   <!-- -ext WixBalExtension -->
   <!-- -ext WixUtilExtension -->
-  <Bundle Manufacturer="Greg Najda" Name="DBSC for Microsoft SQL Server 2.0.0" UpgradeCode="{BDDCB5F9-5462-4928-9EA7-DB704CF14A03}" Version="2.0.0">
+  <Bundle Manufacturer="Greg Najda" Name="DBSC for Microsoft SQL Server $(var.VersionWithoutBuild)" UpgradeCode="{BDDCB5F9-5462-4928-9EA7-DB704CF14A03}" Version="$(var.VersionWithoutBuild)">
     <util:ComponentSearch Guid="{8CADE366-1FC9-4E3A-B33D-711C3812C428}" Variable="SMO11X86INSTALLED" />
     <util:ComponentSearch Guid="{29B22E49-2B4E-4C8E-BCC9-546A30BF9D24}" Variable="SQLCLRTYPESX86INSTALLED"/>
 

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -19,7 +19,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Release %28x86%29\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -29,26 +29,10 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\Debug %28x86%29\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dapper">
@@ -112,17 +96,9 @@
     <Content Include="readme.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="version.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="BeforeBuild">
-    <Error Condition="'$(Platform)' != 'x86'" Text="msdbsc must be built targeting x86 because of a dependency on the x86 version of SQL Management Objects." />
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  <Target Name="BuildInstaller" DependsOnTargets="Build">
-    <Exec Command="candle.exe -ext WiXNetFxExtension -ext WixUIExtension -pedantic $(ProjectDir)Installer\installer.wxs" WorkingDirectory="$(OutDir)" />
-    <Exec Command="light.exe -ext WiXNetFxExtension -ext WixUIExtension -pedantic installer.wixobj" WorkingDirectory="$(OutDir)" />
-    <Exec Command="candle.exe -ext WiXNetFxExtension -ext WixBalExtension -ext WixUtilExtension -pedantic &quot;-dSMO11x86MSI=$(SMO11x86MSI)&quot; &quot;-dSqlClrTypesx86MSI=$(SqlClrTypes2012x86MSI)&quot; $(ProjectDir)Installer\bundle.wxs" WorkingDirectory="$(OutDir)" />
-    <Exec Command="light.exe -ext WiXNetFxExtension -ext WixBalExtension -ext WixUtilExtension -pedantic -out sql_server_msdbsc-2.0.0-setup.exe bundle.wixobj" WorkingDirectory="$(OutDir)" />
-  </Target>
+  <Import Project="..\common_csproj.targets" />
+  <Import Project="msdbsc.targets" />
 </Project>
