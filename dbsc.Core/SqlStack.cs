@@ -21,9 +21,9 @@ namespace dbsc.Core
         internal SqlStack(IEnumerable<string> filePaths)
         {
             ScriptsByRevision = new Dictionary<int, string>();
-            
-            // DatabaseName[.Comment].#+.sql
-            Regex upgradeScriptRegex = new Regex(@"(?<MasterDatabaseName>[^.]+)(?<CommentWithDot>\.[^.]+)?\.(?<Revision>\d+)\.sql", RegexOptions.IgnoreCase);
+
+            // DatabaseName.#+[.Comment].sql
+            Regex upgradeScriptRegex = new Regex(@"(?<MasterDatabaseName>[^.]+)\.(?<Revision>\d+)(?<CommentWithDot>\.[^.]+)?\.sql", RegexOptions.IgnoreCase);
             
             foreach (string filePath in filePaths)
             {
@@ -53,7 +53,7 @@ namespace dbsc.Core
 
             if (!ScriptsByRevision.ContainsKey(0))
             {
-                throw new DbscException("No r0 script found. Syntax is MasterDatabaseName[.comment].0000.sql.");
+                throw new DbscException("No r0 script found. Syntax is MasterDatabaseName.0000[.comment].sql.");
             }
         }
     }
