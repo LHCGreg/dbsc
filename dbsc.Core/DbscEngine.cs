@@ -85,6 +85,12 @@ namespace dbsc.Core
         }
 
         protected string RevisionPropertyName { get { return "Version"; } }
+        protected string LastUpdatedPropertyName { get { return "LastChangeUTC"; } }
+
+        private string GetCurrentTimestampString()
+        {
+            return DateTime.UtcNow.ToString("s"); // ex: 2008-04-10T06:30:00
+        }
 
         private void InitializeDatabase(IDbscDbConnection conn, string masterDatabaseName)
         {
@@ -93,7 +99,8 @@ namespace dbsc.Core
             Dictionary<string, string> initialProperties = new Dictionary<string, string>()
                 {
                     { "MasterDatabaseName", masterDatabaseName },
-                    { RevisionPropertyName, "-1" }
+                    { RevisionPropertyName, "-1" },
+                    { LastUpdatedPropertyName, GetCurrentTimestampString() }
                 };
             CreateMetadataProperties(conn, initialProperties);
         }
@@ -224,6 +231,10 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 string newVersionString = revisionNumber.ToString(CultureInfo.InvariantCulture);
                 UpdateMetadataProperty(conn, RevisionPropertyName, newVersionString);
                 currentVersion = revisionNumber;
+
+                // Update timestamp metadata
+                string timestampString = GetCurrentTimestampString();
+                UpdateMetadataProperty(conn, LastUpdatedPropertyName, timestampString);
 
                 // check for import
                 if (importOptions != null && revisionNumber == sourceDatabaseRevision)
