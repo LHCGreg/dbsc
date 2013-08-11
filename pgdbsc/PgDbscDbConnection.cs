@@ -47,7 +47,17 @@ namespace dbsc.Postgres
 
         private void OnNotice(object sender, NpgsqlNoticeEventArgs e)
         {
-            Console.WriteLine("{0}: {1}", e.Notice.Severity, e.Notice.Message);
+            if (!NoticeIsNoise(e))
+            {
+                Console.WriteLine("{0}: {1}", e.Notice.Severity, e.Notice.Message);
+            }
+        }
+
+        private bool NoticeIsNoise(NpgsqlNoticeEventArgs e)
+        {
+            // Npgsql does not seem to actually return any sort of message number, so go by message text.
+            return e.Notice.Message.Contains("CREATE TABLE will create implicit sequence")
+                || e.Notice.Message.Contains("CREATE TABLE / PRIMARY KEY will create implicit index");
         }
 
         public override void Dispose()
