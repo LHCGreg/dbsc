@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- This is the WiX file defining the installer for mydbsc.
+The installer generated is intended to be included in the installation bundle (bundle.wxs).
+It could be run standalone but the user would get an error message if .NET 4.0 is not installed. -->
+
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+  <Product Name='DBSC for MySQL' Id='{987BAC77-4BB8-4BCC-8D19-99E9F6D894AF}' UpgradeCode='{6BA42748-AA9B-4000-84C1-952CE454A21D}'
+        Language='1033' Codepage='1252' Version='$(var.VersionWithoutBuild)' Manufacturer='Greg Najda'>
+    <Package Id='*' Description="DBSC for MySQL $(var.VersionWithoutBuild)" Manufacturer='Greg Najda' Languages='1033'
+                 Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>
+    <Media Id='1' Cabinet='mydbsc.cab' EmbedCab='yes' />
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <UIRef Id="WixUI_InstallDir"/>
+    <UIRef Id="WixUI_ErrorProgressText" />
+    <WixVariable Id="WixUILicenseRtf" Value="SourceDir\license.rtf" />
+
+    <MajorUpgrade DowngradeErrorMessage="A later version of DBSC for MySQL is already installed." />
+
+    <PropertyRef Id="NETFRAMEWORK40FULL"/>
+    <Condition Message="DBSC for MySQL requires .NET 4.0 to be installed.">Installed OR NETFRAMEWORK40FULL</Condition>
+
+    <!--
+    Can generate the xml for the components with:
+    heat dir . -gg -nologo -scom -sfrag -srd -sreg -svb6 -suid -o heat.xml
+    From the extraction of a zip release.
+    -->
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='ProgramFilesFolder' Name='PFiles'>
+        <Directory Id='INSTALLDIR' Name='DBSC for MySQL'>
+          <Component Id="Dapper.dll" Guid="{CC787A46-C245-496C-8622-B8A2AFD42D6C}">
+            <File Id="Dapper.dll" KeyPath="yes" Source="SourceDir\Dapper.dll" />
+          </Component>
+          <Component Id="dapper_license.txt" Guid="{0EA2F772-0598-40BC-ACCA-8FCB3BD491AA}">
+            <File Id="dapper_license.txt" KeyPath="yes" Source="SourceDir\dapper_license.txt" />
+          </Component>
+          <Component Id="dbsc.Core.dll" Guid="{51556C1E-EA73-42A9-8C2E-050B56FCD0F0}">
+            <File Id="dbsc.Core.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.dll" />
+          </Component>
+          <Component Id="license.rtf" Guid="{92D94823-344F-4ED8-8C12-22266D6BE92C}">
+            <File Id="license.rtf" KeyPath="yes" Source="SourceDir\license.rtf" />
+          </Component>
+          <Component Id="license.txt" Guid="{75B1BD08-E330-412A-9B92-9349F8110F82}">
+            <File Id="license.txt" KeyPath="yes" Source="SourceDir\license.txt" />
+          </Component>
+          <Component Id="mydbsc.exe" Guid="{B6869608-CBA3-424D-B156-23E9BA8A4789}">
+            <File Id="mydbsc.exe" KeyPath="yes" Source="SourceDir\mydbsc.exe" />
+          </Component>
+          <Component Id="mysql.data.dll" Guid="{1836D4FB-C202-4CDB-A722-AE6625D8ED9F}">
+            <File Id="mysql.data.dll" KeyPath="yes" Source="SourceDir\mysql.data.dll" />
+          </Component>
+          <Component Id="mysql.data_license.txt" Guid="{181BACFE-8D26-449A-8565-71E629A12379}">
+            <File Id="mysql.data_license.txt" KeyPath="yes" Source="SourceDir\mysql.data_license.txt" />
+          </Component>
+          <Component Id="NDesk.Options.dll" Guid="{7A208339-BFF8-4281-9B28-EC11778C8DE3}">
+            <File Id="NDesk.Options.dll" KeyPath="yes" Source="SourceDir\NDesk.Options.dll" />
+          </Component>
+          <Component Id="ndesk_options_license.txt" Guid="{B48B7A6D-BF45-4603-8E68-FB8DC349E53A}">
+            <File Id="ndesk_options_license.txt" KeyPath="yes" Source="SourceDir\ndesk_options_license.txt" />
+          </Component>
+          <Component Id="notice.txt" Guid="{325B5DA6-9C05-478F-8FEA-5192B4721084}">
+            <File Id="notice.txt" KeyPath="yes" Source="SourceDir\notice.txt" />
+          </Component>
+          <Directory Id="mysql.data_Licenses_for_Third_Party_Components" Name="mysql.data Licenses for Third-Party Components">
+            <Component Id="license_us_secure_hash.html" Guid="{9DC05BB3-79F2-4249-8386-4D2EFFC1E73D}">
+              <File Id="license_us_secure_hash.html" KeyPath="yes" Source="SourceDir\mysql.data Licenses for Third-Party Components\license-us-secure-hash.html" />
+            </Component>
+            <Component Id="license_zlib_net.html" Guid="{4B7AE1B0-20BB-48FA-8217-6FC595CD397C}">
+              <File Id="license_zlib_net.html" KeyPath="yes" Source="SourceDir\mysql.data Licenses for Third-Party Components\license-zlib-net.html" />
+            </Component>
+            <Component Id="license_zlib.html" Guid="{FF9D3BDB-95AF-4836-9DDD-1EEC88CCED75}">
+              <File Id="license_zlib.html" KeyPath="yes" Source="SourceDir\mysql.data Licenses for Third-Party Components\license-zlib.html" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id='AddToPath' Guid='{89411381-D4F6-40B1-8926-745DC2FFBB74}' KeyPath='yes'>
+        <Environment Id='PATH' Name='PATH' Value='[INSTALLDIR]' System='yes' Permanent='no' Action='set' Part='last' />
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="mydbsc" Title="mydbsc" Description="DBSC for MySQL" Display="expand"
+         ConfigurableDirectory="INSTALLDIR" Level="1" Absent="disallow" InstallDefault="local" AllowAdvertise="no">
+      <ComponentRef Id="AddToPath"/>
+      <ComponentRef Id="Dapper.dll"/>
+      <ComponentRef Id="dapper_license.txt"/>
+      <ComponentRef Id="dbsc.Core.dll"/>
+      <ComponentRef Id="license.rtf"/>
+      <ComponentRef Id="license.txt"/>
+      <ComponentRef Id="mydbsc.exe"/>
+      <ComponentRef Id="mysql.data.dll"/>
+      <ComponentRef Id="mysql.data_license.txt"/>
+      <ComponentRef Id="NDesk.Options.dll"/>
+      <ComponentRef Id="ndesk_options_license.txt"/>
+      <ComponentRef Id="notice.txt"/>
+      <ComponentRef Id="license_us_secure_hash.html"/>
+      <ComponentRef Id="license_zlib_net.html"/>
+      <ComponentRef Id="license_zlib.html"/>
+    </Feature>
+  </Product>
+</Wix>

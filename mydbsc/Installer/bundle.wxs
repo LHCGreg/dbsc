@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- This is the WiX file defining the installer bundle that installs .NET 4.0 and mydbsc. -->
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
+     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
+  <!-- -ext WiXNetFxExtension -->
+  <!-- -ext WixBalExtension -->
+  <Bundle Manufacturer="Greg Najda" Name="DBSC for MySQL $(var.VersionWithoutBuild)" UpgradeCode="{2765A074-DADC-429C-AE03-F38BA3E1612C}" Version="$(var.VersionWithoutBuild)">
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
+      <bal:WixStandardBootstrapperApplication SuppressOptionsUI="yes" LicenseUrl="" />
+      <!-- license is already in the main msi-->
+    </BootstrapperApplicationRef>
+    <Chain>
+      <PackageGroupRef Id="NetFx40Web"/>
+      <MsiPackage Id="mydbscPackage" EnableFeatureSelection="yes" SourceFile="installer.msi" DisplayInternalUI="yes" />
+    </Chain>
+  </Bundle>
+</Wix>

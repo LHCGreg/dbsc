@@ -29,6 +29,11 @@ It could be run standalone but the user would get an error message if .NET 4.0 o
 
     <Condition Message="DBSC for Microsoft SQL Server requires the 32-bit version of SQL Management Objects to be installed.">Installed OR SMO11X86INSTALLED</Condition>
 
+    <!--
+    Can generate the xml for the components with:
+    heat dir . -gg -nologo -scom -sfrag -srd -sreg -svb6 -suid -o heat.xml
+    From the extraction of a zip release.
+    -->
     <Directory Id='TARGETDIR' Name='SourceDir'>
       <Directory Id='ProgramFilesFolder' Name='PFiles'>
         <Directory Id='INSTALLDIR' Name='DBSC for SQL Server'>
