@@ -24,6 +24,10 @@ namespace dbsc.SqlServer
             builder.ApplicationName = "msdbsc";
             builder.DataSource = connectionInfo.Server;
             builder.InitialCatalog = connectionInfo.Database;
+            
+            // No need to disable connection pooling in order to isolate scripts from each other.
+            // The driver resets the connection settings when taking a connection from the pool.
+            //builder.Pooling = false;
 
             if (connectionInfo.Username == null)
             {
