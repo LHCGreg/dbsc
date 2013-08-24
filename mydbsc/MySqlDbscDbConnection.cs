@@ -36,6 +36,7 @@ namespace dbsc.MySql
             builder.AllowZeroDateTime = true;
             builder.ConnectionTimeout = 10;
             builder.Database = connectionInfo.Database;
+            builder.Pooling = false;
             builder.DefaultCommandTimeout = (uint)connectionInfo.TimeoutInSeconds;
 
             if (connectionInfo.Username == null)

@@ -68,8 +68,9 @@ namespace dbsc.Core
             using (IDbscDbConnection conn = OpenConnection(options.TargetDatabase))
             {
                 InitializeDatabase(conn, sqlStack.MasterDatabaseName);
-                UpdateDatabase(conn, sqlStack, options.Revision, options.ImportOptions, options.TargetDatabase);
             }
+
+            UpdateDatabase(sqlStack, options.Revision, options.ImportOptions, options.TargetDatabase);
         }
 
         private void CreateDatabase(DbConnectionInfo targetDatabase, string creationTemplate)
@@ -184,13 +185,19 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 {
                     throw new DbscException(string.Format("Target database {0} on {1} was not created with dbsc and cannot be updated.", options.TargetDatabase.Database, options.TargetDatabase.Server));
                 }
-                UpdateDatabase(conn, sqlStack, options.Revision, options.ImportOptions, options.TargetDatabase);
             }
+
+            UpdateDatabase(sqlStack, options.Revision, options.ImportOptions, options.TargetDatabase);
         }
 
-        private void UpdateDatabase(IDbscDbConnection conn, SqlStack sqlStack, int? revision, ImportOptions importOptions, DbConnectionInfo targetConnectionInfo)
+        private void UpdateDatabase(SqlStack sqlStack, int? revision, ImportOptions importOptions, DbConnectionInfo targetConnectionInfo)
         {
-            string versionString = GetMetadataProperty(conn, RevisionPropertyName);
+            string versionString;
+            using (IDbscDbConnection conn = OpenConnection(targetConnectionInfo))
+            {
+                versionString = GetMetadataProperty(conn, RevisionPropertyName);
+            }
+
             int versionBeforeUpdate = int.Parse(versionString); // TODO: tryparse
             int currentVersion = versionBeforeUpdate;
 
@@ -225,20 +232,24 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
 
                 // Run upgrade script
                 string upgradeScriptSql = File.ReadAllText(upgradeScriptPath);
-                conn.ExecuteSqlScript(upgradeScriptSql);
+                using (IDbscDbConnection conn = OpenConnection(targetConnectionInfo))
+                {
+                    conn.ExecuteSqlScript(upgradeScriptSql);
 
-                // Update Version metadata
-                string newVersionString = revisionNumber.ToString(CultureInfo.InvariantCulture);
-                UpdateMetadataProperty(conn, RevisionPropertyName, newVersionString);
-                currentVersion = revisionNumber;
+                    // Update Version metadata
+                    string newVersionString = revisionNumber.ToString(CultureInfo.InvariantCulture);
+                    UpdateMetadataProperty(conn, RevisionPropertyName, newVersionString);
+                    currentVersion = revisionNumber;
 
-                // Update timestamp metadata
-                string timestampString = GetCurrentTimestampString();
-                UpdateMetadataProperty(conn, LastUpdatedPropertyName, timestampString);
+                    // Update timestamp metadata
+                    string timestampString = GetCurrentTimestampString();
+                    UpdateMetadataProperty(conn, LastUpdatedPropertyName, timestampString);
+                }
 
                 // check for import
                 if (importOptions != null && revisionNumber == sourceDatabaseRevision)
                 {
+                    using (IDbscDbConnection conn = OpenConnection(targetConnectionInfo))
                     using (IDbscDbConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
                     {
                         ImportData(conn, sourceConn, importOptions, targetConnectionInfo);
@@ -249,6 +260,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
             // allow importing when "updating" to the revison the database is already at
             if (!revisionsToUpgradeTo.Any() && versionBeforeUpdate == sourceDatabaseRevision && importOptions != null)
             {
+                using (IDbscDbConnection conn = OpenConnection(targetConnectionInfo))
                 using (IDbscDbConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
                 {
                     ImportData(conn, sourceConn, importOptions, targetConnectionInfo);

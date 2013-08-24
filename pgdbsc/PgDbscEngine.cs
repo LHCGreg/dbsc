@@ -28,6 +28,10 @@ namespace dbsc.Postgres
         {
             NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder();
             builder.ApplicationName = "pgdbsc";
+
+            // Don't use connection pooling because scripts could potentially change options with SET and expect later
+            // scripts to have a clean environment.
+            builder.Pooling = false;
             builder.CommandTimeout = connectionInfo.TimeoutInSeconds;
             builder.Database = connectionInfo.Database;
             builder.Host = connectionInfo.Server;
