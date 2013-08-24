@@ -31,7 +31,6 @@ namespace dbsc.SqlServer
         {
             ServerConnection serverConnection = new ServerConnection(Connection);
             Server server = new Server(serverConnection);
-            server.ConnectionContext.InfoMessage += OnInfoMessage;
             server.ConnectionContext.ServerMessage += OnServerMessage;
             try
             {
@@ -41,24 +40,19 @@ namespace dbsc.SqlServer
             {
                 // Need to unsubscribe because subscribing does something to the actual underlying connection
                 server.ConnectionContext.ServerMessage -= OnServerMessage;
-                server.ConnectionContext.InfoMessage -= OnInfoMessage;
             }
         }
 
         private void OnServerMessage(object sender, ServerMessageEventArgs e)
         {
-            Console.WriteLine("Server message");
-            Console.WriteLine("{0} {1}: {2}", e.Error.Procedure, e.Error.LineNumber, e.Error.Message);
-        }
-
-        private void OnInfoMessage(object sender, SqlInfoMessageEventArgs e)
-        {
-            Console.WriteLine("Info message");
-            foreach (SqlError message in e.Errors)
+            if (!string.IsNullOrEmpty(e.Error.Procedure))
             {
-                Console.WriteLine("{0} {1}: {2}", message.Procedure, message.LineNumber, message.Message);
+                Console.WriteLine("{0}:{1}: {2}", e.Error.Procedure, e.Error.LineNumber, e.Error.Message);
             }
-            Console.WriteLine(e.Message);
+            else
+            {
+                Console.WriteLine("Line {0}: {1}", e.Error.LineNumber, e.Error.Message);
+            }
         }
 
         public override void Dispose()
