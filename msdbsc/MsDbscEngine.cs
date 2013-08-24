@@ -118,8 +118,11 @@ AND TABLE_NAME <> 'dbsc_metadata'";
             {
                 Stopwatch removeConstraintsTimer = Stopwatch.StartNew();
 
-                string disableConstraintsSql = "EXEC sp_msforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL'";
-                sqlServerTargetConn.Execute(disableConstraintsSql);
+                foreach (string table in allTablesExceptMetadata)
+                {
+                    string disableConstraintsSql = string.Format("ALTER TABLE {0} NOCHECK CONSTRAINT ALL", table);
+                    sqlServerTargetConn.Execute(disableConstraintsSql);
+                }
 
                 removeConstraintsTimer.Stop();
                 Console.Write(removeConstraintsTimer.Elapsed);
@@ -258,8 +261,11 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             {
                 Stopwatch enableConstraintsTimer = Stopwatch.StartNew();
 
-                string enableConstraintsSql = "EXEC sp_msforeachtable 'ALTER TABLE ? WITH CHECK CHECK CONSTRAINT ALL'";
-                sqlServerTargetConn.Execute(enableConstraintsSql);
+                foreach (string table in allTablesExceptMetadata)
+                {
+                    string enableConstraintsSql = string.Format("ALTER TABLE {0} WITH CHECK CHECK CONSTRAINT ALL", table);
+                    sqlServerTargetConn.Execute(enableConstraintsSql);
+                }
 
                 enableConstraintsTimer.Stop();
                 Console.Write(enableConstraintsTimer.Elapsed);
