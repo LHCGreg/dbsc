@@ -67,7 +67,7 @@ namespace dbsc.Core
         public string SourceDb { get; private set; }
         public string SourceUsername { get; private set; }
         public string SourcePassword { get; private set; }
-        public int SourceDbPort { get; private set; }
+        public int? SourceDbPort { get; private set; }
         public string ImportTableListPath { get; private set; }
 
         public IList<string> GetImportTableList()
