@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using Dapper;
 using dbsc.Core;
 using System.Diagnostics;
+using System.Data;
 
 namespace dbsc.SqlServer
 {
@@ -99,6 +100,11 @@ AND TABLE_NAME = 'dbsc_metadata'";
         private class RecoveryModel
         {
             public int RecoveryModelId { get; set; }
+        }
+
+        private class SourceDbInfo
+        {
+            public int snapshot_isolation_state { get; set; }
         }
 
         protected override ICollection<string> GetTableNamesExceptMetadata(IDbscDbConnection conn)
@@ -202,33 +208,71 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
                 sqlServerTargetConn.Execute(setRecoveryToBulkLoggedSql);
             }
 
-            // table is already schema-qualified and enclosed in []
-            foreach (string table in tablesToImport)
+            string sourceDbInfoSql = "SELECT snapshot_isolation_state FROM sys.databases WHERE name = @dbName";
+            SourceDbInfo sourceDbInfo = sqlServerSourceConn.Query<SourceDbInfo>(sourceDbInfoSql, new { dbName = options.SourceDatabase.Database }).FirstOrDefault();
+            if (sourceDbInfo == null)
             {
-                Console.Write("Importing {0}...", table);
-                try
+                throw new DbscException("No rows returned when querying source database info.");
+            }
+            
+            // Use a snapshot isolation transaction if snapshot isolation is enabled.
+            // This will allow doing an import of a live, in-use database while getting transactionally consistent data.
+            // If snapshot isolation is not enabled, just pull data without a transaction. If the database is in use,
+            // you may get transactionally inconsistent data.
+            SqlTransaction sourceDbTransaction = null;
+            if (sourceDbInfo.snapshot_isolation_state == 1)
+            {
+                sourceDbTransaction = sqlServerSourceConn.BeginTransaction(IsolationLevel.Snapshot);
+            }
+
+            using (sourceDbTransaction)
+            {
+                // table is already schema-qualified and enclosed in []
+                foreach (string table in tablesToImport)
                 {
-                    Stopwatch importTimer = Stopwatch.StartNew();
-
-                    SqlBulkCopy bulkCopy = new SqlBulkCopy(sqlServerTargetConn, SqlBulkCopyOptions.KeepIdentity | SqlBulkCopyOptions.KeepNulls | SqlBulkCopyOptions.TableLock, externalTransaction: null);
-                    bulkCopy.BulkCopyTimeout = int.MaxValue;
-                    bulkCopy.DestinationTableName = table;
-
-                    string importSql = string.Format("SELECT * FROM {0}", table);
-                    using (SqlCommand importQuery = new SqlCommand(importSql, sqlServerSourceConn))
+                    Console.Write("Importing {0}...", table);
+                    try
                     {
-                        using (SqlDataReader reader = importQuery.ExecuteReader())
+                        Stopwatch importTimer = Stopwatch.StartNew();
+
+                        SqlBulkCopy bulkCopy = new SqlBulkCopy(sqlServerTargetConn, SqlBulkCopyOptions.KeepIdentity | SqlBulkCopyOptions.KeepNulls | SqlBulkCopyOptions.TableLock, externalTransaction: null);
+                        bulkCopy.BulkCopyTimeout = int.MaxValue;
+                        bulkCopy.DestinationTableName = table;
+
+                        string importSql = string.Format("SELECT * FROM {0}", table);
+                        SqlCommand importQuery;
+                        if (sourceDbTransaction != null)
                         {
-                            bulkCopy.WriteToServer(reader);
+                            importQuery = new SqlCommand(importSql, sqlServerSourceConn, sourceDbTransaction);
                         }
+                        else
+                        {
+                            importQuery = new SqlCommand(importSql, sqlServerSourceConn);
+                        }
+
+                        using (importQuery)
+                        {
+                            using (SqlDataReader reader = importQuery.ExecuteReader())
+                            {
+                                bulkCopy.WriteToServer(reader);
+                            }
+                        }
+
+                        importTimer.Stop();
+                        Console.Write(importTimer.Elapsed);
                     }
-                    
-                    importTimer.Stop();
-                    Console.Write(importTimer.Elapsed);
+                    finally
+                    {
+                        Console.WriteLine();
+                    }
                 }
-                finally
+
+                // Finish the transaction on the source database.
+                // Didn't write anything to source database, so a commit would function as well, but we definitely don't want
+                // to write anything to the source database.
+                if (sourceDbTransaction != null)
                 {
-                    Console.WriteLine();
+                    sourceDbTransaction.Rollback();
                 }
             }
 
