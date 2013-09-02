@@ -12,7 +12,7 @@ using System.Globalization;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscEngine : DbscEngine
+    class MySqlDbscEngine : DbscEngine<MySqlDbscDbConnection>
     {
         protected override DbConnectionInfo GetSystemDatabaseConnectionInfo(DbConnectionInfo targetDatabase)
         {
@@ -21,7 +21,7 @@ namespace dbsc.MySql
             return noDatabase;
         }
 
-        protected override IDbscDbConnection OpenConnection(DbConnectionInfo connectionInfo)
+        protected override MySqlDbscDbConnection OpenConnection(DbConnectionInfo connectionInfo)
         {
             return new MySqlDbscDbConnection(connectionInfo);
         }
@@ -48,9 +48,9 @@ namespace dbsc.MySql
             public string TABLE_NAME { get; set; }
         }
 
-        protected override bool MetaDataTableExists(IDbscDbConnection conn)
+        protected override bool MetaDataTableExists(MySqlDbscDbConnection conn)
         {
-            DbConnectionInfo connInfo = ((MySqlDbscDbConnection)conn).ConnectionInfo;
+            DbConnectionInfo connInfo = conn.ConnectionInfo;
             string sql =
 @"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME = 'dbsc_metadata'
@@ -62,9 +62,9 @@ AND TABLE_SCHEMA = @db";
             return metadataTable != null;
         }
 
-        protected override ICollection<string> GetTableNamesExceptMetadata(IDbscDbConnection conn)
+        protected override ICollection<string> GetTableNamesExceptMetadata(MySqlDbscDbConnection conn)
         {
-            DbConnectionInfo connInfo = ((MySqlDbscDbConnection)conn).ConnectionInfo;
+            DbConnectionInfo connInfo = conn.ConnectionInfo;
             string sql =
 @"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME <> 'dbsc_metadata'
@@ -123,7 +123,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
             return "\"" + backslashOrQuote.Replace(arg, (match) => @"\" + match.ToString()) + "\"";
         }
 
-        protected override void ImportData(IDbscDbConnection targetConn, IDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo)
+        protected override void ImportData(MySqlDbscDbConnection targetConn, MySqlDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo)
         {
             // MS SQL Server and PostgreSQL have simple methods of streaming bulk data to the DB server. MySQL does not.
             // The best MySQL can do is accept a file with the bulk data in it.
@@ -131,18 +131,17 @@ AND TABLE_TYPE = 'BASE TABLE'";
             // The easy but less efficient way is to simply do a mysqldump from the source DB and run it on the target DB.
             // MySQL is dumb, let's go shopping!
 
-            MySqlConnection mySqlTargetConn = ((MySqlDbscDbConnection)targetConn).Connection;
-            MySqlConnection mySqlSourceConn = ((MySqlDbscDbConnection)sourceConn).Connection;
+            const int enableConstraintsTimeoutInSeconds = 60 * 60 * 6;
 
             // Disable foreign key constraints
             string disableForeignKeyChecksSql = "SET foreign_key_checks = 0";
             Console.WriteLine(disableForeignKeyChecksSql);
-            mySqlTargetConn.Execute(disableForeignKeyChecksSql);
+            targetConn.ExecuteSql(disableForeignKeyChecksSql);
 
             // Disable unique checks for performance
             string disableUniqueChecksSql = "SET unique_checks = 0";
             Console.WriteLine(disableUniqueChecksSql);
-            mySqlTargetConn.Execute(disableUniqueChecksSql);
+            targetConn.ExecuteSql(disableUniqueChecksSql);
 
             // Can only disable indexes on MyISAM tables, so don't do that for now.
 
@@ -154,7 +153,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
                 foreach (string table in allTablesExceptMetadata)
                 {
                     string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
-                    mySqlTargetConn.Execute(clearTableSql);
+                    targetConn.ExecuteSql(clearTableSql);
                 }
                 clearTableTimer.Stop();
                 Console.Write(clearTableTimer.Elapsed);
@@ -275,12 +274,12 @@ AND TABLE_TYPE = 'BASE TABLE'";
             // Enable unique checks
             string enableUniqueChecksSql = "SET unique_checks = 1";
             Console.WriteLine(enableUniqueChecksSql);
-            mySqlTargetConn.Execute(enableUniqueChecksSql);
+            targetConn.ExecuteSql(enableUniqueChecksSql, timeoutInSeconds: enableConstraintsTimeoutInSeconds);
 
             // Enable foreign key constraints
             string enableForeignKeyChecksSql = "SET foreign_key_checks = 1";
             Console.WriteLine(enableForeignKeyChecksSql);
-            mySqlTargetConn.Execute(enableForeignKeyChecksSql);
+            targetConn.ExecuteSql(enableForeignKeyChecksSql, timeoutInSeconds: enableConstraintsTimeoutInSeconds);
         }
     }
 }

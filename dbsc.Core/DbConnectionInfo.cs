@@ -16,7 +16,11 @@ namespace dbsc.Core
         /// If null, use the normal port for the database.
         /// </summary>
         public int? Port { get; set; }
-        public int TimeoutInSeconds { get; set; }
+
+        public int ConnectTimeoutInSeconds { get; set; }
+        public int ScriptTimeoutInSeconds { get; set; }
+        public int CommandTimeoutInSeconds { get; set; }
+        public int ImportTableTimeoutInSeconds { get; set; }
 
         public DbConnectionInfo(string server, string database, int? port, string username, string password)
         {
@@ -25,12 +29,21 @@ namespace dbsc.Core
             Username = username;
             Password = password;
             Port = port;
-            TimeoutInSeconds = 60 * 60 * 24 * 7; // 1 week - plenty of time for imports
+
+            ConnectTimeoutInSeconds = 10;
+            ScriptTimeoutInSeconds = 60 * 60 * 24 * 7; // 1 week
+            CommandTimeoutInSeconds = 15;
+            ImportTableTimeoutInSeconds = 60 * 60 * 24 * 7;
         }
 
         public virtual DbConnectionInfo Clone()
         {
-            return new DbConnectionInfo(server: Server, database: Database, port: Port, username: Username, password: Password);
+            DbConnectionInfo clone = new DbConnectionInfo(server: Server, database: Database, port: Port, username: Username, password: Password);
+            clone.ConnectTimeoutInSeconds = this.ConnectTimeoutInSeconds;
+            clone.ScriptTimeoutInSeconds = this.ScriptTimeoutInSeconds;
+            clone.CommandTimeoutInSeconds = this.CommandTimeoutInSeconds;
+            ImportTableTimeoutInSeconds = this.ImportTableTimeoutInSeconds;
+            return clone;
         }
     }
 }

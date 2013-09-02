@@ -6,7 +6,7 @@ using dbsc.Core;
 
 namespace dbsc.Postgres
 {
-    class PgDbscApp : DbscApp<CommandLineArgs, CheckoutOptions, UpdateOptions>
+    class PgDbscApp : DbscApp<CommandLineArgs, CheckoutOptions, UpdateOptions, PgDbscDbConnection>
     {
         public PgDbscApp()
             : base(

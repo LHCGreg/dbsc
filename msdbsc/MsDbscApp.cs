@@ -6,7 +6,7 @@ using dbsc.Core;
 
 namespace dbsc.SqlServer
 {
-    class MsDbscApp : DbscApp<CommandLineArgs, CheckoutOptions, UpdateOptions>
+    class MsDbscApp : DbscApp<CommandLineArgs, CheckoutOptions, UpdateOptions, MsDbscDbConnection>
     {
         public MsDbscApp()
             : base(

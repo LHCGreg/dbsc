@@ -17,22 +17,8 @@ namespace dbsc.Core
         /// Executes SQL requested by the DBSC engine itself, not a user-provided script.
         /// </summary>
         /// <param name="sql"></param>
-        void ExecuteSql(string sql);
-
-        /// <summary>
-        /// Executes SQL requested by the DBSC engine itself, not a user-provided script.
-        /// </summary>
-        /// <param name="sql"></param>
         /// <param name="sqlParams"></param>
-        void ExecuteSql(string sql, IDictionary<string, object> sqlParams);
-
-        /// <summary>
-        /// Runs a query requested by the DBSC engine itself, not a user-provided script.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="sql"></param>
-        /// <returns></returns>
-        IEnumerable<T> Query<T>(string sql);
+        void ExecuteSql(string sql, IDictionary<string, object> sqlParams = null, int? timeoutInSeconds = null);
 
         /// <summary>
         /// Runs a query requested by the DBSC engine itself, not a user-provided script.
@@ -41,7 +27,7 @@ namespace dbsc.Core
         /// <param name="sql"></param>
         /// <param name="sqlParams"></param>
         /// <returns></returns>
-        IEnumerable<T> Query<T>(string sql, IDictionary<string, object> sqlParams);
+        IEnumerable<T> Query<T>(string sql, IDictionary<string, object> sqlParams = null, int? timeoutInSeconds = null);
     }
 }
 

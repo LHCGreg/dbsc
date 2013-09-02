@@ -8,17 +8,12 @@ using dbsc.Core;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscDbConnection : BaseDbscDbConnection
+    class MySqlDbscDbConnection : BaseDbscDbConnection<MySqlConnection, MySqlTransaction>
     {
-        public MySqlConnection Connection { get; private set; }
-
-        public DbConnectionInfo ConnectionInfo { get; private set; }
-
         public MySqlDbscDbConnection(DbConnectionInfo connectionInfo)
-            : base(OpenConnection(connectionInfo))
+            : base(OpenConnection(connectionInfo), connectionInfo)
         {
-            Connection = (MySqlConnection)BaseConnection;
-            ConnectionInfo = connectionInfo;
+            ;
         }
 
         private static MySqlConnection OpenConnection(DbConnectionInfo connectionInfo)
@@ -34,11 +29,10 @@ namespace dbsc.MySql
             MySqlConnectionStringBuilder builder = new MySqlConnectionStringBuilder();
             builder.AllowBatch = true;
             builder.AllowZeroDateTime = true;
-            builder.ConnectionTimeout = 10;
+            builder.ConnectionTimeout = (uint)connectionInfo.ConnectTimeoutInSeconds;
             builder.Database = connectionInfo.Database;
             builder.Pooling = false;
             builder.AllowUserVariables = true;
-            builder.DefaultCommandTimeout = (uint)connectionInfo.TimeoutInSeconds;
 
             if (connectionInfo.Username == null)
             {

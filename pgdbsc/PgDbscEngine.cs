@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace dbsc.Postgres
 {
-    class PgDbscEngine : DbscEngine
+    class PgDbscEngine : DbscEngine<PgDbscDbConnection>
     {
         public PgDbscEngine()
         {
@@ -24,38 +24,9 @@ namespace dbsc.Postgres
             return postgresDbInfo;
         }
 
-        protected override IDbscDbConnection OpenConnection(DbConnectionInfo connectionInfo)
+        protected override PgDbscDbConnection OpenConnection(DbConnectionInfo connectionInfo)
         {
-            NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder();
-            builder.ApplicationName = "pgdbsc";
-
-            // Don't use connection pooling because scripts could potentially change options with SET and expect later
-            // scripts to have a clean environment.
-            builder.Pooling = false;
-            builder.CommandTimeout = connectionInfo.TimeoutInSeconds;
-            builder.Database = connectionInfo.Database;
-            builder.Host = connectionInfo.Server;
-
-            if (connectionInfo.Port != null)
-            {
-                builder.Port = connectionInfo.Port.Value;
-            }
-
-            // Do not set this to true! Imports get weird threading issues if you do - probably a bug in Npgsql
-            builder.SyncNotification = false;
-
-            if (connectionInfo.Username == null)
-            {
-                builder.IntegratedSecurity = true;
-            }
-            else
-            {
-                builder.UserName = connectionInfo.Username;
-                builder.Password = connectionInfo.Password;
-            }
-
-            string connectionString = builder.ToString();
-            return new PgDbscDbConnection(connectionString);
+            return new PgDbscDbConnection(connectionInfo);
         }
 
         protected override string CreateMetadataTableSql
@@ -75,25 +46,23 @@ namespace dbsc.Postgres
         protected override string MetadataPropertyNameColumn { get { return "property_name"; } }
         protected override string MetadataPropertyValueColumn { get { return "property_value"; } }
 
-        protected override ICollection<string> GetTableNamesExceptMetadata(IDbscDbConnection conn)
+        protected override ICollection<string> GetTableNamesExceptMetadata(PgDbscDbConnection conn)
         {
             string sql = @"SELECT table_schema, table_name FROM information_schema.tables
 WHERE table_schema NOT LIKE 'pg_%' AND table_schema <> 'information_schema'
 AND table_type = 'BASE TABLE'
 AND table_name <> 'dbsc_metadata'";
 
-            PgDbscDbConnection pgConn = (PgDbscDbConnection)conn;
-            List<string> tables = pgConn.Connection.Query<Table>(sql).Select(t => QuotePgIdentifier(t.table_schema, t.table_name)).ToList();
+            List<string> tables = conn.Query<Table>(sql).Select(t => QuotePgIdentifier(t.table_schema, t.table_name)).ToList();
             return tables;
         }
 
-        protected override bool MetaDataTableExists(IDbscDbConnection conn)
+        protected override bool MetaDataTableExists(PgDbscDbConnection conn)
         {
-            PgDbscDbConnection pgConn = (PgDbscDbConnection)conn;
             string sql = @"SELECT count(*) FROM information_schema.tables
 WHERE table_type = 'BASE TABLE'
 AND table_name = 'dbsc_metadata'";
-            return pgConn.Connection.Query<long>(sql).First() > 0;
+            return conn.Query<long>(sql).First() > 0;
         }
 
         private string QuotePgIdentifier(string identifier)
@@ -129,12 +98,13 @@ AND table_name = 'dbsc_metadata'";
             public string def { get; set; }
         }
 
-        protected override void ImportData(IDbscDbConnection targetConn, IDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo)
+        protected override void ImportData(PgDbscDbConnection targetConn, PgDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo)
         {
-            PgDbscDbConnection pgTargetConn = (PgDbscDbConnection)targetConn;
-            PgDbscDbConnection pgSourceConn = (PgDbscDbConnection)sourceConn;
+            const int enableIndexTimeoutInSeconds = 60 * 60 * 6;
+            const int enableConstraintTimeoutInSeconds = 60 * 60 * 6;
+            const int vacuumTimeoutInSeconds = 60 * 60 * 6;
 
-            using (NpgsqlTransaction transaction = pgTargetConn.Connection.BeginTransaction())
+            using (NpgsqlTransaction transaction = targetConn.BeginTransaction())
             {
                 // Disable foreign key constraints and primary key constraints temporarily by removing them, then recreating them after the import
 
@@ -151,7 +121,7 @@ JOIN pg_namespace ON pg_class.relnamespace = pg_namespace.oid
 WHERE (pg_constraint.contype = 'f' OR pg_constraint.contype = 'p')
 AND pg_namespace.nspname NOT LIKE 'pg_%' AND pg_namespace.nspname <> 'information_schema'";
 
-                    List<ConstraintInfo> keys = pgTargetConn.Connection.Query<ConstraintInfo>(keySql).ToList();
+                    List<ConstraintInfo> keys = targetConn.Query<ConstraintInfo>(keySql, transaction).ToList();
 
                     // Drop foreign keys first because they depend on primary keys
                     foreach (ConstraintInfo key in keys.OrderBy(k => k.contype == 'f' ? 1 : 2))
@@ -159,7 +129,7 @@ AND pg_namespace.nspname NOT LIKE 'pg_%' AND pg_namespace.nspname <> 'informatio
                         string qualifiedTableName = QuotePgIdentifier(key.nspname, key.tablename);
                         string quotedConstraintName = QuotePgIdentifier(key.conname);
                         string dropSql = string.Format("ALTER TABLE {0} DROP CONSTRAINT {1}", qualifiedTableName, quotedConstraintName);
-                        pgTargetConn.Connection.Execute(dropSql, transaction: transaction);
+                        targetConn.ExecuteSql(dropSql, transaction);
                         string createSql = string.Format("ALTER TABLE {0} ADD {1}", qualifiedTableName, key.def);
                         if (key.contype == 'f')
                             fkCreationSql.Add(createSql);
@@ -191,12 +161,12 @@ WHERE table_schema.nspname NOT LIKE 'pg_%' AND table_schema.nspname <> 'informat
 AND ind_schema.nspname NOT LIKE 'pg_%' AND ind_schema.nspname <> 'information_schema'
 AND tab.relname <> 'dbsc_metadata'";
 
-                    List<IndexInfo> indexes = pgTargetConn.Connection.Query<IndexInfo>(indexSql).ToList();
+                    List<IndexInfo> indexes = targetConn.Query<IndexInfo>(indexSql, transaction).ToList();
                     foreach (IndexInfo index in indexes)
                     {
                         string qualifiedIndexName = QuotePgIdentifier(index.index_schema, index.index_name);
                         string dropSql = string.Format("DROP INDEX {0}", qualifiedIndexName);
-                        pgTargetConn.Connection.Execute(dropSql, transaction: transaction);
+                        targetConn.ExecuteSql(dropSql, transaction);
                         indexCreationSql.Add(index.def);
                     }
 
@@ -215,7 +185,7 @@ AND tab.relname <> 'dbsc_metadata'";
                     foreach (string table in allTablesExceptMetadata)
                     {
                         string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
-                        pgTargetConn.Connection.Execute(clearTableSql, transaction: transaction);
+                        targetConn.ExecuteSql(clearTableSql, transaction);
                     }
                     clearTableTimer.Stop();
                     Console.Write(clearTableTimer.Elapsed);
@@ -232,22 +202,7 @@ AND tab.relname <> 'dbsc_metadata'";
                     {
                         Stopwatch timer = Stopwatch.StartNew();
 
-                        // Import table
-                        NpgsqlCopyOut source = new NpgsqlCopyOut(string.Format("COPY {0} TO STDOUT WITH (FORMAT 'text', ENCODING 'utf-8')", table), pgSourceConn.Connection);
-                        source.Start();
-
-                        NpgsqlCommand targetCmd = new NpgsqlCommand();
-                        targetCmd.CommandText = string.Format("COPY {0} FROM STDIN WITH (FORMAT 'text', ENCODING 'utf-8')", table);
-                        targetCmd.Connection = pgTargetConn.Connection;
-                        targetCmd.Transaction = transaction;
-
-                        NpgsqlCopyIn target = new NpgsqlCopyIn(targetCmd, pgTargetConn.Connection);
-                        target.Start();
-
-                        StreamUtil.Copy(source.CopyStream, target.CopyStream);
-
-                        target.End();
-                        source.End();
+                        targetConn.ImportTable(sourceConn, table, targetDbTransaction: transaction);
 
                         timer.Stop();
                         Console.Write(timer.Elapsed);
@@ -265,7 +220,7 @@ AND tab.relname <> 'dbsc_metadata'";
                     Stopwatch indexTimer = Stopwatch.StartNew();
                     foreach (string sql in indexCreationSql)
                     {
-                        pgTargetConn.Connection.Execute(sql, transaction: transaction);
+                        targetConn.ExecuteSql(sql, transaction, timeoutInSeconds: enableIndexTimeoutInSeconds);
                     }
                     indexTimer.Stop();
                     Console.Write(indexTimer.Elapsed);
@@ -283,11 +238,11 @@ AND tab.relname <> 'dbsc_metadata'";
                     // Create primary keys before foreign keys because the foreign keys depend on the primary keys.
                     foreach (string sql in pkCreationSql)
                     {
-                        pgTargetConn.Connection.Execute(sql, transaction: transaction);
+                        targetConn.ExecuteSql(sql, transaction, timeoutInSeconds: enableConstraintTimeoutInSeconds);
                     }
                     foreach (string sql in fkCreationSql)
                     {
-                        pgTargetConn.Connection.Execute(sql, transaction: transaction);
+                        targetConn.ExecuteSql(sql, transaction, timeoutInSeconds: enableConstraintTimeoutInSeconds);
                     }
                     fkTimer.Stop();
                     Console.Write(fkTimer.Elapsed);
@@ -315,7 +270,7 @@ AND tab.relname <> 'dbsc_metadata'";
             try
             {
                 Stopwatch timer = Stopwatch.StartNew();
-                pgTargetConn.Connection.Execute("VACUUM ANALYZE");
+                targetConn.ExecuteSql("VACUUM ANALYZE", timeoutInSeconds: vacuumTimeoutInSeconds);
                 timer.Stop();
                 Console.Write(timer.Elapsed);
             }

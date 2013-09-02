@@ -8,27 +8,60 @@ using dbsc.Core;
 
 namespace dbsc.Postgres
 {
-    class PgDbscDbConnection : BaseDbscDbConnection
+    class PgDbscDbConnection : BaseDbscDbConnection<NpgsqlConnection, NpgsqlTransaction>
     {
-        public NpgsqlConnection Connection { get; private set; }
-        
-        public PgDbscDbConnection(string connectionString)
-            : base(OpenConnection(connectionString))
+        public PgDbscDbConnection(DbConnectionInfo connectionInfo)
+            : base(OpenConnection(connectionInfo), connectionInfo)
         {
-            Connection = (NpgsqlConnection)BaseConnection;
+            ;
         }
 
-        private static NpgsqlConnection OpenConnection(string connectionString)
+        private static NpgsqlConnection OpenConnection(DbConnectionInfo connectionInfo)
         {
+            string connectionString = GetConnectionString(connectionInfo);
             NpgsqlConnection conn = new NpgsqlConnection(connectionString);
             conn.Open();
             return conn;
+        }
+
+        private static string GetConnectionString(DbConnectionInfo connectionInfo)
+        {
+            NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder();
+            builder.ApplicationName = "pgdbsc";
+
+            // Don't use connection pooling because scripts could potentially change options with SET and expect later
+            // scripts to have a clean environment.
+            builder.Pooling = false;
+            builder.Database = connectionInfo.Database;
+            builder.Host = connectionInfo.Server;
+            builder.Timeout = connectionInfo.ConnectTimeoutInSeconds;
+
+            if (connectionInfo.Port != null)
+            {
+                builder.Port = connectionInfo.Port.Value;
+            }
+
+            // Do not set this to true! Imports get weird threading issues if you do - probably a bug in Npgsql
+            builder.SyncNotification = false;
+
+            if (connectionInfo.Username == null)
+            {
+                builder.IntegratedSecurity = true;
+            }
+            else
+            {
+                builder.UserName = connectionInfo.Username;
+                builder.Password = connectionInfo.Password;
+            }
+
+            string connectionString = builder.ToString();
+            return connectionString;
         }
         
         public override void ExecuteSqlScript(string sql)
         {
             Connection.Notice += OnNotice;
-            Connection.Notification += OnNotification;
+            Connection.Notification += OnNotification; // When is this fired?
             try
             {
                 Connection.Execute(sql);
@@ -58,6 +91,39 @@ namespace dbsc.Postgres
             // Npgsql does not seem to actually return any sort of message number, so go by message text.
             return e.Notice.Message.Contains("CREATE TABLE will create implicit sequence")
                 || e.Notice.Message.Contains("CREATE TABLE / PRIMARY KEY will create implicit index");
+        }
+
+        public NpgsqlTransaction BeginTransaction()
+        {
+            return Connection.BeginTransaction();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sourceConn"></param>
+        /// <param name="table">Table name already with quotes and schema-qualified if needed</param>
+        /// <param name="sourceDbTransaction">Required.</param>
+        /// <param name="targetDbTransaction">Required.</param>
+        public void ImportTable(PgDbscDbConnection sourceConn, string table, NpgsqlTransaction targetDbTransaction)
+        {
+            // Import table
+            NpgsqlCopyOut source = new NpgsqlCopyOut(string.Format("COPY {0} TO STDOUT WITH (FORMAT 'text', ENCODING 'utf-8')", table), sourceConn.Connection);
+            source.Start();
+
+            NpgsqlCommand targetCmd = new NpgsqlCommand();
+            targetCmd.CommandText = string.Format("COPY {0} FROM STDIN WITH (FORMAT 'text', ENCODING 'utf-8')", table);
+            targetCmd.Connection = this.Connection;
+            targetCmd.Transaction = targetDbTransaction;
+            targetCmd.CommandTimeout = ConnectionInfo.ImportTableTimeoutInSeconds;
+
+            NpgsqlCopyIn target = new NpgsqlCopyIn(targetCmd, this.Connection);
+            target.Start();
+
+            source.CopyStream.CopyTo(target.CopyStream);
+
+            target.End();
+            source.End();
         }
 
         public override void Dispose()

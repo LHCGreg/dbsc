@@ -8,7 +8,8 @@ using System.Diagnostics;
 
 namespace dbsc.Core
 {
-    public abstract class DbscEngine
+    public abstract class DbscEngine<TConnection>
+        where TConnection : IDbscDbConnection
     {
         public DbscEngine()
         {
@@ -16,14 +17,14 @@ namespace dbsc.Core
         }
 
         protected abstract DbConnectionInfo GetSystemDatabaseConnectionInfo(DbConnectionInfo targetDatabase);
-        protected abstract IDbscDbConnection OpenConnection(DbConnectionInfo connectionInfo);
+        protected abstract TConnection OpenConnection(DbConnectionInfo connectionInfo);
         protected abstract string CreateMetadataTableSql { get; }
         protected abstract string MetadataTableName { get; }
         protected abstract string MetadataPropertyNameColumn { get; }
         protected abstract string MetadataPropertyValueColumn { get; }
-        protected abstract bool MetaDataTableExists(IDbscDbConnection conn);
-        protected abstract void ImportData(IDbscDbConnection targetConn, IDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo);
-        protected abstract ICollection<string> GetTableNamesExceptMetadata(IDbscDbConnection conn);
+        protected abstract bool MetaDataTableExists(TConnection conn);
+        protected abstract void ImportData(TConnection targetConn, TConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo);
+        protected abstract ICollection<string> GetTableNamesExceptMetadata(TConnection conn);
 
         public void Checkout(CheckoutOptions options)
         {
@@ -54,7 +55,7 @@ namespace dbsc.Core
             if (options.ImportOptions != null)
             {
                 // Check that source database was checked out with dbsc
-                using (IDbscDbConnection sourceConn = OpenConnection(options.ImportOptions.SourceDatabase))
+                using (TConnection sourceConn = OpenConnection(options.ImportOptions.SourceDatabase))
                 {
                     if (!MetaDataTableExists(sourceConn))
                     {
@@ -65,7 +66,7 @@ namespace dbsc.Core
 
             CreateDatabase(options.TargetDatabase, options.CreationTemplate);
 
-            using (IDbscDbConnection conn = OpenConnection(options.TargetDatabase))
+            using (TConnection conn = OpenConnection(options.TargetDatabase))
             {
                 InitializeDatabase(conn, sqlStack.MasterDatabaseName);
             }
@@ -76,7 +77,7 @@ namespace dbsc.Core
         private void CreateDatabase(DbConnectionInfo targetDatabase, string creationTemplate)
         {
             DbConnectionInfo masterDatabaseConnectionInfo = GetSystemDatabaseConnectionInfo(targetDatabase);
-            using (IDbscDbConnection masterDatabaseConnection = OpenConnection(masterDatabaseConnectionInfo))
+            using (TConnection masterDatabaseConnection = OpenConnection(masterDatabaseConnectionInfo))
             {
                 string creationSql = creationTemplate.Replace("$DatabaseName$", targetDatabase.Database);
                 Console.WriteLine("Creating database {0} on {1}.", targetDatabase.Database, targetDatabase.Server);
@@ -93,7 +94,7 @@ namespace dbsc.Core
             return DateTime.UtcNow.ToString("s"); // ex: 2008-04-10T06:30:00
         }
 
-        private void InitializeDatabase(IDbscDbConnection conn, string masterDatabaseName)
+        private void InitializeDatabase(TConnection conn, string masterDatabaseName)
         {
             conn.ExecuteSql(CreateMetadataTableSql);
 
@@ -106,7 +107,7 @@ namespace dbsc.Core
             CreateMetadataProperties(conn, initialProperties);
         }
 
-        protected virtual void CreateMetadataProperties(IDbscDbConnection conn, IDictionary<string, string> properties)
+        protected virtual void CreateMetadataProperties(TConnection conn, IDictionary<string, string> properties)
         {
             if (properties.Count == 0)
                 return;
@@ -133,7 +134,7 @@ VALUES
             conn.ExecuteSql(sql, sqlParams);
         }
 
-        protected virtual void UpdateMetadataProperty(IDbscDbConnection conn, string propertyName, string propertyValue)
+        protected virtual void UpdateMetadataProperty(TConnection conn, string propertyName, string propertyValue)
         {
             string sql = string.Format(@"UPDATE {0}
 SET {1} = @value
@@ -146,7 +147,7 @@ WHERE {2} = @name", MetadataTableName, MetadataPropertyValueColumn, MetadataProp
             conn.ExecuteSql(sql, sqlParams);
         }
 
-        protected virtual string GetMetadataProperty(IDbscDbConnection conn, string propertyName)
+        protected virtual string GetMetadataProperty(TConnection conn, string propertyName)
         {
             string sql = string.Format(@"SELECT {0} FROM {1}
 WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataPropertyNameColumn);
@@ -179,7 +180,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 options.ImportOptions.SourceDatabase.Database = sqlStack.MasterDatabaseName;
             }
 
-            using (IDbscDbConnection conn = OpenConnection(options.TargetDatabase))
+            using (TConnection conn = OpenConnection(options.TargetDatabase))
             {
                 if (!MetaDataTableExists(conn))
                 {
@@ -193,7 +194,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
         private void UpdateDatabase(SqlStack sqlStack, int? revision, ImportOptions importOptions, DbConnectionInfo targetConnectionInfo)
         {
             string versionString;
-            using (IDbscDbConnection conn = OpenConnection(targetConnectionInfo))
+            using (TConnection conn = OpenConnection(targetConnectionInfo))
             {
                 versionString = GetMetadataProperty(conn, RevisionPropertyName);
             }
@@ -204,7 +205,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
             int sourceDatabaseRevision = -1;
             if (importOptions != null)
             {
-                using (IDbscDbConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
+                using (TConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
                 {
                     string sourceRevisionString = GetMetadataProperty(sourceConn, RevisionPropertyName);
                     sourceDatabaseRevision = int.Parse(sourceRevisionString); // TODO: tryparse
@@ -232,7 +233,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
 
                 // Run upgrade script
                 string upgradeScriptSql = File.ReadAllText(upgradeScriptPath);
-                using (IDbscDbConnection conn = OpenConnection(targetConnectionInfo))
+                using (TConnection conn = OpenConnection(targetConnectionInfo))
                 {
                     conn.ExecuteSqlScript(upgradeScriptSql);
 
@@ -249,8 +250,8 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 // check for import
                 if (importOptions != null && revisionNumber == sourceDatabaseRevision)
                 {
-                    using (IDbscDbConnection conn = OpenConnection(targetConnectionInfo))
-                    using (IDbscDbConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
+                    using (TConnection conn = OpenConnection(targetConnectionInfo))
+                    using (TConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
                     {
                         ImportData(conn, sourceConn, importOptions, targetConnectionInfo);
                     }
@@ -260,8 +261,8 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
             // allow importing when "updating" to the revison the database is already at
             if (!revisionsToUpgradeTo.Any() && versionBeforeUpdate == sourceDatabaseRevision && importOptions != null)
             {
-                using (IDbscDbConnection conn = OpenConnection(targetConnectionInfo))
-                using (IDbscDbConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
+                using (TConnection conn = OpenConnection(targetConnectionInfo))
+                using (TConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
                 {
                     ImportData(conn, sourceConn, importOptions, targetConnectionInfo);
                 }
@@ -270,7 +271,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
             Console.WriteLine("At revision {0}", currentVersion);
         }
 
-        private void ImportData(IDbscDbConnection targetConn, IDbscDbConnection sourceConn, ImportOptions importOptions, DbConnectionInfo targetConnectionInfo)
+        private void ImportData(TConnection targetConn, TConnection sourceConn, ImportOptions importOptions, DbConnectionInfo targetConnectionInfo)
         {
             Console.WriteLine("Beginning import...");
             Stopwatch timer = Stopwatch.StartNew();

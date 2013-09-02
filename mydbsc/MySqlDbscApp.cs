@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using dbsc.Core;
+using MySql.Data.MySqlClient;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscApp : DbscApp<CommandLineArgs, CheckoutOptions, UpdateOptions>
+    class MySqlDbscApp : DbscApp<CommandLineArgs, CheckoutOptions, UpdateOptions, MySqlDbscDbConnection>
     {
         public MySqlDbscApp()
             : base(
