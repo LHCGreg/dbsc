@@ -105,10 +105,13 @@ namespace dbsc.Postgres
         /// <param name="table">Table name already with quotes and schema-qualified if needed</param>
         /// <param name="sourceDbTransaction">Required.</param>
         /// <param name="targetDbTransaction">Required.</param>
-        public void ImportTable(PgDbscDbConnection sourceConn, string table, NpgsqlTransaction targetDbTransaction)
+        public void ImportTable(PgDbscDbConnection sourceConn, string table, NpgsqlTransaction targetDbTransaction, NpgsqlTransaction sourceDbTransaction)
         {
             // Import table
-            NpgsqlCopyOut source = new NpgsqlCopyOut(string.Format("COPY {0} TO STDOUT WITH (FORMAT 'text', ENCODING 'utf-8')", table), sourceConn.Connection);
+            string copyOutSql = string.Format("COPY {0} TO STDOUT WITH (FORMAT 'text', ENCODING 'utf-8')", table);
+            NpgsqlCommand copyOutCommand = new NpgsqlCommand(copyOutSql, sourceConn.Connection, sourceDbTransaction);
+            copyOutCommand.CommandTimeout = ConnectionInfo.ImportTableTimeoutInSeconds;
+            NpgsqlCopyOut source = new NpgsqlCopyOut(copyOutCommand, sourceConn.Connection);
             source.Start();
 
             NpgsqlCommand targetCmd = new NpgsqlCommand();

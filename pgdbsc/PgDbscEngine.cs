@@ -195,22 +195,30 @@ AND tab.relname <> 'dbsc_metadata'";
                     Console.WriteLine();
                 }
 
-                foreach (string table in tablesToImport)
+                using (NpgsqlTransaction sourceDbTransaction = sourceConn.BeginTransaction())
                 {
-                    Console.Write("Importing {0}...", table);
-                    try
+                    foreach (string table in tablesToImport)
                     {
-                        Stopwatch timer = Stopwatch.StartNew();
+                        Console.Write("Importing {0}...", table);
+                        try
+                        {
+                            Stopwatch timer = Stopwatch.StartNew();
 
-                        targetConn.ImportTable(sourceConn, table, targetDbTransaction: transaction);
+                            targetConn.ImportTable(sourceConn, table, targetDbTransaction: transaction, sourceDbTransaction: sourceDbTransaction);
 
-                        timer.Stop();
-                        Console.Write(timer.Elapsed);
+                            timer.Stop();
+                            Console.Write(timer.Elapsed);
+                        }
+                        finally
+                        {
+                            Console.WriteLine();
+                        }
                     }
-                    finally
-                    {
-                        Console.WriteLine();
-                    }
+
+                    // Finish the transaction on the source database.
+                    // Didn't write anything to source database, so a commit would function as well, but we definitely don't want
+                    // to write anything to the source database.
+                    sourceDbTransaction.Rollback();
                 }
 
                 // Add the indexes back
