@@ -65,6 +65,12 @@ AND table_name = 'dbsc_metadata'";
             return conn.Query<long>(sql).First() > 0;
         }
 
+        protected override bool ImportIsSupported(out string whyNot)
+        {
+            whyNot = null;
+            return true;
+        }
+
         private string QuotePgIdentifier(string identifier)
         {
             // Replace quotes with quotequote and enclose in quotes

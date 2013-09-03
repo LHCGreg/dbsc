@@ -49,6 +49,12 @@ AND TABLE_NAME = 'dbsc_metadata'";
             return conn.Query<int>(sql).First() > 0;
         }
 
+        protected override bool ImportIsSupported(out string whyNot)
+        {
+            whyNot = null;
+            return true;
+        }
+
         private string QuoteSqlServerIdentifier(string identifier)
         {
             // Replace ] with ]] and enclose in []

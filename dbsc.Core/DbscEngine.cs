@@ -25,6 +25,7 @@ namespace dbsc.Core
         protected abstract bool MetaDataTableExists(TConnection conn);
         protected abstract void ImportData(TConnection targetConn, TConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo);
         protected abstract ICollection<string> GetTableNamesExceptMetadata(TConnection conn);
+        protected abstract bool ImportIsSupported(out string whyNot);
 
         public void Checkout(CheckoutOptions options)
         {
@@ -54,6 +55,12 @@ namespace dbsc.Core
 
             if (options.ImportOptions != null)
             {
+                string whyImportNotSupported;
+                if (!ImportIsSupported(out whyImportNotSupported))
+                {
+                    throw new DbscException(whyImportNotSupported);
+                }
+                
                 // Check that source database was checked out with dbsc
                 using (TConnection sourceConn = OpenConnection(options.ImportOptions.SourceDatabase))
                 {
@@ -180,6 +187,15 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 options.ImportOptions.SourceDatabase.Database = sqlStack.MasterDatabaseName;
             }
 
+            if (options.ImportOptions != null)
+            {
+                string whyImportNotSupported;
+                if (!ImportIsSupported(out whyImportNotSupported))
+                {
+                    throw new DbscException(whyImportNotSupported);
+                }
+            }
+
             using (TConnection conn = OpenConnection(options.TargetDatabase))
             {
                 if (!MetaDataTableExists(conn))
@@ -204,7 +220,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
 
             int sourceDatabaseRevision = -1;
             if (importOptions != null)
-            {
+            {               
                 using (TConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
                 {
                     string sourceRevisionString = GetMetadataProperty(sourceConn, RevisionPropertyName);

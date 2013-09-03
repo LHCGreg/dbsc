@@ -123,6 +123,55 @@ AND TABLE_TYPE = 'BASE TABLE'";
             return "\"" + backslashOrQuote.Replace(arg, (match) => @"\" + match.ToString()) + "\"";
         }
 
+        protected override bool ImportIsSupported(out string whyNot)
+        {
+            // mysql and mysqldump must be on the PATH.
+            using (Process mysqldump = new Process()
+            {
+                StartInfo = new ProcessStartInfo("mysqldump", "--version")
+                {
+                    CreateNoWindow = true,
+                    ErrorDialog = false,
+                    UseShellExecute = false
+                },
+            })
+            {
+                try
+                {
+                    mysqldump.Start();
+                }
+                catch (Exception)
+                {
+                    whyNot = "Importing is not supported because you do not have mysqldump installed and on your PATH.";
+                    return false;
+                }
+            }
+
+            using (Process mysql = new Process()
+            {
+                StartInfo = new ProcessStartInfo("mysql", "--version")
+                {
+                    CreateNoWindow = true,
+                    ErrorDialog = false,
+                    UseShellExecute = false
+                },
+            })
+            {
+                try
+                {
+                    mysql.Start();
+                }
+                catch (Exception)
+                {
+                    whyNot = "Importing is not supported because you do not have mysql installed and on your PATH.";
+                    return false;
+                }
+            }
+
+            whyNot = null;
+            return true;
+        }
+
         protected override void ImportData(MySqlDbscDbConnection targetConn, MySqlDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo)
         {
             // MS SQL Server and PostgreSQL have simple methods of streaming bulk data to the DB server. MySQL does not.
