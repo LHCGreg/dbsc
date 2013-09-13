@@ -42,6 +42,22 @@ namespace dbsc.Core.Tests
         }
 
         [Test]
+        public void DifferentExtensionNotPickedUp()
+        {
+            List<string> filePaths = new List<string>()
+            {
+                @"C:\db.0000.sql",
+                @"C:\db.0001.comment.sqlx",
+                @"C:\db.02.SQL"
+            };
+
+            SqlStack stack = new SqlStack(filePaths);
+            Assert.That(stack.ScriptsByRevision[0], Is.EqualTo(@"C:\db.0000.sql"));
+            Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(@"C:\db.02.SQL"));
+            Assert.That(stack.ScriptsByRevision.Count, Is.EqualTo(2));
+        }
+
+        [Test]
         public void MultipleScriptsForSameRevisionThrows()
         {
             List<string> filePaths = new List<string>()
