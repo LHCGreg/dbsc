@@ -8,7 +8,7 @@ using dbsc.Core;
 namespace dbsc.Core.Tests
 {
     [TestFixture]
-    public class SqlStackFixture
+    public class ScriptStackFixture
     {
         [Test]
         public void TestHappyPath()
@@ -20,11 +20,29 @@ namespace dbsc.Core.Tests
                 @"C:\db.02.SQL"
             };
 
-            SqlStack stack = new SqlStack(filePaths);
+            ScriptStack stack = new ScriptStack(filePaths, "sql");
             Assert.That(stack.MasterDatabaseName, Is.EqualTo("db"));
             Assert.That(stack.ScriptsByRevision[0], Is.EqualTo(@"C:\db.0000.sql"));
             Assert.That(stack.ScriptsByRevision[1], Is.EqualTo(@"C:\db.0001.comment.sql"));
             Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(@"C:\db.02.SQL"));
+            Assert.That(stack.ScriptsByRevision.Count, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void NonSqlExtension()
+        {
+            List<string> filePaths = new List<string>()
+            {
+                @"C:\db.0000.js",
+                @"C:\db.0001.comment.js",
+                @"C:\db.02.JS"
+            };
+
+            ScriptStack stack = new ScriptStack(filePaths, "js");
+            Assert.That(stack.MasterDatabaseName, Is.EqualTo("db"));
+            Assert.That(stack.ScriptsByRevision[0], Is.EqualTo(@"C:\db.0000.js"));
+            Assert.That(stack.ScriptsByRevision[1], Is.EqualTo(@"C:\db.0001.comment.js"));
+            Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(@"C:\db.02.JS"));
             Assert.That(stack.ScriptsByRevision.Count, Is.EqualTo(3));
         }
 
@@ -38,7 +56,7 @@ namespace dbsc.Core.Tests
                 @"C:\db.02.SQL"
             };
 
-            Assert.Throws<DbscException>(() => new SqlStack(filePaths));
+            Assert.Throws<DbscException>(() => new ScriptStack(filePaths, "sql"));
         }
 
         [Test]
@@ -51,7 +69,7 @@ namespace dbsc.Core.Tests
                 @"C:\db.02.SQL"
             };
 
-            SqlStack stack = new SqlStack(filePaths);
+            ScriptStack stack = new ScriptStack(filePaths, "sql");
             Assert.That(stack.ScriptsByRevision[0], Is.EqualTo(@"C:\db.0000.sql"));
             Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(@"C:\db.02.SQL"));
             Assert.That(stack.ScriptsByRevision.Count, Is.EqualTo(2));
@@ -67,7 +85,7 @@ namespace dbsc.Core.Tests
                 @"C:\db.02.SQL"
             };
 
-            Assert.Throws<DbscException>(() => new SqlStack(filePaths));
+            Assert.Throws<DbscException>(() => new ScriptStack(filePaths, "sql"));
         }
 
         [Test]
@@ -78,7 +96,7 @@ namespace dbsc.Core.Tests
                 @"C:\db.02.SQL"
             };
 
-            Assert.Throws<DbscException>(() => new SqlStack(filePaths));
+            Assert.Throws<DbscException>(() => new ScriptStack(filePaths, "sql"));
         }
 
         [Test]
@@ -90,7 +108,7 @@ namespace dbsc.Core.Tests
                 @"C:\db.02.SQL"
             };
 
-            SqlStack stack = new SqlStack(filePaths);
+            ScriptStack stack = new ScriptStack(filePaths, "sql");
             Assert.That(stack.ScriptsByRevision.ContainsKey(1), Is.False);
             Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(@"C:\db.02.SQL"));
         }

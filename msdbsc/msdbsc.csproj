@@ -56,10 +56,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandLineArgs.cs" />
     <Compile Include="MsDbscApp.cs" />
     <Compile Include="MsDbscDbConnection.cs" />
     <Compile Include="MsDbscEngine.cs" />
+    <Compile Include="MsImportOperation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -5,18 +5,17 @@ using System.Text;
 
 namespace dbsc.Core
 {
-    public class DbscApp<TCommandLineArgs, TCheckoutOptions, TUpdateOptions, TConnection>
+    public class DbscApp<TCommandLineArgs, TCheckoutOptions, TUpdateOptions>
         where TCommandLineArgs : BaseCommandLineArgs
-        where TCheckoutOptions : CheckoutOptions
-        where TUpdateOptions : UpdateOptions
-        where TConnection : IDbscDbConnection
+        where TCheckoutOptions : ISqlCheckoutOptions<TUpdateOptions>
+        where TUpdateOptions : ISqlUpdateOptions
     {
         private Func<string[], TCommandLineArgs> m_parseArgsFunc;
         private Func<TCommandLineArgs, TCheckoutOptions> m_getCheckoutOptionsFunc;
         private Func<TCommandLineArgs, TUpdateOptions> m_getUpdateOptionsFunc;
-        private DbscEngine<TConnection> m_engine;
+        private DbscEngine<TCheckoutOptions, TUpdateOptions> m_engine;
         
-        public DbscApp(DbscEngine<TConnection> engine, Func<string[], TCommandLineArgs> parseArgsFunc,
+        public DbscApp(DbscEngine<TCheckoutOptions, TUpdateOptions> engine, Func<string[], TCommandLineArgs> parseArgsFunc,
             Func<TCommandLineArgs, TCheckoutOptions> getCheckoutOptionsFunc, Func<TCommandLineArgs, TUpdateOptions> getUpdateOptionsFunc)
         {
             m_engine = engine;

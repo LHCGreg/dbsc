@@ -2,24 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using dbsc.Core;
 
-namespace dbsc.Core
+namespace dbsc.Mongo
 {
-    public class ImportOptions
+    class CommandLineArgs : BaseCommandLineArgs
     {
-        public DbConnectionInfo SourceDatabase { get; set; }
-        public IList<string> TablesToImport { get; set; }
-
-        public ImportOptions(DbConnectionInfo sourceDatabase)
+        public CommandLineArgs()
         {
-            SourceDatabase = sourceDatabase;
-        }
-
-        public ImportOptions Clone()
-        {
-            ImportOptions clone = new ImportOptions(SourceDatabase.Clone());
-            clone.TablesToImport = new List<string>(TablesToImport);
-            return clone;
+            ;
         }
     }
 }

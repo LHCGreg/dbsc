@@ -79,10 +79,10 @@ namespace dbsc.Core
             return lines.Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
         }
 
-        public virtual CheckoutOptions GetCheckoutOptions()
+        public virtual SqlCheckoutOptions GetCheckoutOptions()
         {
             DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, port: TargetDbPort, username: Username, password: Password);
-            CheckoutOptions options = new CheckoutOptions(targetDbInfo);
+            SqlCheckoutOptions options = new SqlCheckoutOptions(targetDbInfo);
             options.CreationTemplate = GetDbCreationTemplate();
             options.Directory = ScriptDirectory;
             options.Revision = Revision;
@@ -90,10 +90,10 @@ namespace dbsc.Core
             return options;
         }
 
-        public virtual UpdateOptions GetUpdateOptions()
+        public virtual SqlUpdateOptions GetUpdateOptions()
         {
             DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, port: TargetDbPort, username: Username, password: Password);
-            UpdateOptions options = new UpdateOptions(targetDbInfo);
+            SqlUpdateOptions options = new SqlUpdateOptions(targetDbInfo);
             options.Directory = ScriptDirectory;
             options.Revision = Revision;
             options.ImportOptions = GetImportOptions();

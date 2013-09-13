@@ -7,24 +7,27 @@ using System.IO;
 
 namespace dbsc.Core
 {
-    internal class SqlStack
+    internal class ScriptStack
     {
         public IDictionary<int, string> ScriptsByRevision { get; private set; }
         public string MasterDatabaseName { get; private set; }
+        public string ExtensionWithoutDot { get; private set; }
 
-        public SqlStack(string directory)
-            : this(Directory.EnumerateFiles(directory))
+        public ScriptStack(string directory, string extensionWithoutDot)
+            : this(Directory.EnumerateFiles(directory), extensionWithoutDot)
         {
             ;
         }
 
-        internal SqlStack(IEnumerable<string> filePaths)
+        internal ScriptStack(IEnumerable<string> filePaths, string extensionWithoutDot)
         {
+            ExtensionWithoutDot = extensionWithoutDot;
+
             ScriptsByRevision = new Dictionary<int, string>();
 
             // DatabaseName.#+[.Comment].sql
-            Regex upgradeScriptRegex = new Regex(@"^(?<MasterDatabaseName>[^.]+)\.(?<Revision>\d+)(?<CommentWithDot>\.[^.]+)?\.sql$", RegexOptions.IgnoreCase);
-            
+						Regex upgradeScriptRegex = new Regex(@"^(?<MasterDatabaseName>[^.]+)\.(?<Revision>\d+)(?<CommentWithDot>\.[^.]+)?\." + Regex.Escape(extensionWithoutDot) + "$", RegexOptions.IgnoreCase);
+
             foreach (string filePath in filePaths)
             {
                 string filename = Path.GetFileName(filePath);
@@ -53,7 +56,7 @@ namespace dbsc.Core
 
             if (!ScriptsByRevision.ContainsKey(0))
             {
-                throw new DbscException("No r0 script found. Syntax is MasterDatabaseName.0000[.comment].sql.");
+                throw new DbscException(string.Format("No r0 script found. Syntax is MasterDatabaseName.0000[.comment].{0}.", extensionWithoutDot));
             }
         }
     }

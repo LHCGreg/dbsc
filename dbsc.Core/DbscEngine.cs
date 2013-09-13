@@ -2,309 +2,153 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.IO;
-using System.Globalization;
 using System.Diagnostics;
 
 namespace dbsc.Core
 {
-    public abstract class DbscEngine<TConnection>
-        where TConnection : IDbscDbConnection
+    public abstract class DbscEngine<TCheckoutOptions, TUpdateOptions>
+        where TCheckoutOptions : ICheckoutOptions<TUpdateOptions>
+        where TUpdateOptions : IUpdateOptions
     {
-        public DbscEngine()
-        {
-            ;
-        }
-
-        protected abstract DbConnectionInfo GetSystemDatabaseConnectionInfo(DbConnectionInfo targetDatabase);
-        protected abstract TConnection OpenConnection(DbConnectionInfo connectionInfo);
-        protected abstract string CreateMetadataTableSql { get; }
-        protected abstract string MetadataTableName { get; }
-        protected abstract string MetadataPropertyNameColumn { get; }
-        protected abstract string MetadataPropertyValueColumn { get; }
-        protected abstract bool MetaDataTableExists(TConnection conn);
-        protected abstract void ImportData(TConnection targetConn, TConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo);
-        protected abstract ICollection<string> GetTableNamesExceptMetadata(TConnection conn);
+        protected abstract string ScriptExtensionWithoutDot { get; }
         protected abstract bool ImportIsSupported(out string whyNot);
-
-        public void Checkout(CheckoutOptions options)
+        protected abstract bool DatabaseHasMetadataTable(DbConnectionInfo connectionInfo);
+        protected abstract void CreateDatabase(TCheckoutOptions options);
+        protected abstract void InitializeDatabase(TCheckoutOptions options, string masterDatabaseName);
+        protected abstract int GetRevision(DbConnectionInfo connectionInfo);
+        protected abstract void RunScriptAndUpdateMetadata(TUpdateOptions options, string scriptPath, int newRevision, DateTime utcTimestamp);
+        protected abstract void ImportData(TUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped);
+        protected abstract ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo);
+        
+        public void Checkout(TCheckoutOptions options)
         {
-            // Process SQL stack
-            SqlStack sqlStack = new SqlStack(options.Directory);
+            ScriptStack scriptStack = new ScriptStack(options.Directory, ScriptExtensionWithoutDot);
 
             // Default target database name and source database name to the master database name
-            if (options.TargetDatabase.Database == null)
-            {
-                // XXX: A bit hacky to be modifying the input
-                options.TargetDatabase.Database = sqlStack.MasterDatabaseName;
-            }
+            options = options.CloneCheckoutOptionsWithDatabaseNamesFilledIn<TCheckoutOptions, TUpdateOptions>(scriptStack.MasterDatabaseName);
 
-            if (options.ImportOptions != null && options.ImportOptions.SourceDatabase.Database == null)
-            {
-                options.ImportOptions.SourceDatabase.Database = sqlStack.MasterDatabaseName;
-            }
+            ValidateUpdateOptionsForCheckoutAndUpdate(options.UpdateOptions, scriptStack);
 
+            CreateDatabase(options);
+            InitializeDatabase(options, scriptStack.MasterDatabaseName);
+
+            UpdateDatabase(scriptStack, options.UpdateOptions);
+        }
+
+        private void ValidateUpdateOptionsForCheckoutAndUpdate(TUpdateOptions options, ScriptStack scriptStack)
+        {
             // If revision was specified, verify that there is a script for tha revision
-            if (options.Revision != null && !sqlStack.ScriptsByRevision.ContainsKey(options.Revision.Value))
+            if (options.Revision != null && !scriptStack.ScriptsByRevision.ContainsKey(options.Revision.Value))
             {
-                if (!sqlStack.ScriptsByRevision.ContainsKey(options.Revision.Value))
-                {
-                    throw new DbscException(string.Format("Cannot update to r{0} because there is no upgrade script for r{0}.", options.Revision.Value));
-                }
+                throw new DbscException(string.Format("Cannot update to r{0} because there is no upgrade script for r{0}.", options.Revision.Value));
             }
 
             if (options.ImportOptions != null)
             {
+                // If user wants to do an import, check that it's supported by the engine
                 string whyImportNotSupported;
                 if (!ImportIsSupported(out whyImportNotSupported))
                 {
                     throw new DbscException(whyImportNotSupported);
                 }
-                
+
                 // Check that source database was checked out with dbsc
-                using (TConnection sourceConn = OpenConnection(options.ImportOptions.SourceDatabase))
+                if (!DatabaseHasMetadataTable(options.ImportOptions.SourceDatabase))
                 {
-                    if (!MetaDataTableExists(sourceConn))
-                    {
-                        throw new DbscException(string.Format("Source database {0} on {1} was not created with dbsc and cannot be imported from.", options.ImportOptions.SourceDatabase.Database, options.ImportOptions.SourceDatabase.Server));
-                    }
+                    throw new DbscException(string.Format("Source database {0} on {1} was not created with dbsc and cannot be imported from.", options.ImportOptions.SourceDatabase.Database, options.ImportOptions.SourceDatabase.Server));
                 }
             }
+        }
 
-            CreateDatabase(options.TargetDatabase, options.CreationTemplate);
+        public void Update(TUpdateOptions options)
+        {
+            ScriptStack scriptStack = new ScriptStack(options.Directory, ScriptExtensionWithoutDot);
 
-            using (TConnection conn = OpenConnection(options.TargetDatabase))
+            // Default target database name and source database name to the master database name
+            options = options.CloneUpdateOptionsWithDatabaseNamesFilledIn(scriptStack.MasterDatabaseName);
+
+            ValidateUpdateOptionsForCheckoutAndUpdate(options, scriptStack);
+            ValidateUpdateOptionsForUpdate(options);
+
+            UpdateDatabase(scriptStack, options);
+        }
+
+        private void ValidateUpdateOptionsForUpdate(TUpdateOptions options)
+        {
+            if (!DatabaseHasMetadataTable(options.TargetDatabase))
             {
-                InitializeDatabase(conn, sqlStack.MasterDatabaseName);
-            }
-
-            UpdateDatabase(sqlStack, options.Revision, options.ImportOptions, options.TargetDatabase);
-        }
-
-        private void CreateDatabase(DbConnectionInfo targetDatabase, string creationTemplate)
-        {
-            DbConnectionInfo masterDatabaseConnectionInfo = GetSystemDatabaseConnectionInfo(targetDatabase);
-            using (TConnection masterDatabaseConnection = OpenConnection(masterDatabaseConnectionInfo))
-            {
-                string creationSql = creationTemplate.Replace("$DatabaseName$", targetDatabase.Database);
-                Console.WriteLine("Creating database {0} on {1}.", targetDatabase.Database, targetDatabase.Server);
-                masterDatabaseConnection.ExecuteSqlScript(creationSql);
-                Console.WriteLine("Created database {0} on {1}.", targetDatabase.Database, targetDatabase.Server);
-            }
-        }
-
-        protected string RevisionPropertyName { get { return "Version"; } }
-        protected string LastUpdatedPropertyName { get { return "LastChangeUTC"; } }
-
-        private string GetCurrentTimestampString()
-        {
-            return DateTime.UtcNow.ToString("s"); // ex: 2008-04-10T06:30:00
-        }
-
-        private void InitializeDatabase(TConnection conn, string masterDatabaseName)
-        {
-            conn.ExecuteSql(CreateMetadataTableSql);
-
-            Dictionary<string, string> initialProperties = new Dictionary<string, string>()
-                {
-                    { "MasterDatabaseName", masterDatabaseName },
-                    { RevisionPropertyName, "-1" },
-                    { LastUpdatedPropertyName, GetCurrentTimestampString() }
-                };
-            CreateMetadataProperties(conn, initialProperties);
-        }
-
-        protected virtual void CreateMetadataProperties(TConnection conn, IDictionary<string, string> properties)
-        {
-            if (properties.Count == 0)
-                return;
-
-            StringBuilder sqlBuilder = new StringBuilder(string.Format(@"INSERT INTO {0}
-({1}, {2})
-VALUES
-", MetadataTableName, MetadataPropertyNameColumn, MetadataPropertyValueColumn));
-            int propertyNum = 0;
-            Dictionary<string, object> sqlParams = new Dictionary<string, object>();
-            foreach (string propertyName in properties.Keys)
-            {
-                if (propertyNum > 0)
-                {
-                    sqlBuilder.Append(",");
-                }
-                sqlBuilder.AppendFormat("(@name{0}, @value{0})\n", propertyNum);
-                sqlParams["name" + propertyNum.ToString()] = propertyName;
-                sqlParams["value" + propertyNum.ToString()] = properties[propertyName];
-                propertyNum++;
-            }
-
-            string sql = sqlBuilder.ToString();
-            conn.ExecuteSql(sql, sqlParams);
-        }
-
-        protected virtual void UpdateMetadataProperty(TConnection conn, string propertyName, string propertyValue)
-        {
-            string sql = string.Format(@"UPDATE {0}
-SET {1} = @value
-WHERE {2} = @name", MetadataTableName, MetadataPropertyValueColumn, MetadataPropertyNameColumn);
-
-            Dictionary<string, object> sqlParams = new Dictionary<string, object>();
-            sqlParams["value"] = propertyValue;
-            sqlParams["name"] = propertyName;
-
-            conn.ExecuteSql(sql, sqlParams);
-        }
-
-        protected virtual string GetMetadataProperty(TConnection conn, string propertyName)
-        {
-            string sql = string.Format(@"SELECT {0} FROM {1}
-WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataPropertyNameColumn);
-            Dictionary<string, object> sqlParams = new Dictionary<string, object>() { { "name", propertyName } };
-
-            string propertyValue = conn.Query<string>(sql, sqlParams).FirstOrDefault();
-
-            if (propertyValue == null)
-            {
-                throw new DbscException(string.Format("No metadata property {0}.", propertyName));
-            }
-            else
-            {
-                return propertyValue;
+                throw new DbscException(string.Format("Target database {0} on {1} was not created with dbsc and cannot be updated.", options.TargetDatabase.Database, options.TargetDatabase.Server));
             }
         }
 
-        public void Update(UpdateOptions options)
+        private void UpdateDatabase(ScriptStack scriptStack, TUpdateOptions options)
         {
-            SqlStack sqlStack = new SqlStack(options.Directory);
-
-            if (options.TargetDatabase.Database == null)
-            {
-                // XXX: A bit hacky to be modifying the input
-                options.TargetDatabase.Database = sqlStack.MasterDatabaseName;
-            }
-
-            if (options.ImportOptions != null && options.ImportOptions.SourceDatabase.Database == null)
-            {
-                options.ImportOptions.SourceDatabase.Database = sqlStack.MasterDatabaseName;
-            }
-
-            if (options.ImportOptions != null)
-            {
-                string whyImportNotSupported;
-                if (!ImportIsSupported(out whyImportNotSupported))
-                {
-                    throw new DbscException(whyImportNotSupported);
-                }
-            }
-
-            using (TConnection conn = OpenConnection(options.TargetDatabase))
-            {
-                if (!MetaDataTableExists(conn))
-                {
-                    throw new DbscException(string.Format("Target database {0} on {1} was not created with dbsc and cannot be updated.", options.TargetDatabase.Database, options.TargetDatabase.Server));
-                }
-            }
-
-            UpdateDatabase(sqlStack, options.Revision, options.ImportOptions, options.TargetDatabase);
-        }
-
-        private void UpdateDatabase(SqlStack sqlStack, int? revision, ImportOptions importOptions, DbConnectionInfo targetConnectionInfo)
-        {
-            string versionString;
-            using (TConnection conn = OpenConnection(targetConnectionInfo))
-            {
-                versionString = GetMetadataProperty(conn, RevisionPropertyName);
-            }
-
-            int versionBeforeUpdate = int.Parse(versionString); // TODO: tryparse
+            int versionBeforeUpdate = GetRevision(options.TargetDatabase);
             int currentVersion = versionBeforeUpdate;
 
             int sourceDatabaseRevision = -1;
-            if (importOptions != null)
-            {               
-                using (TConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
-                {
-                    string sourceRevisionString = GetMetadataProperty(sourceConn, RevisionPropertyName);
-                    sourceDatabaseRevision = int.Parse(sourceRevisionString); // TODO: tryparse
-                }
-            }
-
-            IEnumerable<int> revisionsToUpgradeTo = sqlStack.ScriptsByRevision.Keys.OrderBy(r => r).Where(r => r > versionBeforeUpdate);
-            if (revision != null)
+            if (options.ImportOptions != null)
             {
-                if (versionBeforeUpdate > revision.Value)
-                {
-                    throw new DbscException(string.Format("Cannot update to r{0} because the database is already at r{1}.", revision.Value, versionBeforeUpdate));
-                }
-                if (!sqlStack.ScriptsByRevision.ContainsKey(revision.Value))
-                {
-                    throw new DbscException(string.Format("Cannot update to r{0} because there is no upgrade script for r{0}.", revision.Value));
-                }
-                revisionsToUpgradeTo = revisionsToUpgradeTo.Where(r => r <= revision.Value);
+                sourceDatabaseRevision = GetRevision(options.ImportOptions.SourceDatabase);
             }
 
+            IEnumerable<int> revisionsToUpgradeTo = scriptStack.ScriptsByRevision.Keys.OrderBy(r => r).Where(r => r > versionBeforeUpdate);
+
+            if (options.Revision != null)
+            {
+                if (versionBeforeUpdate > options.Revision.Value)
+                {
+                    throw new DbscException(string.Format("Cannot update to r{0} because the database is already at r{1}.", options.Revision.Value, versionBeforeUpdate));
+                }
+                if (!scriptStack.ScriptsByRevision.ContainsKey(options.Revision.Value))
+                {
+                    throw new DbscException(string.Format("Cannot update to r{0} because there is no upgrade script for r{0}.", options.Revision.Value));
+                }
+                revisionsToUpgradeTo = revisionsToUpgradeTo.Where(r => r <= options.Revision.Value);
+            }
+
+            revisionsToUpgradeTo = revisionsToUpgradeTo.ToList();
             foreach (int revisionNumber in revisionsToUpgradeTo)
             {
-                string upgradeScriptPath = sqlStack.ScriptsByRevision[revisionNumber];
+                string upgradeScriptPath = scriptStack.ScriptsByRevision[revisionNumber];
                 Console.WriteLine("Updating to r{0}", revisionNumber);
-
-                // Run upgrade script
-                string upgradeScriptSql = File.ReadAllText(upgradeScriptPath);
-                using (TConnection conn = OpenConnection(targetConnectionInfo))
-                {
-                    conn.ExecuteSqlScript(upgradeScriptSql);
-
-                    // Update Version metadata
-                    string newVersionString = revisionNumber.ToString(CultureInfo.InvariantCulture);
-                    UpdateMetadataProperty(conn, RevisionPropertyName, newVersionString);
-                    currentVersion = revisionNumber;
-
-                    // Update timestamp metadata
-                    string timestampString = GetCurrentTimestampString();
-                    UpdateMetadataProperty(conn, LastUpdatedPropertyName, timestampString);
-                }
+                RunScriptAndUpdateMetadata(options, upgradeScriptPath, revisionNumber, DateTime.UtcNow);
+                currentVersion = revisionNumber;
 
                 // check for import
-                if (importOptions != null && revisionNumber == sourceDatabaseRevision)
+                if (options.ImportOptions != null && revisionNumber == sourceDatabaseRevision)
                 {
-                    using (TConnection conn = OpenConnection(targetConnectionInfo))
-                    using (TConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
-                    {
-                        ImportData(conn, sourceConn, importOptions, targetConnectionInfo);
-                    }
+                    ImportData(options);
                 }
             }
 
             // allow importing when "updating" to the revison the database is already at
-            if (!revisionsToUpgradeTo.Any() && versionBeforeUpdate == sourceDatabaseRevision && importOptions != null)
+            if (!revisionsToUpgradeTo.Any() && versionBeforeUpdate == sourceDatabaseRevision && options.ImportOptions != null)
             {
-                using (TConnection conn = OpenConnection(targetConnectionInfo))
-                using (TConnection sourceConn = OpenConnection(importOptions.SourceDatabase))
-                {
-                    ImportData(conn, sourceConn, importOptions, targetConnectionInfo);
-                }
+                ImportData(options);
             }
 
             Console.WriteLine("At revision {0}", currentVersion);
         }
 
-        private void ImportData(TConnection targetConn, TConnection sourceConn, ImportOptions importOptions, DbConnectionInfo targetConnectionInfo)
+        private void ImportData(TUpdateOptions options)
         {
             Console.WriteLine("Beginning import...");
             Stopwatch timer = Stopwatch.StartNew();
 
-            ICollection<string> tablesExceptMetadata = GetTableNamesExceptMetadata(targetConn);
+            ICollection<string> tablesExceptMetadata = GetTableNamesExceptMetadataAlreadyEscaped(options.TargetDatabase);
 
             ICollection<string> tablesToImport;
-            if (importOptions.TablesToImport != null)
+            if (options.ImportOptions.TablesToImport != null)
             {
-                tablesToImport = importOptions.TablesToImport;
+                tablesToImport = options.ImportOptions.TablesToImport;
             }
             else
             {
                 tablesToImport = tablesExceptMetadata;
             }
 
-            ImportData(targetConn, sourceConn, tablesToImport, tablesExceptMetadata, importOptions, targetConnectionInfo);
+            ImportData(options, tablesToImport, tablesExceptMetadata);
 
             timer.Stop();
             Console.WriteLine("Import complete! Took {0}", timer.Elapsed);

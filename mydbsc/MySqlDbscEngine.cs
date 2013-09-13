@@ -12,7 +12,7 @@ using System.Globalization;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscEngine : DbscEngine<MySqlDbscDbConnection>
+    class MySqlDbscEngine : SqlDbscEngine<SqlCheckoutOptions, SqlUpdateOptions, MySqlDbscDbConnection>
     {
         protected override DbConnectionInfo GetSystemDatabaseConnectionInfo(DbConnectionInfo targetDatabase)
         {
@@ -48,7 +48,7 @@ namespace dbsc.MySql
             public string TABLE_NAME { get; set; }
         }
 
-        protected override bool MetaDataTableExists(MySqlDbscDbConnection conn)
+        protected override bool MetadataTableExists(MySqlDbscDbConnection conn)
         {
             DbConnectionInfo connInfo = conn.ConnectionInfo;
             string sql =
@@ -62,7 +62,7 @@ AND TABLE_SCHEMA = @db";
             return metadataTable != null;
         }
 
-        protected override ICollection<string> GetTableNamesExceptMetadata(MySqlDbscDbConnection conn)
+        protected override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(MySqlDbscDbConnection conn)
         {
             DbConnectionInfo connInfo = conn.ConnectionInfo;
             string sql =
@@ -172,7 +172,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
             return true;
         }
 
-        protected override void ImportData(MySqlDbscDbConnection targetConn, MySqlDbscDbConnection sourceConn, ICollection<string> tablesToImport, ICollection<string> allTablesExceptMetadata, ImportOptions options, DbConnectionInfo targetConnectionInfo)
+        protected override void ImportData(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
             // MS SQL Server and PostgreSQL have simple methods of streaming bulk data to the DB server. MySQL does not.
             // The best MySQL can do is accept a file with the bulk data in it.
@@ -182,153 +182,156 @@ AND TABLE_TYPE = 'BASE TABLE'";
 
             const int enableConstraintsTimeoutInSeconds = 60 * 60 * 6;
 
-            // Disable foreign key constraints
-            string disableForeignKeyChecksSql = "SET foreign_key_checks = 0";
-            Console.WriteLine(disableForeignKeyChecksSql);
-            targetConn.ExecuteSql(disableForeignKeyChecksSql);
-
-            // Disable unique checks for performance
-            string disableUniqueChecksSql = "SET unique_checks = 0";
-            Console.WriteLine(disableUniqueChecksSql);
-            targetConn.ExecuteSql(disableUniqueChecksSql);
-
-            // Can only disable indexes on MyISAM tables, so don't do that for now.
-
-            // Clear tables
-            Console.Write("Clearing all tables...");
-            try
+            using (MySqlDbscDbConnection targetConn = OpenConnection(options.TargetDatabase))
             {
-                Stopwatch clearTableTimer = Stopwatch.StartNew();
-                foreach (string table in allTablesExceptMetadata)
-                {
-                    string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
-                    targetConn.ExecuteSql(clearTableSql);
-                }
-                clearTableTimer.Stop();
-                Console.Write(clearTableTimer.Elapsed);
-            }
-            finally
-            {
-                Console.WriteLine();
-            }
+                // Disable foreign key constraints
+                string disableForeignKeyChecksSql = "SET foreign_key_checks = 0";
+                Console.WriteLine(disableForeignKeyChecksSql);
+                targetConn.ExecuteSql(disableForeignKeyChecksSql);
 
-            // Import each table
-            foreach (string table in tablesToImport)
-            {
-                string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sql");
-                Console.WriteLine("Making mysqldump of {0}...", table);
+                // Disable unique checks for performance
+                string disableUniqueChecksSql = "SET unique_checks = 0";
+                Console.WriteLine(disableUniqueChecksSql);
+                targetConn.ExecuteSql(disableUniqueChecksSql);
+
+                // Can only disable indexes on MyISAM tables, so don't do that for now.
+
+                // Clear tables
+                Console.Write("Clearing all tables...");
                 try
                 {
-                    Stopwatch mysqldumpTimer = Stopwatch.StartNew();
-                    string mysqldumpArgs = string.Format("--no-defaults --skip-comments --skip-add-drop-table --no-create-info --no-autocommit {0} {1} {2} {3} {4} {5} {6}",
-                        QuoteCommandLineArg(string.Format("--host={0}", options.SourceDatabase.Server)),
-                        options.SourceDatabase.Port != null ? QuoteCommandLineArg(string.Format(CultureInfo.InvariantCulture, "--port={0}", options.SourceDatabase.Port.Value)) : "",
-                        QuoteCommandLineArg(string.Format("--user={0}", options.SourceDatabase.Username)),
-                        QuoteCommandLineArg(string.Format("--password={0}", options.SourceDatabase.Password)),
-                        QuoteCommandLineArg(string.Format("--result-file={0}", tempFilePath)),
-                        QuoteCommandLineArg(options.SourceDatabase.Database),
-                        QuoteCommandLineArg(table)
-                        );
-
-                    Process mysqldump = new Process()
+                    Stopwatch clearTableTimer = Stopwatch.StartNew();
+                    foreach (string table in allTablesExceptMetadataAlreadyEscaped)
                     {
-                        StartInfo = new ProcessStartInfo("mysqldump", mysqldumpArgs)
-                        {
-                            CreateNoWindow = true,
-                            ErrorDialog = false,
-                            RedirectStandardError = true,
-                            // Don't redirect stdout. There shouldn't be any
-                            //RedirectStandardOutput = true,
-                            UseShellExecute = false,
-                        },
-                        EnableRaisingEvents = true
-                    };
-
-                    mysqldump.ErrorDataReceived += (sender, e) => Console.Write(e.Data);
-                    using (mysqldump)
-                    {
-                        mysqldump.Start();
-                        mysqldump.BeginErrorReadLine();
-                        mysqldump.WaitForExit();
-                        if (mysqldump.ExitCode != 0)
-                        {
-                            throw new DbscException("mysqldump error.");
-                        }
+                        string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
+                        targetConn.ExecuteSql(clearTableSql);
                     }
-                    mysqldumpTimer.Stop();
-                    Console.Write(mysqldumpTimer.Elapsed);
+                    clearTableTimer.Stop();
+                    Console.Write(clearTableTimer.Elapsed);
                 }
                 finally
                 {
                     Console.WriteLine();
                 }
 
-                Console.WriteLine("Importing mysqldump of {0}...", table);
-                try
+                // Import each table
+                foreach (string table in tablesToImportAlreadyEscaped)
                 {
-                    Stopwatch importDumpTimer = Stopwatch.StartNew();
-                    string mysqlArgs = string.Format("{0} {1} {2} {3} {4}",
-                        QuoteCommandLineArg(string.Format("--database={0}", targetConnectionInfo.Database)),
-                        QuoteCommandLineArg(string.Format("--host={0}", targetConnectionInfo.Server)),
-                        targetConnectionInfo.Port != null ? QuoteCommandLineArg(string.Format(CultureInfo.InvariantCulture, "--port={0}", targetConnectionInfo.Port.Value)) : "",
-                        QuoteCommandLineArg(string.Format("--user={0}", targetConnectionInfo.Username)),
-                        QuoteCommandLineArg(string.Format("--password={0}", targetConnectionInfo.Password))
-                    );
-
-                    Process mysql = new Process()
-                    {
-                        StartInfo = new ProcessStartInfo("mysql", mysqlArgs)
-                        {
-                            CreateNoWindow = true,
-                            ErrorDialog = false,
-                            RedirectStandardError = true,
-                            RedirectStandardInput = true,
-                            UseShellExecute = false
-                        }
-                    };
-
-                    mysql.ErrorDataReceived += (sender, e) => { Console.WriteLine(e.Data); };
-                    using (FileStream dumpFile = File.OpenRead(tempFilePath))
-                    using (mysql)
-                    {
-                        mysql.Start();
-                        mysql.BeginErrorReadLine();
-                        dumpFile.CopyTo(mysql.StandardInput.BaseStream);
-                        mysql.StandardInput.BaseStream.Flush();
-                        mysql.StandardInput.Close();
-                        mysql.WaitForExit();
-                        if (mysql.ExitCode != 0)
-                        {
-                            throw new DbscException("mysql error.");
-                        }
-                    }
-
-                    importDumpTimer.Stop();
-                    Console.Write(importDumpTimer.Elapsed);
-                }
-                finally
-                {
+                    string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sql");
+                    Console.WriteLine("Making mysqldump of {0}...", table);
                     try
                     {
-                        File.Delete(tempFilePath);
+                        Stopwatch mysqldumpTimer = Stopwatch.StartNew();
+                        string mysqldumpArgs = string.Format("--no-defaults --skip-comments --skip-add-drop-table --no-create-info --no-autocommit {0} {1} {2} {3} {4} {5} {6}",
+                            QuoteCommandLineArg(string.Format("--host={0}", options.ImportOptions.SourceDatabase.Server)),
+                            options.ImportOptions.SourceDatabase.Port != null ? QuoteCommandLineArg(string.Format(CultureInfo.InvariantCulture, "--port={0}", options.ImportOptions.SourceDatabase.Port.Value)) : "",
+                            QuoteCommandLineArg(string.Format("--user={0}", options.ImportOptions.SourceDatabase.Username)),
+                            QuoteCommandLineArg(string.Format("--password={0}", options.ImportOptions.SourceDatabase.Password)),
+                            QuoteCommandLineArg(string.Format("--result-file={0}", tempFilePath)),
+                            QuoteCommandLineArg(options.ImportOptions.SourceDatabase.Database),
+                            QuoteCommandLineArg(table)
+                            );
+
+                        Process mysqldump = new Process()
+                        {
+                            StartInfo = new ProcessStartInfo("mysqldump", mysqldumpArgs)
+                            {
+                                CreateNoWindow = true,
+                                ErrorDialog = false,
+                                RedirectStandardError = true,
+                                // Don't redirect stdout. There shouldn't be any
+                                //RedirectStandardOutput = true,
+                                UseShellExecute = false,
+                            },
+                            EnableRaisingEvents = true
+                        };
+
+                        mysqldump.ErrorDataReceived += (sender, e) => Console.Write(e.Data);
+                        using (mysqldump)
+                        {
+                            mysqldump.Start();
+                            mysqldump.BeginErrorReadLine();
+                            mysqldump.WaitForExit();
+                            if (mysqldump.ExitCode != 0)
+                            {
+                                throw new DbscException("mysqldump error.");
+                            }
+                        }
+                        mysqldumpTimer.Stop();
+                        Console.Write(mysqldumpTimer.Elapsed);
                     }
-                    catch
+                    finally
                     {
-                        ; // Not much we can do if we can't delete the temp file for some reason.
+                        Console.WriteLine();
                     }
-                    Console.WriteLine();
+
+                    Console.WriteLine("Importing mysqldump of {0}...", table);
+                    try
+                    {
+                        Stopwatch importDumpTimer = Stopwatch.StartNew();
+                        string mysqlArgs = string.Format("{0} {1} {2} {3} {4}",
+                            QuoteCommandLineArg(string.Format("--database={0}", options.TargetDatabase.Database)),
+                            QuoteCommandLineArg(string.Format("--host={0}", options.TargetDatabase.Server)),
+                            options.TargetDatabase.Port != null ? QuoteCommandLineArg(string.Format(CultureInfo.InvariantCulture, "--port={0}", options.TargetDatabase.Port.Value)) : "",
+                            QuoteCommandLineArg(string.Format("--user={0}", options.TargetDatabase.Username)),
+                            QuoteCommandLineArg(string.Format("--password={0}", options.TargetDatabase.Password))
+                        );
+
+                        Process mysql = new Process()
+                        {
+                            StartInfo = new ProcessStartInfo("mysql", mysqlArgs)
+                            {
+                                CreateNoWindow = true,
+                                ErrorDialog = false,
+                                RedirectStandardError = true,
+                                RedirectStandardInput = true,
+                                UseShellExecute = false
+                            }
+                        };
+
+                        mysql.ErrorDataReceived += (sender, e) => { Console.WriteLine(e.Data); };
+                        using (FileStream dumpFile = File.OpenRead(tempFilePath))
+                        using (mysql)
+                        {
+                            mysql.Start();
+                            mysql.BeginErrorReadLine();
+                            dumpFile.CopyTo(mysql.StandardInput.BaseStream);
+                            mysql.StandardInput.BaseStream.Flush();
+                            mysql.StandardInput.Close();
+                            mysql.WaitForExit();
+                            if (mysql.ExitCode != 0)
+                            {
+                                throw new DbscException("mysql error.");
+                            }
+                        }
+
+                        importDumpTimer.Stop();
+                        Console.Write(importDumpTimer.Elapsed);
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            File.Delete(tempFilePath);
+                        }
+                        catch
+                        {
+                            ; // Not much we can do if we can't delete the temp file for some reason.
+                        }
+                        Console.WriteLine();
+                    }
                 }
+
+                // Enable unique checks
+                string enableUniqueChecksSql = "SET unique_checks = 1";
+                Console.WriteLine(enableUniqueChecksSql);
+                targetConn.ExecuteSql(enableUniqueChecksSql, timeoutInSeconds: enableConstraintsTimeoutInSeconds);
+
+                // Enable foreign key constraints
+                string enableForeignKeyChecksSql = "SET foreign_key_checks = 1";
+                Console.WriteLine(enableForeignKeyChecksSql);
+                targetConn.ExecuteSql(enableForeignKeyChecksSql, timeoutInSeconds: enableConstraintsTimeoutInSeconds);
             }
-
-            // Enable unique checks
-            string enableUniqueChecksSql = "SET unique_checks = 1";
-            Console.WriteLine(enableUniqueChecksSql);
-            targetConn.ExecuteSql(enableUniqueChecksSql, timeoutInSeconds: enableConstraintsTimeoutInSeconds);
-
-            // Enable foreign key constraints
-            string enableForeignKeyChecksSql = "SET foreign_key_checks = 1";
-            Console.WriteLine(enableForeignKeyChecksSql);
-            targetConn.ExecuteSql(enableForeignKeyChecksSql, timeoutInSeconds: enableConstraintsTimeoutInSeconds);
         }
     }
 }

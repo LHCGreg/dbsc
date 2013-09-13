@@ -6,12 +6,12 @@ using dbsc.Core;
 
 namespace dbsc.Postgres
 {
-    class PgDbscApp : DbscApp<CommandLineArgs, CheckoutOptions, UpdateOptions, PgDbscDbConnection>
+    class PgDbscApp : DbscApp<BaseCommandLineArgs, SqlCheckoutOptions, SqlUpdateOptions>
     {
         public PgDbscApp()
             : base(
             engine: new PgDbscEngine(),
-            parseArgsFunc: args => { CommandLineArgs commandLine = new CommandLineArgs(); commandLine.Parse(args); return commandLine; },
+            parseArgsFunc: args => { BaseCommandLineArgs commandLine = new BaseCommandLineArgs(); commandLine.Parse(args); return commandLine; },
             getCheckoutOptionsFunc: commandLine => commandLine.GetCheckoutOptions(),
             getUpdateOptionsFunc: commandLine => commandLine.GetUpdateOptions()
             )

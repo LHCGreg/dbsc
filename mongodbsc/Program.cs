@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using dbsc.Core;
-using NDesk.Options;
 
-namespace dbsc.Postgres
+namespace mongodbsc
 {
-    class CommandLineArgs : BaseCommandLineArgs
+    class Program
     {
-        public CommandLineArgs()
+        static void Main(string[] args)
         {
-            ;
         }
     }
 }

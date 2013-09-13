@@ -5,19 +5,33 @@ using System.Text;
 
 namespace dbsc.Core
 {
-    public class CheckoutOptions
+    public class SqlUpdateOptions : ISqlUpdateOptions
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
         public int? Revision { get; set; }
-        public string CreationTemplate { get; set; }
         public ImportOptions ImportOptions { get; set; }
 
-        public CheckoutOptions(DbConnectionInfo targetDatabase)
+        public SqlUpdateOptions(DbConnectionInfo targetDatabase)
         {
+            Directory = Environment.CurrentDirectory;
             TargetDatabase = targetDatabase;
-            Directory = System.Environment.CurrentDirectory;
-            CreationTemplate = "CREATE DATABASE $DatabaseName$";
+        }
+
+        public SqlUpdateOptions(SqlCheckoutOptions checkoutOptions)
+        {
+            Directory = checkoutOptions.Directory;
+            TargetDatabase = checkoutOptions.TargetDatabase.Clone();
+            ImportOptions = ImportOptions.Clone();
+        }
+
+        public IUpdateOptions Clone()
+        {
+            SqlUpdateOptions clone = new SqlUpdateOptions(TargetDatabase.Clone());
+            clone.Directory = Directory;
+            clone.Revision = Revision;
+            clone.ImportOptions = ImportOptions.Clone();
+            return clone;
         }
     }
 }

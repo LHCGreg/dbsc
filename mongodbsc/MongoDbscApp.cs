@@ -2,24 +2,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using dbsc.Core;
 
-namespace dbsc.Core
+namespace dbsc.Mongo
 {
-    public class ImportOptions
+    class MongoDbscApp : DbscApp<CommandLineArgs, MongoCheckoutOptions, MongoUpdateOptions>
     {
-        public DbConnectionInfo SourceDatabase { get; set; }
-        public IList<string> TablesToImport { get; set; }
-
-        public ImportOptions(DbConnectionInfo sourceDatabase)
+        public MongoDbscApp()
+            : base(
+            engine: new MongoDbscEngine(),
+            parseArgsFunc: args => { CommandLineArgs commandLine = new CommandLineArgs(); commandLine.Parse(args); return commandLine; },
+            getCheckoutOptionsFunc: commandLine => commandLine.GetCheckoutOptions(),
+            getUpdateOptionsFunc: commandLine => commandLine.GetUpdateOptions()
+            )
         {
-            SourceDatabase = sourceDatabase;
-        }
-
-        public ImportOptions Clone()
-        {
-            ImportOptions clone = new ImportOptions(SourceDatabase.Clone());
-            clone.TablesToImport = new List<string>(TablesToImport);
-            return clone;
+            ;
         }
     }
 }

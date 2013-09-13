@@ -86,10 +86,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandLineArgs.cs" />
     <Compile Include="PgDbscApp.cs" />
     <Compile Include="PgDbscDbConnection.cs" />
     <Compile Include="PgDbscEngine.cs" />
+    <Compile Include="PgImportOperation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

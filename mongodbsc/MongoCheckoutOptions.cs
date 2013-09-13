@@ -2,20 +2,34 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using dbsc.Core;
 
-namespace dbsc.Core
+namespace dbsc.Mongo
 {
-    public class UpdateOptions
+    class MongoCheckoutOptions : ICheckoutOptions<MongoUpdateOptions>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
         public int? Revision { get; set; }
         public ImportOptions ImportOptions { get; set; }
 
-        public UpdateOptions(DbConnectionInfo targetDatabase)
+        public MongoUpdateOptions UpdateOptions { get { return new MongoUpdateOptions(this); } }
+
+        public MongoCheckoutOptions(DbConnectionInfo targetDatabase)
         {
             Directory = Environment.CurrentDirectory;
             TargetDatabase = targetDatabase;
+            Revision = null;
+            ImportOptions = null;
+        }
+
+        public ICheckoutOptions<MongoUpdateOptions> Clone()
+        {
+            MongoCheckoutOptions clone = new MongoCheckoutOptions(this.TargetDatabase.Clone());
+            clone.Directory = this.Directory;
+            clone.Revision = this.Revision;
+            clone.ImportOptions = this.ImportOptions.Clone();
+            return clone;
         }
     }
 }

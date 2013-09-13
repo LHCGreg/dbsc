@@ -73,17 +73,23 @@
   <ItemGroup>
     <Compile Include="BaseCommandLineArgs.cs" />
     <Compile Include="BaseDbscDbConnection.cs" />
-    <Compile Include="CheckoutOptions.cs" />
+    <Compile Include="SqlCheckoutOptions.cs" />
     <Compile Include="DbConnectionInfo.cs" />
+    <Compile Include="DbscEngine.cs" />
+    <Compile Include="ICheckoutOptions.cs" />
+    <Compile Include="ISqlCheckoutOptions.cs" />
+    <Compile Include="ISqlUpdateOptions.cs" />
+    <Compile Include="IUpdateOptions.cs" />
     <Compile Include="DbscApp.cs" />
     <Compile Include="DbscException.cs" />
     <Compile Include="DbscOperation.cs" />
-    <Compile Include="DbscEngine.cs" />
+    <Compile Include="SqlDbscEngine.cs" />
+    <Compile Include="SqlDbscEngineOld.cs" />
     <Compile Include="IDbscDbConnection.cs" />
     <Compile Include="ImportOptions.cs" />
-    <Compile Include="SqlStack.cs" />
+    <Compile Include="ScriptStack.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UpdateOptions.cs" />
+    <Compile Include="SqlUpdateOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
