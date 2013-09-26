@@ -76,6 +76,12 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
           <Component Id="pgdbsc.exe" Guid="{C0905658-FA71-47C8-8B54-10A425D501EC}">
             <File Id="pgdbsc.exe" KeyPath="yes" Source="SourceDir\pgdbsc.exe" />
           </Component>
+          <Component Id="policy.2.0.Npgsql.config" Guid="{3ED8DB81-F1E2-4FBF-84D6-1086DD81344E}">
+            <File Id="policy.2.0.Npgsql.config" KeyPath="yes" Source="SourceDir\policy.2.0.Npgsql.config" />
+          </Component>
+          <Compnent Id="policy.2.0.Npgsql.dll" Guid="{D7B7103B-763D-4B0E-B7F0-D73DF73D44E5}">
+            <File Id="policy.2.0.Npgsql.dll" KeyPath="yes" Source="SourceDir\policy.2.0.Npgsql.dll" />
+          </Compnent>
         </Directory>
       </Directory>
     </Directory>
@@ -104,6 +110,8 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
       <ComponentRef Id="Npgsql.dll"/>
       <ComponentRef Id="npgsql_license.txt"/>
       <ComponentRef Id="pgdbsc.exe"/>
+      <ComponentRef Id="policy.2.0.Npgsql.config"/>
+      <ComponentRef Id="policy.2.0.Npgsql.dll"/>
     </Feature>
   </Product>
 </Wix>
