@@ -4,3 +4,4 @@ obj/
 *.suo
 ZipReleases
 AssemblyInfo_*.cs
+packages/*/
