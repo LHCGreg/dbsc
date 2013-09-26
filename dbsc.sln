@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pgdbsc", "pgdbsc\pgdbsc.csproj", "{E448FB3A-8AD0-42D8-9470-A831A34DD194}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dbsc.Core", "dbsc.Core\dbsc.Core.csproj", "{2F0C15B4-429D-4363-8DF9-04F53B6C7D77}"
@@ -12,6 +12,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mydbsc", "mydbsc\mydbsc.csproj", "{4BB2C207-EAB6-4608-B2BD-E3B36B147362}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mydbsc.Tests", "mydbsc.Tests\mydbsc.Tests.csproj", "{EC9A0ABC-8DDC-4BD1-A7A3-2F95014E1754}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{571F815D-8D79-4A7F-9325-F2DD48067F62}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
