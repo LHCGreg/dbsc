@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace mongodbsc
+namespace dbsc.Mongo
 {
     class Program
     {
         static void Main(string[] args)
         {
+            MongoDbscApp app = new MongoDbscApp();
+            app.Run(args);
         }
     }
 }

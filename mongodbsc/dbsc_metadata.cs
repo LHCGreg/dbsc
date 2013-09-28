@@ -2,15 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using dbsc.Core;
 
 namespace dbsc.Mongo
 {
-    class CommandLineArgs : BaseCommandLineArgs
+    class dbsc_metadata
     {
-        public CommandLineArgs()
+        public int _id { get; set; }
+        public int Version { get; set; }
+        public string MasterDatabaseName { get; set; }
+        public DateTime LastChangeUTC { get; set; }
+
+        public dbsc_metadata()
         {
             ;
+        }
+
+        public dbsc_metadata(int version, string masterDatabaseName, DateTime lastChangeUTC)
+        {
+            _id = 1;
+            Version = version;
+            MasterDatabaseName = masterDatabaseName;
+            LastChangeUTC = lastChangeUTC;
         }
     }
 }

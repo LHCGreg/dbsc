@@ -6,12 +6,12 @@ using dbsc.Core;
 
 namespace dbsc.SqlServer
 {
-    class MsDbscApp : DbscApp<BaseCommandLineArgs, SqlCheckoutOptions, SqlUpdateOptions>
+    class MsDbscApp : DbscApp<SqlCommandLineArgs, SqlCheckoutOptions, SqlUpdateOptions>
     {
         public MsDbscApp()
             : base(
             engine: new MsDbscEngine(),
-            parseArgsFunc: args => { BaseCommandLineArgs commandLine = new BaseCommandLineArgs(); commandLine.Parse(args); return commandLine; },
+            parseArgsFunc: args => { SqlCommandLineArgs commandLine = new SqlCommandLineArgs(); commandLine.Parse(args); return commandLine; },
             getCheckoutOptionsFunc: commandLine => commandLine.GetCheckoutOptions(),
             getUpdateOptionsFunc: commandLine => commandLine.GetUpdateOptions()
             )

@@ -6,12 +6,12 @@ using dbsc.Core;
 
 namespace dbsc.Mongo
 {
-    class MongoDbscApp : DbscApp<CommandLineArgs, MongoCheckoutOptions, MongoUpdateOptions>
+    class MongoDbscApp : DbscApp<MongoCommandLineArgs, MongoCheckoutOptions, MongoUpdateOptions>
     {
         public MongoDbscApp()
             : base(
             engine: new MongoDbscEngine(),
-            parseArgsFunc: args => { CommandLineArgs commandLine = new CommandLineArgs(); commandLine.Parse(args); return commandLine; },
+            parseArgsFunc: args => { MongoCommandLineArgs commandLine = new MongoCommandLineArgs(); commandLine.Parse(args); return commandLine; },
             getCheckoutOptionsFunc: commandLine => commandLine.GetCheckoutOptions(),
             getUpdateOptionsFunc: commandLine => commandLine.GetUpdateOptions()
             )

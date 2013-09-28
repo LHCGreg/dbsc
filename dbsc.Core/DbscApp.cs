@@ -7,8 +7,8 @@ namespace dbsc.Core
 {
     public class DbscApp<TCommandLineArgs, TCheckoutOptions, TUpdateOptions>
         where TCommandLineArgs : BaseCommandLineArgs
-        where TCheckoutOptions : ISqlCheckoutOptions<TUpdateOptions>
-        where TUpdateOptions : ISqlUpdateOptions
+        where TCheckoutOptions : ICheckoutOptions<TUpdateOptions>
+        where TUpdateOptions : IUpdateOptions
     {
         private Func<string[], TCommandLineArgs> m_parseArgsFunc;
         private Func<TCommandLineArgs, TCheckoutOptions> m_getCheckoutOptionsFunc;

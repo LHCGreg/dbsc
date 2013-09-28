@@ -83,8 +83,8 @@
     <Compile Include="DbscApp.cs" />
     <Compile Include="DbscException.cs" />
     <Compile Include="DbscOperation.cs" />
+    <Compile Include="SqlCommandLineArgs.cs" />
     <Compile Include="SqlDbscEngine.cs" />
-    <Compile Include="SqlDbscEngineOld.cs" />
     <Compile Include="IDbscDbConnection.cs" />
     <Compile Include="ImportOptions.cs" />
     <Compile Include="ScriptStack.cs" />

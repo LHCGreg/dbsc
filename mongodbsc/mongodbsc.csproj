@@ -71,9 +71,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandLineArgs.cs" />
+    <Compile Include="dbsc_metadata.cs" />
     <Compile Include="MongoCheckoutOptions.cs" />
+    <Compile Include="MongoCommandLineArgs.cs" />
     <Compile Include="MongoDbscApp.cs" />
+    <Compile Include="MongoDbscConnection.cs" />
     <Compile Include="MongoDbscEngine.cs" />
     <Compile Include="MongoUpdateOptions.cs" />
     <Compile Include="Program.cs" />

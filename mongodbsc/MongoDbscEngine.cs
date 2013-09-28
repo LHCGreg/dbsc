@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using dbsc.Core;
+using MongoDB.Driver;
 
 namespace dbsc.Mongo
 {
@@ -16,24 +17,32 @@ namespace dbsc.Mongo
             return false;
         }
 
+        private const string MetadataCollectionName = "dbsc_metadata";
+
         protected override bool DatabaseHasMetadataTable(DbConnectionInfo connectionInfo)
         {
-            throw new NotImplementedException();
+            MongoDbscConnection conn = new MongoDbscConnection(connectionInfo);
+            return conn.ContainsCollection(MetadataCollectionName);
         }
 
         protected override void CreateDatabase(MongoCheckoutOptions options)
         {
-            throw new NotImplementedException();
+            ; // Nothing to do here, mongo creates databases when you insert something into one
         }
 
         protected override void InitializeDatabase(MongoCheckoutOptions options, string masterDatabaseName)
         {
-            throw new NotImplementedException();
+            MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase);
+            conn.CreateCollection(MetadataCollectionName);
+            dbsc_metadata metadata = new dbsc_metadata(-1, masterDatabaseName, DateTime.UtcNow);
+            conn.Upsert(metadata, MetadataCollectionName);
         }
 
         protected override int GetRevision(DbConnectionInfo connectionInfo)
         {
-            throw new NotImplementedException();
+            MongoDbscConnection conn = new MongoDbscConnection(connectionInfo);
+            dbsc_metadata metadata = conn.GetSingleDocument<dbsc_metadata>(MetadataCollectionName);
+            return metadata.Version;
         }
 
         protected override void RunScriptAndUpdateMetadata(MongoUpdateOptions options, string scriptPath, int newRevision, DateTime utcTimestamp)
@@ -48,7 +57,12 @@ namespace dbsc.Mongo
 
         protected override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)
         {
-            throw new NotImplementedException();
+            // No need to escape names because there is no query language to escape them for.
+
+            MongoDbscConnection conn = new MongoDbscConnection(connectionInfo);
+            ICollection<string> collectionNames = conn.GetCollectionNames();
+            collectionNames.Remove(MetadataCollectionName);
+            return collectionNames;
         }
     }
 }

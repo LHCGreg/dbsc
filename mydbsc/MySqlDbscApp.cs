@@ -7,12 +7,12 @@ using MySql.Data.MySqlClient;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscApp : DbscApp<BaseCommandLineArgs, SqlCheckoutOptions, SqlUpdateOptions>
+    class MySqlDbscApp : DbscApp<SqlCommandLineArgs, SqlCheckoutOptions, SqlUpdateOptions>
     {
         public MySqlDbscApp()
             : base(
             engine: new MySqlDbscEngine(),
-            parseArgsFunc: args => { BaseCommandLineArgs commandLine = new BaseCommandLineArgs(); commandLine.Parse(args); return commandLine; },
+            parseArgsFunc: args => { SqlCommandLineArgs commandLine = new SqlCommandLineArgs(); commandLine.Parse(args); return commandLine; },
             getCheckoutOptionsFunc: commandLine => commandLine.GetCheckoutOptions(),
             getUpdateOptionsFunc: commandLine => commandLine.GetUpdateOptions()
             )
