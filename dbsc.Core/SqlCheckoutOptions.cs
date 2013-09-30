@@ -34,7 +34,12 @@ namespace dbsc.Core
             clone.Directory = Directory;
             clone.Revision = Revision;
             clone.CreationTemplate = CreationTemplate;
-            clone.ImportOptions = ImportOptions.Clone();
+
+            if (ImportOptions != null)
+            {
+                clone.ImportOptions = ImportOptions.Clone();
+            }
+
             return clone;
         }
     }

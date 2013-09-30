@@ -28,7 +28,12 @@ namespace dbsc.Mongo
             MongoCheckoutOptions clone = new MongoCheckoutOptions(this.TargetDatabase.Clone());
             clone.Directory = this.Directory;
             clone.Revision = this.Revision;
-            clone.ImportOptions = this.ImportOptions.Clone();
+
+            if (this.ImportOptions != null)
+            {
+                clone.ImportOptions = this.ImportOptions.Clone();
+            }
+
             return clone;
         }
     }

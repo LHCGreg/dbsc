@@ -26,7 +26,11 @@ namespace dbsc.Mongo
             Directory = checkoutOptions.Directory;
             TargetDatabase = checkoutOptions.TargetDatabase.Clone();
             Revision = checkoutOptions.Revision;
-            ImportOptions = checkoutOptions.ImportOptions.Clone();
+
+            if (ImportOptions != null)
+            {
+                ImportOptions = checkoutOptions.ImportOptions.Clone();
+            }
         }
 
         public IUpdateOptions Clone()
@@ -34,7 +38,11 @@ namespace dbsc.Mongo
             MongoUpdateOptions clone = new MongoUpdateOptions(this.TargetDatabase.Clone());
             clone.Directory = this.Directory;
             clone.Revision = this.Revision;
-            clone.ImportOptions = this.ImportOptions.Clone();
+
+            if (this.ImportOptions != null)
+            {
+                clone.ImportOptions = this.ImportOptions.Clone();
+            }
             return clone;
         }
     }

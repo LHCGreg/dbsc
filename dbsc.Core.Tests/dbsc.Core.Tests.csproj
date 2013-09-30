@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="ScriptStackFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringExtensionsFixture.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\dbsc.Core\dbsc.Core.csproj">

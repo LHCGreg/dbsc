@@ -77,52 +77,6 @@ AND TABLE_TYPE = 'BASE TABLE'";
             return tables;
         }
 
-        private string QuoteCommandLineArg(string arg)
-        {
-            if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
-            {
-                return QuoteCommandLineArgUnix(arg);
-            }
-            else
-            {
-                return QuoteCommandLineArgWindows(arg);
-            }
-        }
-
-        internal static string QuoteCommandLineArgWindows(string arg)
-        {
-            // If a double quotation mark follows two or an even number of backslashes,
-            // each proceeding backslash pair is replaced with one backslash and the double quotation mark is removed.
-            // If a double quotation mark follows an odd number of backslashes, including just one,
-            // each preceding pair is replaced with one backslash and the remaining backslash is removed;
-            // however, in this case the double quotation mark is not removed. 
-            // - http://msdn.microsoft.com/en-us/library/system.environment.getcommandlineargs.aspx
-            //
-            // Windows command line processing is funky
-
-            string escapedArg;
-            Regex backslashSequenceBeforeQuotes = new Regex(@"(\\+)""");
-            // Double \ sequences before "s, Replace " with \", double \ sequences at end
-            escapedArg = backslashSequenceBeforeQuotes.Replace(arg, (match) => new string('\\', match.Groups[1].Length * 2) + "\"");
-            escapedArg = escapedArg.Replace("\"", @"\""");
-            Regex backslashSequenceAtEnd = new Regex(@"(\\+)$");
-            escapedArg = backslashSequenceAtEnd.Replace(escapedArg, (match) => new string('\\', match.Groups[1].Length * 2));
-            // C:\blah\"\\
-            // "C:\blah\\\"\\\\"
-            escapedArg = "\"" + escapedArg + "\"";
-            return escapedArg;
-        }
-
-        internal static string QuoteCommandLineArgUnix(string arg)
-        {
-            // Mono uses the GNOME g_shell_parse_argv() function to convert the arg string into an argv
-            // Just prepend " and \ with \ and enclose in quotes.
-            // Much simpler than Windows!
-
-            Regex backslashOrQuote = new Regex(@"\\|""");
-            return "\"" + backslashOrQuote.Replace(arg, (match) => @"\" + match.ToString()) + "\"";
-        }
-
         protected override bool ImportIsSupported(out string whyNot)
         {
             // mysql and mysqldump must be on the PATH.
@@ -223,13 +177,13 @@ AND TABLE_TYPE = 'BASE TABLE'";
                     {
                         Stopwatch mysqldumpTimer = Stopwatch.StartNew();
                         string mysqldumpArgs = string.Format("--no-defaults --skip-comments --skip-add-drop-table --no-create-info --no-autocommit {0} {1} {2} {3} {4} {5} {6}",
-                            QuoteCommandLineArg(string.Format("--host={0}", options.ImportOptions.SourceDatabase.Server)),
-                            options.ImportOptions.SourceDatabase.Port != null ? QuoteCommandLineArg(string.Format(CultureInfo.InvariantCulture, "--port={0}", options.ImportOptions.SourceDatabase.Port.Value)) : "",
-                            QuoteCommandLineArg(string.Format("--user={0}", options.ImportOptions.SourceDatabase.Username)),
-                            QuoteCommandLineArg(string.Format("--password={0}", options.ImportOptions.SourceDatabase.Password)),
-                            QuoteCommandLineArg(string.Format("--result-file={0}", tempFilePath)),
-                            QuoteCommandLineArg(options.ImportOptions.SourceDatabase.Database),
-                            QuoteCommandLineArg(table)
+                            string.Format("--host={0}", options.ImportOptions.SourceDatabase.Server).QuoteCommandLineArg(),
+                            options.ImportOptions.SourceDatabase.Port != null ? string.Format(CultureInfo.InvariantCulture, "--port={0}", options.ImportOptions.SourceDatabase.Port.Value).QuoteCommandLineArg() : "",
+                            string.Format("--user={0}", options.ImportOptions.SourceDatabase.Username).QuoteCommandLineArg(),
+                            string.Format("--password={0}", options.ImportOptions.SourceDatabase.Password).QuoteCommandLineArg(),
+                            string.Format("--result-file={0}", tempFilePath).QuoteCommandLineArg(),
+                            options.ImportOptions.SourceDatabase.Database.QuoteCommandLineArg(),
+                            table.QuoteCommandLineArg()
                             );
 
                         Process mysqldump = new Process()
@@ -270,11 +224,11 @@ AND TABLE_TYPE = 'BASE TABLE'";
                     {
                         Stopwatch importDumpTimer = Stopwatch.StartNew();
                         string mysqlArgs = string.Format("{0} {1} {2} {3} {4}",
-                            QuoteCommandLineArg(string.Format("--database={0}", options.TargetDatabase.Database)),
-                            QuoteCommandLineArg(string.Format("--host={0}", options.TargetDatabase.Server)),
-                            options.TargetDatabase.Port != null ? QuoteCommandLineArg(string.Format(CultureInfo.InvariantCulture, "--port={0}", options.TargetDatabase.Port.Value)) : "",
-                            QuoteCommandLineArg(string.Format("--user={0}", options.TargetDatabase.Username)),
-                            QuoteCommandLineArg(string.Format("--password={0}", options.TargetDatabase.Password))
+                            string.Format("--database={0}", options.TargetDatabase.Database).QuoteCommandLineArg(),
+                            string.Format("--host={0}", options.TargetDatabase.Server).QuoteCommandLineArg(),
+                            options.TargetDatabase.Port != null ? string.Format(CultureInfo.InvariantCulture, "--port={0}", options.TargetDatabase.Port.Value).QuoteCommandLineArg() : "",
+                            string.Format("--user={0}", options.TargetDatabase.Username).QuoteCommandLineArg(),
+                            string.Format("--password={0}", options.TargetDatabase.Password).QuoteCommandLineArg()
                         );
 
                         Process mysql = new Process()

@@ -1,8 +1,10 @@
 ﻿using dbsc.Core;
 using MongoDB.Driver;
+using MongoDB.Driver.Builders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace dbsc.Mongo
@@ -63,6 +65,26 @@ namespace dbsc.Mongo
         {
             MongoCollection<T> collection = m_database.GetCollection<T>(collectionName);
             collection.Save(document, new MongoInsertOptions() { WriteConcern = new WriteConcern() { WTimeout = TimeSpan.FromSeconds(m_connectionInfo.CommandTimeoutInSeconds) } });
+        }
+
+        public void UpdateAll<T>(string collectionName, IEnumerable<Tuple<Expression<Func<T, object>>, object>> updates)
+        {
+            QueryDocument query = new QueryDocument();
+            
+            UpdateBuilder<T> updateBuilder = new UpdateBuilder<T>();
+            foreach(Tuple<Expression<Func<T, object>>, object> updateLambdaAndObject in updates)
+            {
+                updateBuilder.Set(updateLambdaAndObject.Item1, updateLambdaAndObject.Item2);
+            }
+
+            MongoDB.Driver.MongoUpdateOptions updateOptions = new MongoDB.Driver.MongoUpdateOptions()
+            {
+                Flags = UpdateFlags.Multi,
+                WriteConcern = new WriteConcern() { WTimeout = TimeSpan.FromSeconds(m_connectionInfo.CommandTimeoutInSeconds) }
+            };
+
+            MongoCollection collection = m_database.GetCollection(collectionName);
+            collection.Update(query, updateBuilder, updateOptions);
         }
 
         public T GetSingleDocument<T>(string collectionName)

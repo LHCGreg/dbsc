@@ -22,7 +22,11 @@ namespace dbsc.Core
         {
             Directory = checkoutOptions.Directory;
             TargetDatabase = checkoutOptions.TargetDatabase.Clone();
-            ImportOptions = ImportOptions.Clone();
+
+            if (ImportOptions != null)
+            {
+                ImportOptions = ImportOptions.Clone();
+            }
         }
 
         public IUpdateOptions Clone()
@@ -30,7 +34,12 @@ namespace dbsc.Core
             SqlUpdateOptions clone = new SqlUpdateOptions(TargetDatabase.Clone());
             clone.Directory = Directory;
             clone.Revision = Revision;
-            clone.ImportOptions = ImportOptions.Clone();
+
+            if (ImportOptions != null)
+            {
+                clone.ImportOptions = ImportOptions.Clone();
+            }
+
             return clone;
         }
     }

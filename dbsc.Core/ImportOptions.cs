@@ -18,7 +18,12 @@ namespace dbsc.Core
         public ImportOptions Clone()
         {
             ImportOptions clone = new ImportOptions(SourceDatabase.Clone());
-            clone.TablesToImport = new List<string>(TablesToImport);
+
+            if (TablesToImport != null)
+            {
+                clone.TablesToImport = new List<string>(TablesToImport);
+            }
+
             return clone;
         }
     }
