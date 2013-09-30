@@ -24,8 +24,10 @@ namespace dbsc.Mongo
 
         protected override bool DatabaseHasMetadataTable(DbConnectionInfo connectionInfo)
         {
-            MongoDbscConnection conn = new MongoDbscConnection(connectionInfo);
-            return conn.ContainsCollection(MetadataCollectionName);
+            using (MongoDbscConnection conn = new MongoDbscConnection(connectionInfo))
+            {
+                return conn.ContainsCollection(MetadataCollectionName);
+            }
         }
 
         protected override void CreateDatabase(MongoCheckoutOptions options)
@@ -35,17 +37,21 @@ namespace dbsc.Mongo
 
         protected override void InitializeDatabase(MongoCheckoutOptions options, string masterDatabaseName)
         {
-            MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase);
-            conn.CreateCollection(MetadataCollectionName);
-            dbsc_metadata metadata = new dbsc_metadata(-1, masterDatabaseName, DateTime.UtcNow);
-            conn.Upsert(metadata, MetadataCollectionName);
+            using (MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase))
+            {
+                conn.CreateCollection(MetadataCollectionName);
+                dbsc_metadata metadata = new dbsc_metadata(-1, masterDatabaseName, DateTime.UtcNow);
+                conn.Upsert(metadata, MetadataCollectionName);
+            }
         }
 
         protected override int GetRevision(DbConnectionInfo connectionInfo)
         {
-            MongoDbscConnection conn = new MongoDbscConnection(connectionInfo);
-            dbsc_metadata metadata = conn.GetSingleDocument<dbsc_metadata>(MetadataCollectionName);
-            return metadata.Version;
+            using (MongoDbscConnection conn = new MongoDbscConnection(connectionInfo))
+            {
+                dbsc_metadata metadata = conn.GetSingleDocument<dbsc_metadata>(MetadataCollectionName);
+                return metadata.Version;
+            }
         }
 
         protected override void RunScriptAndUpdateMetadata(MongoUpdateOptions options, string scriptPath, int newRevision, DateTime utcTimestamp)
@@ -120,13 +126,15 @@ namespace dbsc.Mongo
 
         private void UpdateMetadata(MongoUpdateOptions options, int newRevision, DateTime utcTimestamp)
         {
-            MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase);
-            List<Tuple<Expression<Func<dbsc_metadata, object>>, object>> updates = new List<Tuple<Expression<Func<dbsc_metadata, object>>, object>>()
+            using (MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase))
             {
-                Tuple.Create<Expression<Func<dbsc_metadata, object>>, object>(metadata => metadata.Version, newRevision),
-                Tuple.Create<Expression<Func<dbsc_metadata, object>>, object>(metadata => metadata.LastChangeUTC, utcTimestamp)
-            };
-            conn.UpdateAll(MetadataCollectionName, updates);
+                List<Tuple<Expression<Func<dbsc_metadata, object>>, object>> updates = new List<Tuple<Expression<Func<dbsc_metadata, object>>, object>>()
+                {
+                    Tuple.Create<Expression<Func<dbsc_metadata, object>>, object>(metadata => metadata.Version, newRevision),
+                    Tuple.Create<Expression<Func<dbsc_metadata, object>>, object>(metadata => metadata.LastChangeUTC, utcTimestamp)
+                };
+                conn.UpdateAll(MetadataCollectionName, updates);
+            }
         }
 
         protected override void ImportData(MongoUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
@@ -138,10 +146,12 @@ namespace dbsc.Mongo
         {
             // No need to escape names because there is no query language to escape them for.
 
-            MongoDbscConnection conn = new MongoDbscConnection(connectionInfo);
-            ICollection<string> collectionNames = conn.GetCollectionNames();
-            collectionNames.Remove(MetadataCollectionName);
-            return collectionNames;
+            using (MongoDbscConnection conn = new MongoDbscConnection(connectionInfo))
+            {
+                ICollection<string> collectionNames = conn.GetCollectionNames();
+                collectionNames.Remove(MetadataCollectionName);
+                return collectionNames;
+            }
         }
     }
 }

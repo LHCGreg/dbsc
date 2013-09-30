@@ -9,7 +9,7 @@ using System.Text;
 
 namespace dbsc.Mongo
 {
-    class MongoDbscConnection
+    class MongoDbscConnection : IDisposable
     {
         private MongoServer m_server;
         private MongoDatabase m_database;
@@ -96,6 +96,11 @@ namespace dbsc.Mongo
         public ICollection<string> GetCollectionNames()
         {
             return m_database.GetCollectionNames().ToList();
+        }
+
+        public void Dispose()
+        {
+            ; // The Mongo driver does its own management of connections and its classes do not implement IDisposable.
         }
     }
 }
