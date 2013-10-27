@@ -3,6 +3,9 @@ using MongoDB.Driver;
 using MongoDB.Driver.Builders;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -14,7 +17,7 @@ namespace dbsc.Mongo
         private MongoServer m_server;
         private MongoDatabase m_database;
         private DbConnectionInfo m_connectionInfo;
-        
+
         public MongoDbscConnection(DbConnectionInfo connectionInfo)
         {
             m_connectionInfo = connectionInfo;
@@ -56,9 +59,17 @@ namespace dbsc.Mongo
 
         public void CreateCollection(string collectionName)
         {
-            // Don't use a capped collection because you cannot do updates on documents in a capped collection
-            // that would cause the document to grow in size.
+            // Don't use a capped collection for the metadata collection because you cannot do updates
+            // on documents in a capped collection that would cause the document to grow in size.
             m_database.CreateCollection(collectionName);
+        }
+
+        public void DropCollection(string collectionName)
+        {
+            m_database.DropCollection(collectionName);
+            CommandDocument cloneCommand = new CommandDocument();
+            cloneCommand["cloneCollection"] = "";
+            cloneCommand["from"] = "";
         }
 
         public void Upsert<T>(T document, string collectionName)
@@ -70,9 +81,9 @@ namespace dbsc.Mongo
         public void UpdateAll<T>(string collectionName, IEnumerable<Tuple<Expression<Func<T, object>>, object>> updates)
         {
             QueryDocument query = new QueryDocument();
-            
+
             UpdateBuilder<T> updateBuilder = new UpdateBuilder<T>();
-            foreach(Tuple<Expression<Func<T, object>>, object> updateLambdaAndObject in updates)
+            foreach (Tuple<Expression<Func<T, object>>, object> updateLambdaAndObject in updates)
             {
                 updateBuilder.Set(updateLambdaAndObject.Item1, updateLambdaAndObject.Item2);
             }
@@ -95,7 +106,158 @@ namespace dbsc.Mongo
 
         public ICollection<string> GetCollectionNames()
         {
-            return m_database.GetCollectionNames().ToList();
+            return m_database.GetCollectionNames().Where(collName => !collName.StartsWith("system.")).ToList();
+        }
+
+        private List<string> GetCommonMongoDumpRestoreArgs(DbConnectionInfo source, string collectionName)
+        {
+            List<string> args = new List<string>();
+            args.Add(string.Format("--host {0}", source.Server.QuoteCommandLineArg()));
+
+            if (source.Port != null)
+            {
+                args.Add(string.Format("--port {0}", source.Port.Value.ToString(CultureInfo.InvariantCulture).QuoteCommandLineArg()));
+            }
+
+            if (source.Username != null)
+            {
+                args.Add(string.Format("-u {0}", source.Username.QuoteCommandLineArg()));
+            }
+
+            if (source.Password != null)
+            {
+                args.Add(string.Format("-p {0}", source.Password.QuoteCommandLineArg()));
+            }
+
+            args.Add(string.Format("-db {0}", source.Database.QuoteCommandLineArg()));
+            args.Add(string.Format("-c {0}", collectionName.QuoteCommandLineArg()));
+
+            return args;
+        }
+
+        public void ImportCollection(DbConnectionInfo source, DbConnectionInfo target, string collectionName)
+        {
+            // Mongo has a cloneCollection command but it has some serious limitations:
+            // - Can only clone from a remote server, not the same server
+            // - Cannot clone from servers that require authentication
+            // - Separate commands for regular collections vs. capped collections
+
+            // Mongo has a copydb command but...
+            // - We don't really want to copy the entire database, only the collections that we have.
+            //   The source could have additional temp collections or such
+            // - This prevents specifying only certain collections to clone
+            // - The docs mention some strange hoops you have to go through to authenticate
+
+            // So shelling out to mongodump/mongorestore it is!
+            // Might be worth using cloneCollection in cases where the limitations don't apply for a speed boost
+
+            // mongodump --host server [--port port] [-u username -p password] -db sourcedb -c collection -o outputDir
+
+            List<string> mongodumpArgs = GetCommonMongoDumpRestoreArgs(source, collectionName);
+
+            string tempDirPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".tmp");
+            mongodumpArgs.Add(string.Format("-o {0}", tempDirPath.QuoteCommandLineArg()));
+
+            string mongodumpArgsString = string.Join(" ", mongodumpArgs);
+
+            ImportUtils.DoTimedOperationThatOuputsStuff(string.Format("Doing mongodump of {0} on {1}", collectionName, source.Database), () =>
+            {
+                Process mongodump = new Process()
+                {
+                    StartInfo = new ProcessStartInfo("mongodump", mongodumpArgsString)
+                    {
+                        CreateNoWindow = true,
+                        ErrorDialog = false,
+                        RedirectStandardError = true,
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                    },
+                    EnableRaisingEvents = true
+                };
+
+                object consoleLock = new object();
+
+                mongodump.OutputDataReceived += (sender, e) => { lock (consoleLock) { Console.WriteLine(e.Data); } };
+                mongodump.ErrorDataReceived += (sender, e) => { lock (consoleLock) { Console.WriteLine(e.Data); } };
+                using (mongodump)
+                {
+                    mongodump.Start();
+                    mongodump.BeginOutputReadLine();
+                    mongodump.BeginErrorReadLine();
+                    mongodump.WaitForExit();
+                    if (mongodump.ExitCode != 0)
+                    {
+                        throw new DbscException("mongodump error. Check the error above for details.");
+                    }
+                }
+            });
+
+            try
+            {
+                // mongorestore --host server [--port port] [-u username -p password] -db targetDb -c collection outputDir
+                List<string> mongorestoreArgs = GetCommonMongoDumpRestoreArgs(target, collectionName);
+
+                // The path that we need to pass to mongorestore is actually tempDirPath\db_name\collection_name.bson
+                // Let's not try to guess how mongo escapes characters that are not valid file system characters
+                string dbFolder = Directory.EnumerateDirectories(tempDirPath).FirstOrDefault();
+                if (dbFolder == null)
+                {
+                    throw new DbscException("mongodump did not create a directory.");
+                }
+
+                string bsonFilePath = Directory.EnumerateFiles(dbFolder, "*.bson").FirstOrDefault();
+                if (bsonFilePath == null)
+                {
+                    throw new DbscException("mongodump did not create a .bson file.");
+                }
+
+                mongorestoreArgs.Add(bsonFilePath.QuoteCommandLineArg());
+
+                string mongorestoreArgsString = string.Join(" ", mongorestoreArgs);
+
+                ImportUtils.DoTimedOperationThatOuputsStuff(string.Format("Doing mongorestore of {0} on {1}", collectionName, target.Database), () =>
+                {
+                    Process mongorestore = new Process()
+                    {
+                        StartInfo = new ProcessStartInfo("mongorestore", mongorestoreArgsString)
+                        {
+                            CreateNoWindow = true,
+                            ErrorDialog = false,
+                            RedirectStandardError = true,
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false,
+                        },
+                        EnableRaisingEvents = true
+                    };
+
+                    object consoleLock = new object();
+
+                    mongorestore.OutputDataReceived += (sender, e) => { lock (consoleLock) { Console.WriteLine(e.Data); } };
+                    mongorestore.ErrorDataReceived += (sender, e) => { lock (consoleLock) { Console.WriteLine(e.Data); } };
+                    using (mongorestore)
+                    {
+                        mongorestore.Start();
+                        mongorestore.BeginOutputReadLine();
+                        mongorestore.BeginErrorReadLine();
+                        mongorestore.WaitForExit();
+                        if (mongorestore.ExitCode != 0)
+                        {
+                            throw new DbscException("mongorestore error. Check the output above for details.");
+                        }
+                    }
+                });
+            }
+            finally
+            {
+                try
+                {
+                    Directory.Delete(tempDirPath, recursive: true);
+                }
+                catch
+                {
+                    ; // If cleaning up the temp directory fails, whatever, it's in the temp directory.
+                }
+            }
         }
 
         public void Dispose()

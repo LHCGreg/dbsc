@@ -16,8 +16,8 @@ namespace dbsc.Mongo
 
         protected override bool ImportIsSupported(out string whyNot)
         {
-            whyNot = "Import not supported for MongoDB yet.";
-            return false;
+            whyNot = null;
+            return true;
         }
 
         private const string MetadataCollectionName = "dbsc_metadata";
@@ -62,22 +62,26 @@ namespace dbsc.Mongo
 
         private void RunScript(MongoUpdateOptions options, string scriptPath, int newRevision)
         {
-            string mongoArgs = GetMongoArgs(options, scriptPath);
+            string mongoArgs = GetMongoArgs(options, scriptPath: scriptPath, jsToEval: null);
             Process mongo = new Process()
             {
                 StartInfo = new ProcessStartInfo("mongo", mongoArgs)
                 {
                     ErrorDialog = false,
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     UseShellExecute = false
                 }
             };
 
-            mongo.OutputDataReceived += (sender, e) => Console.WriteLine(e.Data);
+            object consoleLock = new object();
+            mongo.OutputDataReceived += (sender, e) => { lock (consoleLock) { Console.WriteLine(e.Data); } };
+            mongo.ErrorDataReceived += (sender, e) => { lock (consoleLock) { Console.WriteLine(e.Data); } };
             using (mongo)
             {
                 mongo.Start();
                 mongo.BeginOutputReadLine();
+                mongo.BeginErrorReadLine();
                 mongo.WaitForExit();
                 if (mongo.ExitCode != 0)
                 {
@@ -86,13 +90,25 @@ namespace dbsc.Mongo
             }
         }
 
-        private string GetMongoArgs(MongoUpdateOptions options, string scriptPath)
+        /// <summary>
+        /// Specify at least one of scriptPath or jsToEval
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="scriptPath"></param>
+        /// <param name="jsToEval"></param>
+        /// <returns></returns>
+        private string GetMongoArgs(MongoUpdateOptions options, string scriptPath, string jsToEval)
         {
-            // mongo --norc [--port portnum] --host hostname [-u username] [-p password] dbname script.js
+            // mongo --norc [--port portnum] --host hostname [-u username] [-p password] [--eval jsToEval] dbname [script.js]
+            if (scriptPath == null && jsToEval == null)
+            {
+                throw new ArgumentException("scriptPath and jsToEval cannot both be null.");
+            }
+
             List<string> args = new List<string>(11);
             string noRcArg = "--norc";
             args.Add(noRcArg);
-            
+
             if (options.TargetDatabase.Port != null)
             {
                 string portArg = string.Format("--port {0}", options.TargetDatabase.Port.Value.ToString(CultureInfo.InvariantCulture));
@@ -114,11 +130,20 @@ namespace dbsc.Mongo
                 args.Add(passwordArg);
             }
 
+            if (jsToEval != null)
+            {
+                string evalArg = string.Format("--eval {0}", jsToEval.QuoteCommandLineArg());
+                args.Add(evalArg);
+            }
+
             string dbNameArg = options.TargetDatabase.Database.QuoteCommandLineArg();
             args.Add(dbNameArg);
 
-            string scriptArg = scriptPath.QuoteCommandLineArg();
-            args.Add(scriptArg);
+            if (scriptPath != null)
+            {
+                string scriptArg = scriptPath.QuoteCommandLineArg();
+                args.Add(scriptArg);
+            }
 
             string argsString = string.Join(" ", args);
             return argsString;
@@ -139,7 +164,23 @@ namespace dbsc.Mongo
 
         protected override void ImportData(MongoUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
-            throw new NotImplementedException();
+            using (MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase))
+            {
+                // Drop collections
+                ImportUtils.DoTimedOperation("Removing all collections", () =>
+                {
+                    foreach (string collectionName in allTablesExceptMetadataAlreadyEscaped)
+                    {
+                        conn.DropCollection(collectionName);
+                    }
+                });
+
+                // Import each collection to import
+                foreach (string collectionToImport in tablesToImportAlreadyEscaped)
+                {
+                    conn.ImportCollection(options.ImportOptions.SourceDatabase, options.TargetDatabase, collectionToImport);
+                }
+            }
         }
 
         protected override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)

@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="BaseCommandLineArgs.cs" />
     <Compile Include="BaseDbscDbConnection.cs" />
+    <Compile Include="ImportUtils.cs" />
     <Compile Include="SqlCheckoutOptions.cs" />
     <Compile Include="DbConnectionInfo.cs" />
     <Compile Include="DbscEngine.cs" />
