@@ -27,7 +27,7 @@ namespace dbsc.Mongo
             TargetDatabase = checkoutOptions.TargetDatabase.Clone();
             Revision = checkoutOptions.Revision;
 
-            if (ImportOptions != null)
+            if (checkoutOptions.ImportOptions != null)
             {
                 ImportOptions = checkoutOptions.ImportOptions.Clone();
             }

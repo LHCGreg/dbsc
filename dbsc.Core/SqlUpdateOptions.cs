@@ -22,10 +22,11 @@ namespace dbsc.Core
         {
             Directory = checkoutOptions.Directory;
             TargetDatabase = checkoutOptions.TargetDatabase.Clone();
+            Revision = checkoutOptions.Revision;
 
-            if (ImportOptions != null)
+            if (checkoutOptions.ImportOptions != null)
             {
-                ImportOptions = ImportOptions.Clone();
+                ImportOptions = checkoutOptions.ImportOptions.Clone();
             }
         }
 
