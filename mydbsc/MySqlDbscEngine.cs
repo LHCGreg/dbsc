@@ -244,7 +244,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
                         EnableRaisingEvents = true
                     };
 
-                    mysqldump.ErrorDataReceived += (sender, e) => Console.Write(e.Data);
+                    mysqldump.ErrorDataReceived += (sender, e) => Console.WriteLine(e.Data);
                     using (mysqldump)
                     {
                         mysqldump.Start();
