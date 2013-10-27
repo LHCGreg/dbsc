@@ -60,32 +60,16 @@ namespace dbsc.Postgres
 
                     DoPostImport(targetConn, targetTransaction);
 
-                    Console.Write("Committing transaction...");
-                    try
+                    ImportUtils.DoTimedOperation("Committing transaction", () =>
                     {
-                        Stopwatch timer = Stopwatch.StartNew();
                         targetTransaction.Commit();
-                        timer.Stop();
-                        Console.Write(timer.Elapsed);
-                    }
-                    finally
-                    {
-                        Console.WriteLine();
-                    }
+                    });
                 }
 
-                Console.Write("Vacuuming...");
-                try
+                ImportUtils.DoTimedOperation("Vacuuming", () =>
                 {
-                    Stopwatch timer = Stopwatch.StartNew();
                     targetConn.ExecuteSql("VACUUM ANALYZE", timeoutInSeconds: vacuumTimeoutInSeconds);
-                    timer.Stop();
-                    Console.Write(timer.Elapsed);
-                }
-                finally
-                {
-                    Console.WriteLine();
-                }
+                });
             }
         }
 
@@ -93,12 +77,11 @@ namespace dbsc.Postgres
         {
             // Disable foreign key constraints and primary key constraints temporarily by removing them, then recreating them after the import
 
-            Console.Write("Removing foreign key and primary key constraints...");
             m_fkCreationSql = new List<string>();
             m_pkCreationSql = new List<string>();
-            try
+
+            ImportUtils.DoTimedOperation("Removing foreign key and primary key constraints", () =>
             {
-                Stopwatch keyTimer = Stopwatch.StartNew();
                 string keySql = @"SELECT pg_constraint.conname, pg_constraint.contype, pg_namespace.nspname, pg_class.relname AS tablename, pg_get_constraintdef(pg_constraint.oid) AS def
 FROM pg_constraint
 JOIN pg_class ON pg_constraint.conrelid = pg_class.oid
@@ -121,21 +104,12 @@ AND pg_namespace.nspname NOT LIKE 'pg_%' AND pg_namespace.nspname <> 'informatio
                     else
                         m_pkCreationSql.Add(createSql);
                 }
-
-                keyTimer.Stop();
-                Console.Write(keyTimer.Elapsed);
-            }
-            finally
-            {
-                Console.WriteLine();
-            }
+            });
 
             // Remove indexes, then recreate them when done importing
-            Console.Write("Removing indexes...");
             m_indexCreationSql = new List<string>();
-            try
+            ImportUtils.DoTimedOperation("Removing indexes", () =>
             {
-                Stopwatch indexTimer = Stopwatch.StartNew();
                 string indexSql = @"
 SELECT ind_schema.nspname AS index_schema, ind_more.relname AS index_name, pg_get_indexdef(ind.indexrelid) AS def FROM pg_index AS ind
 JOIN pg_class AS tab ON ind.indrelid = tab.oid
@@ -154,31 +128,16 @@ AND tab.relname <> 'dbsc_metadata'";
                     targetConn.ExecuteSql(dropSql, targetTransaction);
                     m_indexCreationSql.Add(index.def);
                 }
+            });
 
-                indexTimer.Stop();
-                Console.Write(indexTimer.Elapsed);
-            }
-            finally
+            ImportUtils.DoTimedOperation("Clearing all tables", () =>
             {
-                Console.WriteLine();
-            }
-
-            Console.Write("Clearing all tables...");
-            try
-            {
-                Stopwatch clearTableTimer = Stopwatch.StartNew();
                 foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
                 {
                     string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
                     targetConn.ExecuteSql(clearTableSql, targetTransaction);
                 }
-                clearTableTimer.Stop();
-                Console.Write(clearTableTimer.Elapsed);
-            }
-            finally
-            {
-                Console.WriteLine();
-            }
+            });
         }
 
         private void DoImport(PgDbscDbConnection targetConn, NpgsqlTransaction targetTransaction, PgDbscDbConnection sourceConn)
@@ -187,20 +146,10 @@ AND tab.relname <> 'dbsc_metadata'";
             {
                 foreach (string table in m_tablesToImportAlreadyEscaped)
                 {
-                    Console.Write("Importing {0}...", table);
-                    try
+                    ImportUtils.DoTimedOperation(string.Format("Importing {0}", table), () =>
                     {
-                        Stopwatch timer = Stopwatch.StartNew();
-
                         targetConn.ImportTable(sourceConn, table, targetDbTransaction: targetTransaction, sourceDbTransaction: sourceTransaction);
-
-                        timer.Stop();
-                        Console.Write(timer.Elapsed);
-                    }
-                    finally
-                    {
-                        Console.WriteLine();
-                    }
+                    });
                 }
 
                 // Finish the transaction on the source database.
@@ -213,27 +162,17 @@ AND tab.relname <> 'dbsc_metadata'";
         private void DoPostImport(PgDbscDbConnection targetConn, NpgsqlTransaction targetTransaction)
         {
             // Add the indexes back
-            Console.Write("Adding indexes back...");
-            try
+            ImportUtils.DoTimedOperation("Adding indexes back", () =>
             {
-                Stopwatch indexTimer = Stopwatch.StartNew();
                 foreach (string sql in m_indexCreationSql)
                 {
                     targetConn.ExecuteSql(sql, targetTransaction, timeoutInSeconds: enableIndexTimeoutInSeconds);
                 }
-                indexTimer.Stop();
-                Console.Write(indexTimer.Elapsed);
-            }
-            finally
-            {
-                Console.WriteLine();
-            }
+            });
 
             // Add the foreign key and primary key constraints back
-            Console.Write("Adding foreign key and primary key constraints back...");
-            try
+            ImportUtils.DoTimedOperation("Adding foreign key and primary key constraints back", () =>
             {
-                Stopwatch fkTimer = Stopwatch.StartNew();
                 // Create primary keys before foreign keys because the foreign keys depend on the primary keys.
                 foreach (string sql in m_pkCreationSql)
                 {
@@ -243,13 +182,7 @@ AND tab.relname <> 'dbsc_metadata'";
                 {
                     targetConn.ExecuteSql(sql, targetTransaction, timeoutInSeconds: enableConstraintTimeoutInSeconds);
                 }
-                fkTimer.Stop();
-                Console.Write(fkTimer.Elapsed);
-            }
-            finally
-            {
-                Console.WriteLine();
-            }
+            });
         }
     }
 }

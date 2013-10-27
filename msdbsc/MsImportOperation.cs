@@ -62,32 +62,19 @@ namespace dbsc.SqlServer
         private void PrepareTargetForImport(MsDbscDbConnection targetConn)
         {
             // Disable constraints
-            Console.Write("Removing constraints...");
-            try
+            ImportUtils.DoTimedOperation("Removing constraints", () =>
             {
-                Stopwatch removeConstraintsTimer = Stopwatch.StartNew();
-
                 foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
                 {
                     string disableConstraintsSql = string.Format("ALTER TABLE {0} NOCHECK CONSTRAINT ALL", table);
                     targetConn.ExecuteSql(disableConstraintsSql);
                 }
-
-                removeConstraintsTimer.Stop();
-                Console.Write(removeConstraintsTimer.Elapsed);
-            }
-            finally
-            {
-                Console.WriteLine();
-            }
+            });
 
             // Disable indexes
             m_nonClusteredIndexes = new List<Index>();
-            Console.Write("Disabling non-clustered indexes...");
-            try
+            ImportUtils.DoTimedOperation("Disabling non-clustered indexes", () =>
             {
-                Stopwatch removeIndexesTimer = Stopwatch.StartNew();
-
                 string indexQuerySql =
 @"SELECT Ind.name AS IndexName, TAB.TABLE_SCHEMA AS TableSchema, Tab.TABLE_NAME AS TableName FROM sys.indexes Ind
 JOIN sys.objects Obj ON Ind.object_id = Obj.object_id
@@ -103,20 +90,10 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
                         MsDbscDbConnection.QuoteSqlServerIdentifier(index.IndexName), MsDbscDbConnection.QuoteSqlServerIdentifier(index.TableSchema, index.TableName));
                     targetConn.ExecuteSql(disableIndexSql);
                 }
+            });
 
-                removeIndexesTimer.Stop();
-                Console.Write(removeIndexesTimer.Elapsed);
-            }
-            finally
+            ImportUtils.DoTimedOperation("Clearing all tables", () =>
             {
-                Console.WriteLine();
-            }
-
-            Console.Write("Clearing all tables...");
-            try
-            {
-                Stopwatch clearTablesTimer = Stopwatch.StartNew();
-
                 foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
                 {
                     //string truncateSql = string.Format("TRUNCATE TABLE {0}", table);
@@ -125,14 +102,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
                     string truncateSql = string.Format("DELETE FROM {0}", table);
                     targetConn.ExecuteSql(truncateSql, timeoutInSeconds: truncateTimeoutInSeconds);
                 }
-
-                clearTablesTimer.Stop();
-                Console.Write(clearTablesTimer.Elapsed);
-            }
-            finally
-            {
-                Console.WriteLine();
-            }
+            });
 
             // If recovery model is full, switch to bulk-logged recovery model for import and switch back after import
             string recoveryModelQuerySql = "SELECT recovery_model AS RecoveryModelId FROM sys.databases WHERE name = @dbName";
@@ -176,20 +146,10 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             {
                 foreach (string table in m_tablesToImportAlreadyEscaped)
                 {
-                    Console.Write("Importing {0}...", table);
-                    try
+                    ImportUtils.DoTimedOperation(string.Format("Importing {0}", table), () =>
                     {
-                        Stopwatch importTimer = Stopwatch.StartNew();
-
                         targetConn.ImportTable(sourceConn, table, sourceDbTransaction);
-
-                        importTimer.Stop();
-                        Console.Write(importTimer.Elapsed);
-                    }
-                    finally
-                    {
-                        Console.WriteLine();
-                    }
+                    });
                 }
 
                 // Finish the transaction on the source database.
@@ -214,44 +174,25 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             }
 
             // Enable indexes that were disabled
-            Console.Write("Enabling and rebuilding non-clustered indexes...");
-            try
+            ImportUtils.DoTimedOperation("Enabling and rebuilding non-clustered indexes", () =>
             {
-                Stopwatch rebuildIndexTimer = Stopwatch.StartNew();
                 foreach (Index index in m_nonClusteredIndexes)
                 {
                     string enableIndexSql = string.Format("ALTER INDEX {0} ON {1} REBUILD",
                         MsDbscDbConnection.QuoteSqlServerIdentifier(index.IndexName), MsDbscDbConnection.QuoteSqlServerIdentifier(index.TableSchema, index.TableName));
                     targetConn.ExecuteSql(enableIndexSql, timeoutInSeconds: enableIndexTimeoutInSeconds);
                 }
-
-                rebuildIndexTimer.Stop();
-                Console.Write(rebuildIndexTimer.Elapsed);
-            }
-            finally
-            {
-                Console.WriteLine();
-            }
+            });
 
             // Enable constraints
-            Console.Write("Enabling constraints...");
-            try
+            ImportUtils.DoTimedOperation("Enabling constraints", () =>
             {
-                Stopwatch enableConstraintsTimer = Stopwatch.StartNew();
-
                 foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
                 {
                     string enableConstraintsSql = string.Format("ALTER TABLE {0} WITH CHECK CHECK CONSTRAINT ALL", table);
                     targetConn.ExecuteSql(enableConstraintsSql, timeoutInSeconds: enableConstraintsTimeoutInSeconds);
                 }
-
-                enableConstraintsTimer.Stop();
-                Console.Write(enableConstraintsTimer.Elapsed);
-            }
-            finally
-            {
-                Console.WriteLine();
-            }
+            });
         }
     }
 }

@@ -151,31 +151,21 @@ AND TABLE_TYPE = 'BASE TABLE'";
                 // Can only disable indexes on MyISAM tables, so don't do that for now.
 
                 // Clear tables
-                Console.Write("Clearing all tables...");
-                try
+                ImportUtils.DoTimedOperation("Clearing all tables", () =>
                 {
-                    Stopwatch clearTableTimer = Stopwatch.StartNew();
                     foreach (string table in allTablesExceptMetadataAlreadyEscaped)
                     {
                         string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
                         targetConn.ExecuteSql(clearTableSql);
                     }
-                    clearTableTimer.Stop();
-                    Console.Write(clearTableTimer.Elapsed);
-                }
-                finally
-                {
-                    Console.WriteLine();
-                }
+                });
 
                 // Import each table
                 foreach (string table in tablesToImportAlreadyEscaped)
                 {
                     string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sql");
-                    Console.WriteLine("Making mysqldump of {0}...", table);
-                    try
+                    ImportUtils.DoTimedOperationThatOuputsStuff(string.Format("Making mysqldump of {0}", table), () =>
                     {
-                        Stopwatch mysqldumpTimer = Stopwatch.StartNew();
                         string mysqldumpArgs = string.Format("--no-defaults --skip-comments --skip-add-drop-table --no-create-info --no-autocommit {0} {1} {2} {3} {4} {5} {6}",
                             string.Format("--host={0}", options.ImportOptions.SourceDatabase.Server).QuoteCommandLineArg(),
                             options.ImportOptions.SourceDatabase.Port != null ? string.Format(CultureInfo.InvariantCulture, "--port={0}", options.ImportOptions.SourceDatabase.Port.Value).QuoteCommandLineArg() : "",
@@ -211,56 +201,48 @@ AND TABLE_TYPE = 'BASE TABLE'";
                                 throw new DbscException("mysqldump error.");
                             }
                         }
-                        mysqldumpTimer.Stop();
-                        Console.Write(mysqldumpTimer.Elapsed);
-                    }
-                    finally
-                    {
-                        Console.WriteLine();
-                    }
+                    });
 
-                    Console.WriteLine("Importing mysqldump of {0}...", table);
                     try
                     {
-                        Stopwatch importDumpTimer = Stopwatch.StartNew();
-                        string mysqlArgs = string.Format("{0} {1} {2} {3} {4}",
-                            string.Format("--database={0}", options.TargetDatabase.Database).QuoteCommandLineArg(),
-                            string.Format("--host={0}", options.TargetDatabase.Server).QuoteCommandLineArg(),
-                            options.TargetDatabase.Port != null ? string.Format(CultureInfo.InvariantCulture, "--port={0}", options.TargetDatabase.Port.Value).QuoteCommandLineArg() : "",
-                            string.Format("--user={0}", options.TargetDatabase.Username).QuoteCommandLineArg(),
-                            string.Format("--password={0}", options.TargetDatabase.Password).QuoteCommandLineArg()
-                        );
-
-                        Process mysql = new Process()
+                        ImportUtils.DoTimedOperationThatOuputsStuff(string.Format("Importing mysqldump of {0}", table), () =>
                         {
-                            StartInfo = new ProcessStartInfo("mysql", mysqlArgs)
-                            {
-                                CreateNoWindow = true,
-                                ErrorDialog = false,
-                                RedirectStandardError = true,
-                                RedirectStandardInput = true,
-                                UseShellExecute = false
-                            }
-                        };
+                            string mysqlArgs = string.Format("{0} {1} {2} {3} {4}",
+                                string.Format("--database={0}", options.TargetDatabase.Database).QuoteCommandLineArg(),
+                                string.Format("--host={0}", options.TargetDatabase.Server).QuoteCommandLineArg(),
+                                options.TargetDatabase.Port != null ? string.Format(CultureInfo.InvariantCulture, "--port={0}", options.TargetDatabase.Port.Value).QuoteCommandLineArg() : "",
+                                string.Format("--user={0}", options.TargetDatabase.Username).QuoteCommandLineArg(),
+                                string.Format("--password={0}", options.TargetDatabase.Password).QuoteCommandLineArg()
+                            );
 
-                        mysql.ErrorDataReceived += (sender, e) => { Console.WriteLine(e.Data); };
-                        using (FileStream dumpFile = File.OpenRead(tempFilePath))
-                        using (mysql)
-                        {
-                            mysql.Start();
-                            mysql.BeginErrorReadLine();
-                            dumpFile.CopyTo(mysql.StandardInput.BaseStream);
-                            mysql.StandardInput.BaseStream.Flush();
-                            mysql.StandardInput.Close();
-                            mysql.WaitForExit();
-                            if (mysql.ExitCode != 0)
+                            Process mysql = new Process()
                             {
-                                throw new DbscException("mysql error.");
-                            }
-                        }
+                                StartInfo = new ProcessStartInfo("mysql", mysqlArgs)
+                                {
+                                    CreateNoWindow = true,
+                                    ErrorDialog = false,
+                                    RedirectStandardError = true,
+                                    RedirectStandardInput = true,
+                                    UseShellExecute = false
+                                }
+                            };
 
-                        importDumpTimer.Stop();
-                        Console.Write(importDumpTimer.Elapsed);
+                            mysql.ErrorDataReceived += (sender, e) => { Console.WriteLine(e.Data); };
+                            using (FileStream dumpFile = File.OpenRead(tempFilePath))
+                            using (mysql)
+                            {
+                                mysql.Start();
+                                mysql.BeginErrorReadLine();
+                                dumpFile.CopyTo(mysql.StandardInput.BaseStream);
+                                mysql.StandardInput.BaseStream.Flush();
+                                mysql.StandardInput.Close();
+                                mysql.WaitForExit();
+                                if (mysql.ExitCode != 0)
+                                {
+                                    throw new DbscException("mysql error.");
+                                }
+                            }
+                        });
                     }
                     finally
                     {
@@ -272,7 +254,6 @@ AND TABLE_TYPE = 'BASE TABLE'";
                         {
                             ; // Not much we can do if we can't delete the temp file for some reason.
                         }
-                        Console.WriteLine();
                     }
                 }
 
