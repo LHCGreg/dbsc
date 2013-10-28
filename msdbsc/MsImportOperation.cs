@@ -62,7 +62,7 @@ namespace dbsc.SqlServer
         private void PrepareTargetForImport(MsDbscDbConnection targetConn)
         {
             // Disable constraints
-            ImportUtils.DoTimedOperation("Removing constraints", () =>
+            Utils.DoTimedOperation("Removing constraints", () =>
             {
                 foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
                 {
@@ -73,7 +73,7 @@ namespace dbsc.SqlServer
 
             // Disable indexes
             m_nonClusteredIndexes = new List<Index>();
-            ImportUtils.DoTimedOperation("Disabling non-clustered indexes", () =>
+            Utils.DoTimedOperation("Disabling non-clustered indexes", () =>
             {
                 string indexQuerySql =
 @"SELECT Ind.name AS IndexName, TAB.TABLE_SCHEMA AS TableSchema, Tab.TABLE_NAME AS TableName FROM sys.indexes Ind
@@ -92,7 +92,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
                 }
             });
 
-            ImportUtils.DoTimedOperation("Clearing all tables", () =>
+            Utils.DoTimedOperation("Clearing all tables", () =>
             {
                 foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
                 {
@@ -146,7 +146,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             {
                 foreach (string table in m_tablesToImportAlreadyEscaped)
                 {
-                    ImportUtils.DoTimedOperation(string.Format("Importing {0}", table), () =>
+                    Utils.DoTimedOperation(string.Format("Importing {0}", table), () =>
                     {
                         targetConn.ImportTable(sourceConn, table, sourceDbTransaction);
                     });
@@ -174,7 +174,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             }
 
             // Enable indexes that were disabled
-            ImportUtils.DoTimedOperation("Enabling and rebuilding non-clustered indexes", () =>
+            Utils.DoTimedOperation("Enabling and rebuilding non-clustered indexes", () =>
             {
                 foreach (Index index in m_nonClusteredIndexes)
                 {
@@ -185,7 +185,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             });
 
             // Enable constraints
-            ImportUtils.DoTimedOperation("Enabling constraints", () =>
+            Utils.DoTimedOperation("Enabling constraints", () =>
             {
                 foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
                 {

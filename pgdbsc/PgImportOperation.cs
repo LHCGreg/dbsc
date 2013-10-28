@@ -60,13 +60,13 @@ namespace dbsc.Postgres
 
                     DoPostImport(targetConn, targetTransaction);
 
-                    ImportUtils.DoTimedOperation("Committing transaction", () =>
+                    Utils.DoTimedOperation("Committing transaction", () =>
                     {
                         targetTransaction.Commit();
                     });
                 }
 
-                ImportUtils.DoTimedOperation("Vacuuming", () =>
+                Utils.DoTimedOperation("Vacuuming", () =>
                 {
                     targetConn.ExecuteSql("VACUUM ANALYZE", timeoutInSeconds: vacuumTimeoutInSeconds);
                 });
@@ -80,7 +80,7 @@ namespace dbsc.Postgres
             m_fkCreationSql = new List<string>();
             m_pkCreationSql = new List<string>();
 
-            ImportUtils.DoTimedOperation("Removing foreign key and primary key constraints", () =>
+            Utils.DoTimedOperation("Removing foreign key and primary key constraints", () =>
             {
                 string keySql = @"SELECT pg_constraint.conname, pg_constraint.contype, pg_namespace.nspname, pg_class.relname AS tablename, pg_get_constraintdef(pg_constraint.oid) AS def
 FROM pg_constraint
@@ -108,7 +108,7 @@ AND pg_namespace.nspname NOT LIKE 'pg_%' AND pg_namespace.nspname <> 'informatio
 
             // Remove indexes, then recreate them when done importing
             m_indexCreationSql = new List<string>();
-            ImportUtils.DoTimedOperation("Removing indexes", () =>
+            Utils.DoTimedOperation("Removing indexes", () =>
             {
                 string indexSql = @"
 SELECT ind_schema.nspname AS index_schema, ind_more.relname AS index_name, pg_get_indexdef(ind.indexrelid) AS def FROM pg_index AS ind
@@ -130,7 +130,7 @@ AND tab.relname <> 'dbsc_metadata'";
                 }
             });
 
-            ImportUtils.DoTimedOperation("Clearing all tables", () =>
+            Utils.DoTimedOperation("Clearing all tables", () =>
             {
                 foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
                 {
@@ -146,7 +146,7 @@ AND tab.relname <> 'dbsc_metadata'";
             {
                 foreach (string table in m_tablesToImportAlreadyEscaped)
                 {
-                    ImportUtils.DoTimedOperation(string.Format("Importing {0}", table), () =>
+                    Utils.DoTimedOperation(string.Format("Importing {0}", table), () =>
                     {
                         targetConn.ImportTable(sourceConn, table, targetDbTransaction: targetTransaction, sourceDbTransaction: sourceTransaction);
                     });
@@ -162,7 +162,7 @@ AND tab.relname <> 'dbsc_metadata'";
         private void DoPostImport(PgDbscDbConnection targetConn, NpgsqlTransaction targetTransaction)
         {
             // Add the indexes back
-            ImportUtils.DoTimedOperation("Adding indexes back", () =>
+            Utils.DoTimedOperation("Adding indexes back", () =>
             {
                 foreach (string sql in m_indexCreationSql)
                 {
@@ -171,7 +171,7 @@ AND tab.relname <> 'dbsc_metadata'";
             });
 
             // Add the foreign key and primary key constraints back
-            ImportUtils.DoTimedOperation("Adding foreign key and primary key constraints back", () =>
+            Utils.DoTimedOperation("Adding foreign key and primary key constraints back", () =>
             {
                 // Create primary keys before foreign keys because the foreign keys depend on the primary keys.
                 foreach (string sql in m_pkCreationSql)

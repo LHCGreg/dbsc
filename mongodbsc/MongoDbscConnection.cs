@@ -160,7 +160,7 @@ namespace dbsc.Mongo
 
             string mongodumpArgsString = string.Join(" ", mongodumpArgs);
 
-            ImportUtils.DoTimedOperationThatOuputsStuff(string.Format("Doing mongodump of {0} on {1}", collectionName, source.Database), () =>
+            Utils.DoTimedOperationThatOuputsStuff(string.Format("Doing mongodump of {0} on {1}", collectionName, source.Database), () =>
             {
                 Process mongodump = new Process()
                 {
@@ -215,7 +215,7 @@ namespace dbsc.Mongo
 
                 string mongorestoreArgsString = string.Join(" ", mongorestoreArgs);
 
-                ImportUtils.DoTimedOperationThatOuputsStuff(string.Format("Doing mongorestore of {0} on {1}", collectionName, target.Database), () =>
+                Utils.DoTimedOperationThatOuputsStuff(string.Format("Doing mongorestore of {0} on {1}", collectionName, target.Database), () =>
                 {
                     Process mongorestore = new Process()
                     {

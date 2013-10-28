@@ -77,49 +77,25 @@ AND TABLE_TYPE = 'BASE TABLE'";
             return tables;
         }
 
+        protected override bool CheckoutAndUpdateIsSupported(out string whyNot)
+        {
+            whyNot = null;
+            return true;
+        }
+
         protected override bool ImportIsSupported(out string whyNot)
         {
             // mysql and mysqldump must be on the PATH.
-            using (Process mysqldump = new Process()
+            if (!Utils.ExecutableIsOnPath("mysqldump", "--version"))
             {
-                StartInfo = new ProcessStartInfo("mysqldump", "--version")
-                {
-                    CreateNoWindow = true,
-                    ErrorDialog = false,
-                    UseShellExecute = false
-                },
-            })
-            {
-                try
-                {
-                    mysqldump.Start();
-                }
-                catch (Exception)
-                {
-                    whyNot = "Importing is not supported because you do not have mysqldump installed and on your PATH.";
-                    return false;
-                }
+                whyNot = "Importing is not supported because you do not have mysqldump installed and on your PATH.";
+                return false;
             }
 
-            using (Process mysql = new Process()
+            if (!Utils.ExecutableIsOnPath("mysql", "--version"))
             {
-                StartInfo = new ProcessStartInfo("mysql", "--version")
-                {
-                    CreateNoWindow = true,
-                    ErrorDialog = false,
-                    UseShellExecute = false
-                },
-            })
-            {
-                try
-                {
-                    mysql.Start();
-                }
-                catch (Exception)
-                {
-                    whyNot = "Importing is not supported because you do not have mysql installed and on your PATH.";
-                    return false;
-                }
+                whyNot = "Importing is not supported because you do not have mysql installed and on your PATH.";
+                return false;
             }
 
             whyNot = null;
@@ -151,7 +127,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
                 // Can only disable indexes on MyISAM tables, so don't do that for now.
 
                 // Clear tables
-                ImportUtils.DoTimedOperation("Clearing all tables", () =>
+                Utils.DoTimedOperation("Clearing all tables", () =>
                 {
                     foreach (string table in allTablesExceptMetadataAlreadyEscaped)
                     {
@@ -164,7 +140,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
                 foreach (string table in tablesToImportAlreadyEscaped)
                 {
                     string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sql");
-                    ImportUtils.DoTimedOperationThatOuputsStuff(string.Format("Making mysqldump of {0}", table), () =>
+                    Utils.DoTimedOperationThatOuputsStuff(string.Format("Making mysqldump of {0}", table), () =>
                     {
                         string mysqldumpArgs = string.Format("--no-defaults --skip-comments --skip-add-drop-table --no-create-info --no-autocommit {0} {1} {2} {3} {4} {5} {6}",
                             string.Format("--host={0}", options.ImportOptions.SourceDatabase.Server).QuoteCommandLineArg(),
@@ -205,7 +181,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
 
                     try
                     {
-                        ImportUtils.DoTimedOperationThatOuputsStuff(string.Format("Importing mysqldump of {0}", table), () =>
+                        Utils.DoTimedOperationThatOuputsStuff(string.Format("Importing mysqldump of {0}", table), () =>
                         {
                             string mysqlArgs = string.Format("{0} {1} {2} {3} {4}",
                                 string.Format("--database={0}", options.TargetDatabase.Database).QuoteCommandLineArg(),

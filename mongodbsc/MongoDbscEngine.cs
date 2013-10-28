@@ -14,10 +14,32 @@ namespace dbsc.Mongo
     {
         protected override string ScriptExtensionWithoutDot { get { return "js"; } }
 
+        protected override bool CheckoutAndUpdateIsSupported(out string whyNot)
+        {
+            if (!Utils.ExecutableIsOnPath("mongo", "--version"))
+            {
+                whyNot = "You must have the mongo command line program installed and on your PATH to check out and update databases.";
+                return false;
+            }
+            else
+            {
+                whyNot = null;
+                return true;
+            }
+        }
+
         protected override bool ImportIsSupported(out string whyNot)
         {
-            whyNot = null;
-            return true;
+            if (!Utils.ExecutableIsOnPath("mongodump", "--version"))
+            {
+                whyNot = "You must have mongodump installed and on your PATH to import data from another database.";
+                return false;
+            }
+            else
+            {
+                whyNot = null;
+                return true;
+            }
         }
 
         private const string MetadataCollectionName = "dbsc_metadata";
@@ -167,7 +189,7 @@ namespace dbsc.Mongo
             using (MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase))
             {
                 // Drop collections
-                ImportUtils.DoTimedOperation("Removing all collections", () =>
+                Utils.DoTimedOperation("Removing all collections", () =>
                 {
                     foreach (string collectionName in allTablesExceptMetadataAlreadyEscaped)
                     {

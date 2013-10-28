@@ -11,6 +11,7 @@ namespace dbsc.Core
         where TUpdateOptions : IUpdateOptions
     {
         protected abstract string ScriptExtensionWithoutDot { get; }
+        protected abstract bool CheckoutAndUpdateIsSupported(out string whyNot);
         protected abstract bool ImportIsSupported(out string whyNot);
         protected abstract bool DatabaseHasMetadataTable(DbConnectionInfo connectionInfo);
         protected abstract void CreateDatabase(TCheckoutOptions options);
@@ -41,6 +42,12 @@ namespace dbsc.Core
             if (options.Revision != null && !scriptStack.ScriptsByRevision.ContainsKey(options.Revision.Value))
             {
                 throw new DbscException(string.Format("Cannot update to r{0} because there is no upgrade script for r{0}.", options.Revision.Value));
+            }
+
+            string whyCheckoutAndUpdateNotSupported;
+            if (!CheckoutAndUpdateIsSupported(out whyCheckoutAndUpdateNotSupported))
+            {
+                throw new DbscException(whyCheckoutAndUpdateNotSupported);
             }
 
             if (options.ImportOptions != null)

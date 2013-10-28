@@ -67,6 +67,12 @@ AND table_name = 'dbsc_metadata'";
             return conn.Query<long>(sql).First() > 0;
         }
 
+        protected override bool CheckoutAndUpdateIsSupported(out string whyNot)
+        {
+            whyNot = null;
+            return true;
+        }
+
         protected override bool ImportIsSupported(out string whyNot)
         {
             whyNot = null;

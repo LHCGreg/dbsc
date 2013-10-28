@@ -6,8 +6,41 @@ using System.Text;
 
 namespace dbsc.Core
 {
-    public static class ImportUtils
+    public static class Utils
     {
+        /// <summary>
+        /// Checks if an executable is on the user's PATH by running it, passing
+        /// <paramref name="versionCommandLineOptions"/> as the command line options. If the process starts
+        /// successfully, it's on the user's PATH.
+        /// </summary>
+        /// <param name="executable">Executable name, without .exe for compatibility with non-windows systems.</param>
+        /// <param name="versionCommandLineOptions">Command line arguments that cause the executable to not do
+        /// anything special. For example, "--version".</param>
+        /// <returns></returns>
+        public static bool ExecutableIsOnPath(string executable, string versionCommandLineOptions)
+        {
+            using (Process process = new Process()
+            {
+                StartInfo = new ProcessStartInfo(executable, versionCommandLineOptions)
+                {
+                    CreateNoWindow = true,
+                    ErrorDialog = false,
+                    UseShellExecute = false
+                },
+            })
+            {
+                try
+                {
+                    process.Start();
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+
         /// <summary>
         /// Prints a message signalling the beginning of an import event, runs some code, then prints the time taken.
         /// </summary>
