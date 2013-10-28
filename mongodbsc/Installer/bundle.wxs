@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- This is the WiX file defining the installer bundle that installs .NET 4.0 and mongodbsc. -->
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
+     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
+  <!-- -ext WiXNetFxExtension -->
+  <!-- -ext WixBalExtension -->
+  <Bundle Manufacturer="Greg Najda" Name="DBSC for MongoDB $(var.VersionWithoutBuild)" UpgradeCode="{CA4EA05F-9F1E-46F6-A880-A6D4E84ED5AD}" Version="$(var.VersionWithoutBuild)">
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
+      <bal:WixStandardBootstrapperApplication SuppressOptionsUI="yes" LicenseUrl="" />
+      <!-- license is already in the main msi-->
+    </BootstrapperApplicationRef>
+    <Chain>
+      <PackageGroupRef Id="NetFx40Web"/>
+      <MsiPackage Id="mongodbscPackage" EnableFeatureSelection="yes" SourceFile="installer.msi" DisplayInternalUI="yes" />
+    </Chain>
+  </Bundle>
+</Wix>

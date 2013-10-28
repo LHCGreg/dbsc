@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- This is the WiX file defining the installer for mongodbsc.
+The installer generated is intended to be included in the installation bundle (bundle.wxs).
+It could be run standalone but the user would get an error message if .NET 4.0 is not installed. -->
+
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+  <!-- -ext WiXNetFxExtension -->
+  <!-- -ext WixUIExtension -->
+
+  <Product Name='DBSC for MongoDB' Id='{25400EB1-4637-4F6E-9E72-CDEDB0E10EEB}' UpgradeCode='{AC1688A9-433A-4462-80D9-88013B27E7DD}'
+      Language='1033' Codepage='1252' Version='$(var.VersionWithoutBuild)' Manufacturer='Greg Najda'>
+    <Package Id='*' Description="DBSC for MongoDB $(var.VersionWithoutBuild)" Manufacturer='Greg Najda' Languages='1033'
+             Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>
+    <Media Id='1' Cabinet='mongodbsc.cab' EmbedCab='yes' />
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <UIRef Id="WixUI_InstallDir"/>
+    <UIRef Id="WixUI_ErrorProgressText" />
+    <WixVariable Id="WixUILicenseRtf" Value="SourceDir\license.rtf" />
+
+    <MajorUpgrade DowngradeErrorMessage="A later version of DBSC for PostgreSQL is already installed." />
+
+    <PropertyRef Id="NETFRAMEWORK40FULL"/>
+    <Condition Message="DBSC for PostgreSQL requires .NET 4.0 to be installed.">Installed OR NETFRAMEWORK40FULL</Condition>
+
+    <!--
+    Can generate the xml for the components with:
+    heat dir . -gg -nologo -scom -sfrag -srd -sreg -svb6 -suid -o heat.xml
+    From the extraction of a zip release.
+    -->
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='ProgramFilesFolder' Name='PFiles'>
+        <Directory Id='INSTALLDIR' Name='DBSC for MongoDB'>
+          <Component Id="Dapper.dll" Guid="{E385207D-C54D-42B0-802F-7511907111A8}">
+            <File Id="Dapper.dll" KeyPath="yes" Source="SourceDir\Dapper.dll" />
+          </Component>
+          <Component Id="dapper_license.txt" Guid="{7B972E9C-3087-4163-83E3-A8B995F17316}">
+            <File Id="dapper_license.txt" KeyPath="yes" Source="SourceDir\dapper_license.txt" />
+          </Component>
+          <Component Id="dbsc.Core.dll" Guid="{835CC21A-5527-41AB-A235-6B6EA8A8BB71}">
+            <File Id="dbsc.Core.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.dll" />
+          </Component>
+          <Component Id="license.txt" Guid="{0B2D985E-6794-43A2-B5F7-0CE2E4891369}">
+            <File Id="license.txt" KeyPath="yes" Source="SourceDir\license.txt" />
+          </Component>
+          <Component Id="license.rtf" Guid="{8203C8B4-8002-4B4C-80A3-A5D584A7FC96}">
+            <File Id="license.rtf" KeyPath="yes" Source="SourceDir\license.rtf" />
+          </Component>
+          <Component Id="MongoDB.Bson.dll" Guid="{7EDFAF6D-B9C2-4F45-B746-AB8D2AADE977}">
+            <File Id="MongoDB.Bson.dll" KeyPath="yes" Source="SourceDir\MongoDB.Bson.dll" />
+          </Component>
+          <Component Id="MongoDB.Driver.dll" Guid="{9A028642-578E-44D8-BCC4-963A6044296B}">
+            <File Id="MongoDB.Driver.dll" KeyPath="yes" Source="SourceDir\MongoDB.Driver.dll" />
+          </Component>
+          <Component Id="mongodbsc.exe" Guid="{8754ABD8-BFA4-4C64-997E-8757B92EFFAA}">
+            <File Id="mongodbsc.exe" KeyPath="yes" Source="SourceDir\mongodbsc.exe" />
+          </Component>
+          <Component Id="mongo_license.txt" Guid="{89B58259-F75C-413C-BC50-36DE5334DE6D}">
+            <File Id="mongo_license.txt" KeyPath="yes" Source="SourceDir\mongo_license.txt" />
+          </Component>
+          <Component Id="NDesk.Options.dll" Guid="{B32B2117-F2A1-4938-8BD2-4BDEF445CDA8}">
+            <File Id="NDesk.Options.dll" KeyPath="yes" Source="SourceDir\NDesk.Options.dll" />
+          </Component>
+          <Component Id="ndesk_options_license.txt" Guid="{979D2E77-F609-4CDA-B4B5-A27C5F18FED8}">
+            <File Id="ndesk_options_license.txt" KeyPath="yes" Source="SourceDir\ndesk_options_license.txt" />
+          </Component>
+          <Component Id="notice.txt" Guid="{E9C839C9-B667-4E6E-91E4-2A9BDFFD44F8}">
+            <File Id="notice.txt" KeyPath="yes" Source="SourceDir\notice.txt" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id='AddToPath' Guid='{978A9199-1B95-461F-B020-3BD129CB2A62}' KeyPath='yes'>
+        <Environment Id='PATH' Name='PATH' Value='[INSTALLDIR]' System='yes' Permanent='no' Action='set' Part='last' />
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="mongodbsc" Title="mongodbsc" Description="DBSC for MongoDB" Display="expand"
+             ConfigurableDirectory="INSTALLDIR" Level="1" Absent="disallow" InstallDefault="local" AllowAdvertise="no">
+      <ComponentRef Id="AddToPath"/>
+      <ComponentRef Id="Dapper.dll"/>
+      <ComponentRef Id="dapper_license.txt"/>
+      <ComponentRef Id="dbsc.Core.dll"/>
+      <ComponentRef Id="license.rtf"/>
+      <ComponentRef Id="license.txt"/>
+      <ComponentRef Id="MongoDB.Bson.dll"/>
+      <ComponentRef Id="MongoDB.Driver.dll"/>
+      <ComponentRef Id="mongodbsc.exe"/>
+      <ComponentRef Id="mongo_license.txt"/>
+      <ComponentRef Id="NDesk.Options.dll"/>
+      <ComponentRef Id="ndesk_options_license.txt"/>
+      <ComponentRef Id="notice.txt"/>
+    </Feature>
+  </Product>
+</Wix>
