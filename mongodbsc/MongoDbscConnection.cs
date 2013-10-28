@@ -52,6 +52,11 @@ namespace dbsc.Mongo
             return urlBuilder.ToMongoUrl();
         }
 
+        public bool DatabaseExists(string databaseName)
+        {
+            return m_server.DatabaseExists(databaseName);
+        }
+
         public bool ContainsCollection(string collectionName)
         {
             return m_database.CollectionExists(collectionName);

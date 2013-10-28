@@ -54,7 +54,18 @@ namespace dbsc.Mongo
 
         protected override void CreateDatabase(MongoCheckoutOptions options)
         {
-            ; // Nothing to do here, mongo creates databases when you insert something into one
+            // Mongo creates databases when you insert something into one.
+            // So no need to actually create the database here. Just check that it doesn't already exist so
+            // we don't get putting stuff on an existing database.
+            using (MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase))
+            {
+                if (conn.DatabaseExists(options.TargetDatabase.Database))
+                {
+                    throw new DbscException(string.Format(
+                        "Database {0} already exists on {1}.",
+                        options.TargetDatabase.Database, options.TargetDatabase.Server));
+                }
+            }
         }
 
         protected override void InitializeDatabase(MongoCheckoutOptions options, string masterDatabaseName)
