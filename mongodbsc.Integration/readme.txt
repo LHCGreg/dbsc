@@ -1,0 +1,1 @@
+﻿To run these integration tests, you must have MongoDB running locally on the standard port.
