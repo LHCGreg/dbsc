@@ -5,16 +5,8 @@ db.books.ensureIndex({ name: 1 });
 db.books.insert(
 	[
 		{
-			name: 'A Game of Thrones',
-			author: 'George R.R. Martin'
-		},
-		{
-			name: 'Clean Code',
-			author: 'Robert C. Martin'
-		},
-		{
-			name: 'The Mythical Man-Month',
-			author: 'Frederick P. Brooks, Jr.'
+			name: 'Charlie and the Chocolate Factory',
+			author: 'Roald Dahl'
 		}
 	]
 );
@@ -55,4 +47,14 @@ db.numbers.insert(
 			spanish: 'dos'
 		}
 	]
+);
+
+db.createCollection('dbsc_metadata');
+db.dbsc_metadata.insert(
+	{
+		"_id" : 1,
+		"Version" : 2,
+		"MasterDatabaseName" : "mongodbsc_test",
+		"LastChangeUTC" : ISODate("2013-11-18T01:48:55.17Z")
+	}
 );

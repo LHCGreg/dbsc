@@ -90,6 +90,9 @@
     <Content Include="scripts\mongodbsc_test.0002.numbers.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="scripts\tables_to_import.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="setup\setup_source_database.js" />
   </ItemGroup>
   <ItemGroup>
