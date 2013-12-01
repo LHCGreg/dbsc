@@ -7,6 +7,7 @@ using MongoDB.Driver;
 using System.Globalization;
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.IO;
 
 namespace dbsc.Mongo
 {
@@ -66,6 +67,34 @@ namespace dbsc.Mongo
                         options.TargetDatabase.Database, options.TargetDatabase.Server));
                 }
             }
+
+            if (options.CreationTemplate != null)
+            {
+                MongoUpdateOptions scriptOptions = options.UpdateOptions.Clone();
+                scriptOptions.TargetDatabase.Database = "admin";
+                string tempFilePath = Path.GetTempFileName();
+                try
+                {
+                    using (StreamWriter tempFileWriter = new StreamWriter(tempFilePath))
+                    {
+                        tempFileWriter.Write(options.CreationTemplate);
+                    }
+                    // Must close the file before mongo can read it because mongo opens it
+                    // without the equivalent of FileShare.Write.
+                    RunScript(scriptOptions, tempFilePath);
+                }
+                finally
+                {
+                    try
+                    {
+                        File.Delete(tempFilePath);
+                    }
+                    catch
+                    {
+                        ;
+                    }
+                }
+            }
         }
 
         protected override void InitializeDatabase(MongoCheckoutOptions options, string masterDatabaseName)
@@ -89,13 +118,13 @@ namespace dbsc.Mongo
 
         protected override void RunScriptAndUpdateMetadata(MongoUpdateOptions options, string scriptPath, int newRevision, DateTime utcTimestamp)
         {
-            RunScript(options, scriptPath, newRevision);
+            RunScript(options, scriptPath);
             UpdateMetadata(options, newRevision, utcTimestamp);
         }
 
-        private void RunScript(MongoUpdateOptions options, string scriptPath, int newRevision)
+        private void RunScript(MongoUpdateOptions options, string scriptPath)
         {
-            string mongoArgs = GetMongoArgs(options, scriptPath: scriptPath, jsToEval: null);
+            string mongoArgs = GetMongoArgs(options, scriptPath: scriptPath);
             Process mongo = new Process()
             {
                 StartInfo = new ProcessStartInfo("mongo", mongoArgs)
@@ -123,19 +152,12 @@ namespace dbsc.Mongo
             }
         }
 
-        /// <summary>
-        /// Specify at least one of scriptPath or jsToEval
-        /// </summary>
-        /// <param name="options"></param>
-        /// <param name="scriptPath"></param>
-        /// <param name="jsToEval"></param>
-        /// <returns></returns>
-        private string GetMongoArgs(MongoUpdateOptions options, string scriptPath, string jsToEval)
+        private string GetMongoArgs(MongoUpdateOptions options, string scriptPath)
         {
             // mongo --norc [--port portnum] --host hostname [-u username] [-p password] [--eval jsToEval] dbname [script.js]
-            if (scriptPath == null && jsToEval == null)
+            if (scriptPath == null)
             {
-                throw new ArgumentException("scriptPath and jsToEval cannot both be null.");
+                throw new ArgumentNullException("scriptPath");
             }
 
             List<string> args = new List<string>(11);
@@ -163,20 +185,11 @@ namespace dbsc.Mongo
                 args.Add(passwordArg);
             }
 
-            if (jsToEval != null)
-            {
-                string evalArg = string.Format("--eval {0}", jsToEval.QuoteCommandLineArg());
-                args.Add(evalArg);
-            }
-
             string dbNameArg = options.TargetDatabase.Database.QuoteCommandLineArg();
             args.Add(dbNameArg);
 
-            if (scriptPath != null)
-            {
-                string scriptArg = scriptPath.QuoteCommandLineArg();
-                args.Add(scriptArg);
-            }
+            string scriptArg = scriptPath.QuoteCommandLineArg();
+            args.Add(scriptArg);
 
             string argsString = string.Join(" ", args);
             return argsString;

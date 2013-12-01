@@ -16,7 +16,7 @@ namespace dbsc.Core
         public SqlCheckoutOptions(DbConnectionInfo targetDatabase)
         {
             TargetDatabase = targetDatabase;
-            Directory = System.Environment.CurrentDirectory;
+            Directory = Environment.CurrentDirectory;
             CreationTemplate = "CREATE DATABASE $DatabaseName$";
         }
 
@@ -28,7 +28,7 @@ namespace dbsc.Core
             }
         }
 
-        public ICheckoutOptions<SqlUpdateOptions> Clone()
+        public SqlCheckoutOptions Clone()
         {
             SqlCheckoutOptions clone = new SqlCheckoutOptions(TargetDatabase.Clone());
             clone.Directory = Directory;
@@ -41,6 +41,11 @@ namespace dbsc.Core
             }
 
             return clone;
+        }
+
+        ICheckoutOptions<SqlUpdateOptions> ICheckoutOptions<SqlUpdateOptions>.Clone()
+        {
+            return Clone();
         }
     }
 }

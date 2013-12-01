@@ -1,6 +1,8 @@
 ﻿using dbsc.Core;
+using NDesk.Options;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -8,9 +10,40 @@ namespace dbsc.Mongo
 {
     class MongoCommandLineArgs : BaseCommandLineArgs
     {
+        public string DbTemplateFilePath { get; private set; }
+        
         public MongoCommandLineArgs()
         {
             ;
+        }
+
+        public string GetDbCreationTemplate()
+        {
+            if (DbTemplateFilePath == null)
+            {
+                return null;
+            }
+            else
+            {
+                try
+                {
+                    return File.ReadAllText(DbTemplateFilePath);
+                }
+                catch (Exception ex)
+                {
+                    throw new OptionException(string.Format("Error reading DB creation template: {0}.", ex.Message), "dbCreationTemplate");
+                }
+            }
+        }
+
+        public override OptionSet GetOptionSet()
+        {
+            OptionSet options = base.GetOptionSet();
+
+            options.Add("dbCreateTemplate=",
+                "Javascript file to run when creating a database in a checkout. $DatabaseName$ will be replaced with the database name. mongodbsc does not actually create the database because in MongoDB, a database is created when you first do something with it. This is a good place to grant permissions. The script will run in the admin database.",
+                arg => DbTemplateFilePath = arg);
+            return options;
         }
 
         public MongoCheckoutOptions GetCheckoutOptions()
@@ -20,6 +53,7 @@ namespace dbsc.Mongo
             options.Directory = ScriptDirectory;
             options.Revision = Revision;
             options.ImportOptions = GetImportOptions();
+            options.CreationTemplate = GetDbCreationTemplate();
             return options;
         }
 

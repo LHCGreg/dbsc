@@ -1,7 +1,13 @@
 ﻿To run these integration tests, you must have MongoDB running locally on the standard port.
 
-Run setup_source_database.js on a new database called mongodbsc_test_source.
+Run setup_source_database.js on your local mongod by starting the mongo shell and running
 
-mongo localhost/mongodbsc_test_source setup_source_database.js.
+load("path/to/setup_source_database.js");
+
+You must have a second mongod running on port 30017 with authentication enabled (auth = true in the config).
+
+On the second mongod, start a mongo shell conecting to this other mongod (mongo --port 30017) and run
+
+load("path/to/setup_source_database_2.js");
 
 mongo and mongodump must be on your PATH.

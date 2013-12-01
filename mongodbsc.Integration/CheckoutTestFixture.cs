@@ -13,11 +13,12 @@ using MongoDB.Bson;
 namespace dbsc.Mongo.Integration
 {
     [TestFixture]
-    public class IntegrationTestFixture
+    public class CheckoutTestFixture
     {
         private static readonly string TestDatabaseName = "mongodbsc_test";
         private static readonly string AltTestDatabaseName = "mongodbsc_test_2";
         private static readonly string SourceDatabaseName = "mongodbsc_test_source";
+        private static readonly string CreationTemplateDatabaseName = "creation_template_test";
 
         private string MongodbscPath { get; set; }
         private string ScriptsDir { get; set; }
@@ -132,7 +133,7 @@ namespace dbsc.Mongo.Integration
 
             // First get the source database into the the main test database
             RunSuccesfulCommand(string.Format("checkout -targetDb {0} -sourceDbServer localhost -sourceDb {1}", TestDatabaseName, SourceDatabaseName));
-            
+
             // Then import from the main test database into the alt test database
             RunSuccesfulCommand(string.Format("checkout -targetDbServer localhost -targetDb {0} -port 27017 -sourceDbServer localhost -sourcePort 27017", AltTestDatabaseName));
             VerifyDatabase(AltTestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
@@ -141,13 +142,70 @@ namespace dbsc.Mongo.Integration
         [Test]
         public void TestNonexistantTargetDbServer()
         {
+            DropDatabase(TestDatabaseName);
             RunUnsuccessfulCommand("checkout -targetDbServer doesnotexist.local");
         }
 
         [Test]
         public void TestNonexistantTargetPort()
         {
+            DropDatabase(TestDatabaseName);
             RunUnsuccessfulCommand("checkout -port 9999");
+        }
+
+        [Test]
+        public void TestNonExistantSourcePort()
+        {
+            DropDatabase(TestDatabaseName);
+            RunUnsuccessfulCommand("checkout -sourceDbServer localhost -sourcePort 9999");
+        }
+
+        [Test]
+        public void TestCreationTemplate()
+        {
+            DropDatabase(TestDatabaseName);
+            DropDatabase(CreationTemplateDatabaseName);
+            RunSuccesfulCommand("checkout -dbCreateTemplate creation_template.js");
+            VerifyCreationTemplateDatabase();
+        }
+
+        [Test]
+        public void TestErrorInScriptAborts()
+        {
+            DropDatabase(TestDatabaseName);
+            RunUnsuccessfulCommand("checkout -dir ../error_test_scripts");
+            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>());
+        }
+
+        [Test]
+        public void TestPartialCheckout()
+        {
+            DropDatabase(TestDatabaseName);
+            RunSuccesfulCommand("checkout -r 1");
+            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>());
+        }
+
+        [Test]
+        public void TestPartialCheckoutWithImport()
+        {
+            DropDatabase(TestDatabaseName);
+            RunSuccesfulCommand(string.Format("checkout -r 2 -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
+        }
+
+        [Test]
+        public void TestPartialCheckoutShortOfImport()
+        {
+            DropDatabase(TestDatabaseName);
+            RunSuccesfulCommand(string.Format("checkout -r 1 -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
+            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>());
+        }
+
+        [Test]
+        public void TestPartialCheckoutWithTooHighRevision()
+        {
+            DropDatabase(TestDatabaseName);
+            RunUnsuccessfulCommand("checkout -r 3");
         }
 
         private void DropDatabase(string dbName)
@@ -222,5 +280,30 @@ namespace dbsc.Mongo.Integration
 
             Assert.That(numbers, Is.EquivalentTo(expectedNumbers));
         }
+
+        private void VerifyCreationTemplateDatabase()
+        {
+            MongoClient mongoClient = new MongoClient("mongodb://localhost");
+            MongoServer server = mongoClient.GetServer();
+            MongoDatabase database = server.GetDatabase(CreationTemplateDatabaseName);
+            MongoCollection<TestCollectionObject> testCollection = database.GetCollection<TestCollectionObject>("testCollection");
+            Assert.That(testCollection.FindAll().First().pass, Is.True);
+        }
     }
 }
+
+/*
+ Copyright 2013 Greg Najda
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/

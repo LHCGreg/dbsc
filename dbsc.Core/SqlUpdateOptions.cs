@@ -30,7 +30,7 @@ namespace dbsc.Core
             }
         }
 
-        public IUpdateOptions Clone()
+        public SqlUpdateOptions Clone()
         {
             SqlUpdateOptions clone = new SqlUpdateOptions(TargetDatabase.Clone());
             clone.Directory = Directory;
@@ -42,6 +42,11 @@ namespace dbsc.Core
             }
 
             return clone;
+        }
+
+        IUpdateOptions IUpdateOptions.Clone()
+        {
+            return Clone();
         }
     }
 }

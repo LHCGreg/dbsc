@@ -33,7 +33,7 @@ namespace dbsc.Mongo
             }
         }
 
-        public IUpdateOptions Clone()
+        public MongoUpdateOptions Clone()
         {
             MongoUpdateOptions clone = new MongoUpdateOptions(this.TargetDatabase.Clone());
             clone.Directory = this.Directory;
@@ -44,6 +44,11 @@ namespace dbsc.Mongo
                 clone.ImportOptions = this.ImportOptions.Clone();
             }
             return clone;
+        }
+
+        IUpdateOptions IUpdateOptions.Clone()
+        {
+            return Clone();
         }
     }
 }

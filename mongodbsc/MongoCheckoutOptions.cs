@@ -11,6 +11,12 @@ namespace dbsc.Mongo
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
         public int? Revision { get; set; }
+
+        /// <summary>
+        /// Null if no creation template.
+        /// </summary>
+        public string CreationTemplate { get; set; }
+
         public ImportOptions ImportOptions { get; set; }
 
         public MongoUpdateOptions UpdateOptions { get { return new MongoUpdateOptions(this); } }
@@ -20,14 +26,16 @@ namespace dbsc.Mongo
             Directory = Environment.CurrentDirectory;
             TargetDatabase = targetDatabase;
             Revision = null;
+            CreationTemplate = null;
             ImportOptions = null;
         }
 
-        public ICheckoutOptions<MongoUpdateOptions> Clone()
+        public MongoCheckoutOptions Clone()
         {
             MongoCheckoutOptions clone = new MongoCheckoutOptions(this.TargetDatabase.Clone());
             clone.Directory = this.Directory;
             clone.Revision = this.Revision;
+            clone.CreationTemplate = this.CreationTemplate;
 
             if (this.ImportOptions != null)
             {
@@ -35,6 +43,11 @@ namespace dbsc.Mongo
             }
 
             return clone;
+        }
+
+        ICheckoutOptions<MongoUpdateOptions> ICheckoutOptions<MongoUpdateOptions>.Clone()
+        {
+            return Clone();
         }
     }
 }
