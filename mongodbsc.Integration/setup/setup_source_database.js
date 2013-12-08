@@ -1,7 +1,7 @@
 ﻿// Run this on your local mongo instance by starting the Mongo shell and running
 // load("path/to/this/file/setup_source_database.js");
 
-db = db.getMongo().getDB("mongodbsc_test_source");
+db = db.getSiblingDB("mongodbsc_test_source");
 
 db.createCollection('books');
 db.books.ensureIndex({ name: 1 });
