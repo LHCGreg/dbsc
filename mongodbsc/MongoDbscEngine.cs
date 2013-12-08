@@ -58,14 +58,12 @@ namespace dbsc.Mongo
             // Mongo creates databases when you insert something into one.
             // So no need to actually create the database here. Just check that it doesn't already exist so
             // we don't get putting stuff on an existing database.
-            using (MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase))
+            DbConnectionInfo adminDb = options.TargetDatabase.Clone();
+            adminDb.Database = "admin";
+
+            using (MongoDbscConnection conn = new MongoDbscConnection(adminDb))
             {
-                if (conn.DatabaseExists(options.TargetDatabase.Database))
-                {
-                    throw new DbscException(string.Format(
-                        "Database {0} already exists on {1}.",
-                        options.TargetDatabase.Database, options.TargetDatabase.Server));
-                }
+                conn.CreateDatabase(options.TargetDatabase.Database);
             }
 
             if (options.CreationTemplate != null)

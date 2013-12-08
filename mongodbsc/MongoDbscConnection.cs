@@ -57,6 +57,27 @@ namespace dbsc.Mongo
             return m_server.DatabaseExists(databaseName);
         }
 
+        public void CreateDatabase(string databaseName)
+        {
+            if (m_server.DatabaseExists(databaseName))
+            {
+                throw new DbscException(string.Format(
+                        "Database {0} already exists on {1}.",
+                        databaseName, m_connectionInfo.Server));
+            }
+
+            MongoDatabase newDb = m_server.GetDatabase(databaseName);
+            // if authenticating, add self as an admin user
+            if (m_connectionInfo.Username != null && m_connectionInfo.Password != null)
+            {
+                newDb.AddUser(new MongoUser(m_connectionInfo.Username, new PasswordEvidence(m_connectionInfo.Password), isReadOnly: false));
+            }
+
+            // create a temporary collection and drop it so that the database gets created.
+            newDb.CreateCollection("dbsc_temp");
+            newDb.DropCollection("dbsc_temp");
+        }
+
         public bool ContainsCollection(string collectionName)
         {
             return m_database.CollectionExists(collectionName);

@@ -91,6 +91,15 @@ namespace dbsc.Mongo.Integration
             }
         };
 
+        private string GetAuthServerConnectionString()
+        {
+            MongoConnectionStringBuilder builder = new MongoConnectionStringBuilder();
+            builder.Server = new MongoServerAddress("localhost", 30017);
+            builder.Username = "useradmin";
+            builder.Password = "testpw";
+            return builder.ToString();
+        }
+
         [TestFixtureSetUp]
         public void SetDirectories()
         {
@@ -107,6 +116,14 @@ namespace dbsc.Mongo.Integration
             DropDatabase(TestDatabaseName);
             RunSuccesfulCommand("checkout");
             VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, ExpectedNumbers);
+        }
+
+        [Test]
+        public void BasicTestWithAuth()
+        {
+            DropDatabaseOnAuthMongo(TestDatabaseName);
+            RunSuccesfulCommand("checkout -port 30017 -u useradmin -p testpw");
+            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedBooks, ExpectedPeople, ExpectedNumbers);
         }
 
         [Test]
@@ -208,9 +225,27 @@ namespace dbsc.Mongo.Integration
             RunUnsuccessfulCommand("checkout -r 3");
         }
 
+        [Test]
+        public void TestCheckoutWithoutAuthWhenAuthRequiredFails()
+        {
+            DropDatabaseOnAuthMongo(TestDatabaseName);
+            RunUnsuccessfulCommand("checkout -port 30017");
+        }
+
         private void DropDatabase(string dbName)
         {
             MongoClient mongoClient = new MongoClient("mongodb://localhost");
+            MongoServer server = mongoClient.GetServer();
+            if (server.DatabaseExists(dbName))
+            {
+                server.DropDatabase(dbName);
+            }
+        }
+
+        private void DropDatabaseOnAuthMongo(string dbName)
+        {
+            string connectionString = GetAuthServerConnectionString();
+            MongoClient mongoClient = new MongoClient(connectionString);
             MongoServer server = mongoClient.GetServer();
             if (server.DatabaseExists(dbName))
             {
@@ -254,9 +289,20 @@ namespace dbsc.Mongo.Integration
             Assert.That(returnCode, Is.Not.EqualTo(0));
         }
 
+        private void VerifyDatabaseOnAuthMongo(string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers)
+        {
+            string connectionString = GetAuthServerConnectionString();
+            VerifyDatabase(connectionString, databaseName, expectedBooks, expectedPeople, expectedNumbers);
+        }
+
         private void VerifyDatabase(string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers)
         {
-            MongoClient mongoClient = new MongoClient("mongodb://localhost");
+            VerifyDatabase("mongodb://localhost", databaseName, expectedBooks, expectedPeople, expectedNumbers);
+        }
+
+        private void VerifyDatabase(string connectionString, string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers)
+        {
+            MongoClient mongoClient = new MongoClient(connectionString);
             MongoServer server = mongoClient.GetServer();
             MongoDatabase database = server.GetDatabase(databaseName);
 
