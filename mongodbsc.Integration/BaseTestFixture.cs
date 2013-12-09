@@ -134,8 +134,17 @@ namespace dbsc.Mongo.Integration
         {
             using (Process mongodbsc = new Process())
             {
-                mongodbsc.StartInfo.Arguments = arguments;
-                mongodbsc.StartInfo.FileName = MongodbscPath;
+                if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
+                {
+                    mongodbsc.StartInfo.FileName = "mono";
+                    mongodbsc.StartInfo.Arguments = MongodbscPath + " " + arguments;
+                }
+                else
+                {
+                    mongodbsc.StartInfo.FileName = MongodbscPath;
+                    mongodbsc.StartInfo.Arguments = arguments;
+                }
+               
                 mongodbsc.StartInfo.RedirectStandardOutput = true;
                 mongodbsc.StartInfo.RedirectStandardError = true;
                 mongodbsc.StartInfo.UseShellExecute = false;
