@@ -14,7 +14,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand("checkout");
-            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, ExpectedNumbers);
+            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -22,7 +22,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabaseOnAuthMongo(TestDatabaseName);
             RunSuccessfulCommand("checkout -port 30017 -u useradmin -p testpw");
-            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedBooks, ExpectedPeople, ExpectedNumbers);
+            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -30,7 +30,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -targetDb {0} -sourceDbServer localhost -sourceDb {1}", TestDatabaseName, SourceDatabaseName));
-            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -38,7 +38,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabaseOnAuthMongo(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
-            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
+            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -46,7 +46,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import.txt", SourceDatabaseName));
-            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, new List<Person>(), new List<Number>());
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, new List<Person>(), new List<Number>(), expectedVersion: 2);
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabaseOnAuthMongo(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import.txt", SourceDatabaseName));
-            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, new List<Person>(), new List<Number>());
+            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, new List<Person>(), new List<Number>(), expectedVersion: 2);
         }
 
         [Test]
@@ -68,7 +68,7 @@ namespace dbsc.Mongo.Integration
 
             // Then import from the main test database into the alt test database
             RunSuccessfulCommand(string.Format("checkout -targetDbServer localhost -targetDb {0} -port 27017 -sourceDbServer localhost -sourcePort 27017", AltTestDatabaseName));
-            VerifyDatabase(AltTestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
+            VerifyDatabase(AltTestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -80,7 +80,7 @@ namespace dbsc.Mongo.Integration
             RunSuccessfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -targetDb {0} -sourceDbServer localhost -sourceDb {1}", TestDatabaseName, SourceDatabaseName));
 
             RunSuccessfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -targetDbServer localhost -targetDb {0} -sourceDbServer localhost -sourcePort 27017", AltTestDatabaseName));
-            VerifyDatabaseOnAuthMongo(AltTestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
+            VerifyDatabaseOnAuthMongo(AltTestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -127,7 +127,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabase(TestDatabaseName);
             RunUnsuccessfulCommand("checkout -dir ../error_test_scripts");
-            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>());
+            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>(), expectedVersion: 1);
         }
 
         [Test]
@@ -135,7 +135,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand("checkout -r 1");
-            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>());
+            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>(), expectedVersion: 1);
         }
 
         [Test]
@@ -143,7 +143,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -r 2 -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
-            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -151,7 +151,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -r 1 -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
-            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>());
+            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>(), expectedVersion: 1);
         }
 
         [Test]
@@ -166,6 +166,14 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabaseOnAuthMongo(TestDatabaseName);
             RunUnsuccessfulCommand("checkout -port 30017");
+        }
+
+        [Test]
+        public void TestCheckoutContinuesAfterImport()
+        {
+            DropDatabase(TestDatabaseName);
+            RunSuccessfulCommand(string.Format("checkout -sourceDbServer localhost -sourceDb {0}", AltSourceDatabaseName));
+            VerifyDatabase(TestDatabaseName, ExpectedAltSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
     }
 }

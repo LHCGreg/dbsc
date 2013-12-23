@@ -35,6 +35,11 @@ namespace dbsc.Postgres.Integration
                 return hash;
             }
         }
+
+        public override string ToString()
+        {
+            return string.Format("{0},{1},{2},{3}", person_id, name, birthday.ToString("yyyy-MM-dd"), default_test);
+        }
     }
 }
 

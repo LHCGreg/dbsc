@@ -147,6 +147,16 @@ namespace dbsc.Postgres.Integration
                 Username, Password, SourceDatabaseName, Username, Password));
             VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
+
+        [Test]
+        public void TestUpdateContinuesAfterImport()
+        {
+            DropDatabase(TestDatabaseName);
+            CheckoutZero();
+            RunSuccessfulCommand(string.Format("update -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4}",
+                Username, Password, AltSourceDatabaseName, Username, Password));
+            VerifyDatabase(TestDatabaseName, ExpectedAltSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+        }
     }
 }
 

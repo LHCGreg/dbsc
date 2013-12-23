@@ -18,6 +18,7 @@ namespace dbsc.Mongo.Integration
         protected static readonly string TestDatabaseName = "mongodbsc_test";
         protected static readonly string AltTestDatabaseName = "mongodbsc_test_2";
         protected static readonly string SourceDatabaseName = "mongodbsc_test_source";
+        protected static readonly string AltSourceDatabaseName = "mongodbsc_test_source_2";
         protected static readonly string CreationTemplateDatabaseName = "creation_template_test";
 
         protected string MongodbscPath { get; private set; }
@@ -58,6 +59,20 @@ namespace dbsc.Mongo.Integration
             {
                 name = "Charlie and the Chocolate Factory",
                 author = "Roald Dahl"
+            }
+        };
+
+        protected List<Book> ExpectedAltSourceBooks = new List<Book>()
+        {
+            new Book()
+            {
+                name = "Charlie and the Chocolate Factory",
+                author = "Roald Dahl"
+            },
+            new Book()
+            {
+                name = "A Feast for Crows",
+                author = "George R.R. Martin"
             }
         };
 
@@ -141,18 +156,18 @@ namespace dbsc.Mongo.Integration
             ProcessUtils.RunUnsuccesfulCommand(MongodbscPath, arguments, ScriptsDir);
         }
 
-        protected void VerifyDatabaseOnAuthMongo(string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers)
+        protected void VerifyDatabaseOnAuthMongo(string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers, int expectedVersion)
         {
             string connectionString = GetAuthServerConnectionString();
-            VerifyDatabase(connectionString, databaseName, expectedBooks, expectedPeople, expectedNumbers);
+            VerifyDatabase(connectionString, databaseName, expectedBooks, expectedPeople, expectedNumbers, expectedVersion);
         }
 
-        protected void VerifyDatabase(string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers)
+        protected void VerifyDatabase(string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers, int expectedVersion)
         {
-            VerifyDatabase("mongodb://localhost", databaseName, expectedBooks, expectedPeople, expectedNumbers);
+            VerifyDatabase("mongodb://localhost", databaseName, expectedBooks, expectedPeople, expectedNumbers, expectedVersion);
         }
 
-        protected void VerifyDatabase(string connectionString, string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers)
+        protected void VerifyDatabase(string connectionString, string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers, int expectedVersion)
         {
             MongoClient mongoClient = new MongoClient(connectionString);
             MongoServer server = mongoClient.GetServer();
@@ -177,6 +192,15 @@ namespace dbsc.Mongo.Integration
             List<Number> numbers = numberCollection.FindAll().ToList();
 
             Assert.That(numbers, Is.EquivalentTo(expectedNumbers));
+
+            MongoCollection<dbsc_metadata> metadataCollection = database.GetCollection<dbsc_metadata>("dbsc_metadata");
+            List<dbsc_metadata> metadataList = metadataCollection.FindAll().ToList();
+            Assert.That(metadataList.Count, Is.EqualTo(1));
+            dbsc_metadata metadata = metadataList[0];
+            Assert.That(metadata.Version, Is.EqualTo(expectedVersion));
+            Assert.That(metadata.MasterDatabaseName, Is.EqualTo("mongodbsc_test"));
+            Assert.That(metadata.LastChangeUTC, Is.LessThan(DateTime.UtcNow + TimeSpan.FromMinutes(5)));
+            Assert.That(metadata.LastChangeUTC, Is.GreaterThan(DateTime.UtcNow - TimeSpan.FromMinutes(5)));
         }
 
         protected void VerifyCreationTemplateDatabase()

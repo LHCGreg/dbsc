@@ -18,6 +18,7 @@ namespace dbsc.Postgres.Integration
         protected static readonly string TestDatabaseName = "pgdbsc_test";
         protected static readonly string AltTestDatabaseName = "pgdbsc_test_2";
         protected static readonly string SourceDatabaseName = "pgdbsc_test_source";
+        protected static readonly string AltSourceDatabaseName = "pgdbsc_test_source_2";
         protected static readonly string Username = "dbsc_test_user";
         protected static readonly string Password = "testpw";
 
@@ -44,6 +45,13 @@ namespace dbsc.Postgres.Integration
         protected List<Person> ExpectedSourcePeople = new List<Person>()
         {
             new Person() { birthday = new DateTime(1948, 9, 20), name = "George R.R. Martin", default_test = 5 },
+            new Person() { birthday = new DateTime(2013, 5, 11), name = "Mike", default_test = null }
+        };
+
+        protected List<Person> ExpectedAltSourcePeople = new List<Person>()
+        {
+            new Person() { birthday = new DateTime(1948, 9, 20), name = "George R.R. Martin", default_test = 5 },
+            new Person() { birthday = new DateTime(2012, 2, 3), name = "Christina", default_test = null },
             new Person() { birthday = new DateTime(2013, 5, 11), name = "Mike", default_test = null }
         };
 

@@ -127,6 +127,15 @@ namespace dbsc.Postgres.Integration
             DropDatabase(TestDatabaseName);
             RunUnsuccessfulCommand(string.Format("checkout -u {0} -p {1} -r 3", Username, Password));
         }
+
+        [Test]
+        public void TestCheckoutContinuesAfterImport()
+        {
+            DropDatabase(TestDatabaseName);
+            RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4}",
+                Username, Password, AltSourceDatabaseName, Username, Password));
+            VerifyDatabase(TestDatabaseName, ExpectedAltSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+        }
     }
 }
 
