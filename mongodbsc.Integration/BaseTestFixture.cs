@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using TestUtils;
 
 namespace dbsc.Mongo.Integration
 {
@@ -130,49 +131,14 @@ namespace dbsc.Mongo.Integration
             }
         }
 
-        protected int RunCommand(string arguments)
-        {
-            using (Process mongodbsc = new Process())
-            {
-                if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
-                {
-                    mongodbsc.StartInfo.FileName = "mono";
-                    mongodbsc.StartInfo.Arguments = MongodbscPath + " " + arguments;
-                }
-                else
-                {
-                    mongodbsc.StartInfo.FileName = MongodbscPath;
-                    mongodbsc.StartInfo.Arguments = arguments;
-                }
-               
-                mongodbsc.StartInfo.RedirectStandardOutput = true;
-                mongodbsc.StartInfo.RedirectStandardError = true;
-                mongodbsc.StartInfo.UseShellExecute = false;
-                mongodbsc.StartInfo.WorkingDirectory = ScriptsDir;
-                mongodbsc.StartInfo.CreateNoWindow = true;
-
-                mongodbsc.OutputDataReceived += (sender, e) => Console.WriteLine(e.Data);
-                mongodbsc.ErrorDataReceived += (sender, e) => Console.WriteLine(e.Data);
-
-                mongodbsc.Start();
-                mongodbsc.BeginOutputReadLine();
-                mongodbsc.BeginErrorReadLine();
-                mongodbsc.WaitForExit();
-
-                return mongodbsc.ExitCode;
-            }
-        }
-
         protected void RunSuccesfulCommand(string arguments)
         {
-            int returnCode = RunCommand(arguments);
-            Assert.That(returnCode, Is.EqualTo(0));
+            ProcessUtils.RunSuccesfulCommand(MongodbscPath, arguments, ScriptsDir);
         }
 
         protected void RunUnsuccessfulCommand(string arguments)
         {
-            int returnCode = RunCommand(arguments);
-            Assert.That(returnCode, Is.Not.EqualTo(0));
+            ProcessUtils.RunUnsuccesfulCommand(MongodbscPath, arguments, ScriptsDir);
         }
 
         protected void VerifyDatabaseOnAuthMongo(string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers)
