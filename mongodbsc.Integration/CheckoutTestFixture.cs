@@ -13,7 +13,7 @@ namespace dbsc.Mongo.Integration
         public void BasicTest()
         {
             DropDatabase(TestDatabaseName);
-            RunSuccesfulCommand("checkout");
+            RunSuccessfulCommand("checkout");
             VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, ExpectedNumbers);
         }
 
@@ -21,7 +21,7 @@ namespace dbsc.Mongo.Integration
         public void BasicTestWithAuth()
         {
             DropDatabaseOnAuthMongo(TestDatabaseName);
-            RunSuccesfulCommand("checkout -port 30017 -u useradmin -p testpw");
+            RunSuccessfulCommand("checkout -port 30017 -u useradmin -p testpw");
             VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedBooks, ExpectedPeople, ExpectedNumbers);
         }
 
@@ -29,7 +29,7 @@ namespace dbsc.Mongo.Integration
         public void BasicImportTest()
         {
             DropDatabase(TestDatabaseName);
-            RunSuccesfulCommand(string.Format("checkout -targetDb {0} -sourceDbServer localhost -sourceDb {1}", TestDatabaseName, SourceDatabaseName));
+            RunSuccessfulCommand(string.Format("checkout -targetDb {0} -sourceDbServer localhost -sourceDb {1}", TestDatabaseName, SourceDatabaseName));
             VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
         }
 
@@ -37,7 +37,7 @@ namespace dbsc.Mongo.Integration
         public void BasicImportTestWithAuth()
         {
             DropDatabaseOnAuthMongo(TestDatabaseName);
-            RunSuccesfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
+            RunSuccessfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
             VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
         }
 
@@ -45,7 +45,7 @@ namespace dbsc.Mongo.Integration
         public void ImportOnlyOneCollectionTest()
         {
             DropDatabase(TestDatabaseName);
-            RunSuccesfulCommand(string.Format("checkout -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import.txt", SourceDatabaseName));
+            RunSuccessfulCommand(string.Format("checkout -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import.txt", SourceDatabaseName));
             VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, new List<Person>(), new List<Number>());
         }
 
@@ -53,7 +53,7 @@ namespace dbsc.Mongo.Integration
         public void ImportOnlyOneCollectionWithAuthTest()
         {
             DropDatabaseOnAuthMongo(TestDatabaseName);
-            RunSuccesfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import.txt", SourceDatabaseName));
+            RunSuccessfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import.txt", SourceDatabaseName));
             VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, new List<Person>(), new List<Number>());
         }
 
@@ -64,10 +64,10 @@ namespace dbsc.Mongo.Integration
             DropDatabase(AltTestDatabaseName);
 
             // First get the source database into the the main test database
-            RunSuccesfulCommand(string.Format("checkout -targetDb {0} -sourceDbServer localhost -sourceDb {1}", TestDatabaseName, SourceDatabaseName));
+            RunSuccessfulCommand(string.Format("checkout -targetDb {0} -sourceDbServer localhost -sourceDb {1}", TestDatabaseName, SourceDatabaseName));
 
             // Then import from the main test database into the alt test database
-            RunSuccesfulCommand(string.Format("checkout -targetDbServer localhost -targetDb {0} -port 27017 -sourceDbServer localhost -sourcePort 27017", AltTestDatabaseName));
+            RunSuccessfulCommand(string.Format("checkout -targetDbServer localhost -targetDb {0} -port 27017 -sourceDbServer localhost -sourcePort 27017", AltTestDatabaseName));
             VerifyDatabase(AltTestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
         }
 
@@ -77,9 +77,9 @@ namespace dbsc.Mongo.Integration
             DropDatabaseOnAuthMongo(TestDatabaseName);
             DropDatabaseOnAuthMongo(AltTestDatabaseName);
 
-            RunSuccesfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -targetDb {0} -sourceDbServer localhost -sourceDb {1}", TestDatabaseName, SourceDatabaseName));
+            RunSuccessfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -targetDb {0} -sourceDbServer localhost -sourceDb {1}", TestDatabaseName, SourceDatabaseName));
 
-            RunSuccesfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -targetDbServer localhost -targetDb {0} -sourceDbServer localhost -sourcePort 27017", AltTestDatabaseName));
+            RunSuccessfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -targetDbServer localhost -targetDb {0} -sourceDbServer localhost -sourcePort 27017", AltTestDatabaseName));
             VerifyDatabaseOnAuthMongo(AltTestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
         }
 
@@ -109,7 +109,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabase(TestDatabaseName);
             DropDatabase(CreationTemplateDatabaseName);
-            RunSuccesfulCommand("checkout -dbCreateTemplate creation_template.js");
+            RunSuccessfulCommand("checkout -dbCreateTemplate creation_template.js");
             VerifyCreationTemplateDatabase();
         }
 
@@ -118,7 +118,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabaseOnAuthMongo(TestDatabaseName);
             DropDatabaseOnAuthMongo(CreationTemplateDatabaseName);
-            RunSuccesfulCommand("checkout -port 30017 -u useradmin -p testpw -dbCreateTemplate creation_template.js");
+            RunSuccessfulCommand("checkout -port 30017 -u useradmin -p testpw -dbCreateTemplate creation_template.js");
             VerifyCreationTemplateDatabaseOnAuthMongo();
         }
 
@@ -134,7 +134,7 @@ namespace dbsc.Mongo.Integration
         public void TestPartialCheckout()
         {
             DropDatabase(TestDatabaseName);
-            RunSuccesfulCommand("checkout -r 1");
+            RunSuccessfulCommand("checkout -r 1");
             VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>());
         }
 
@@ -142,7 +142,7 @@ namespace dbsc.Mongo.Integration
         public void TestPartialCheckoutWithImport()
         {
             DropDatabase(TestDatabaseName);
-            RunSuccesfulCommand(string.Format("checkout -r 2 -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
+            RunSuccessfulCommand(string.Format("checkout -r 2 -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
             VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
         }
 
@@ -150,7 +150,7 @@ namespace dbsc.Mongo.Integration
         public void TestPartialCheckoutShortOfImport()
         {
             DropDatabase(TestDatabaseName);
-            RunSuccesfulCommand(string.Format("checkout -r 1 -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
+            RunSuccessfulCommand(string.Format("checkout -r 1 -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
             VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>());
         }
 

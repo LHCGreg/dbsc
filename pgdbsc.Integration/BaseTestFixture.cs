@@ -47,13 +47,19 @@ namespace dbsc.Postgres.Integration
             new Person() { birthday = new DateTime(2013, 5, 11), name = "Mike", default_test = null }
         };
 
+        protected List<Person> ExpectedRevision0People = new List<Person>()
+        {
+            new Person() { birthday = new DateTime(2012, 6, 7), name = "Greg", default_test = 42 },
+            new Person() { birthday = new DateTime(1948, 9, 20), name = "George R.R. Martin", default_test = 5 }
+        };
+
         protected List<Person> ExpectedRevision1People = new List<Person>()
         {
             new Person() { birthday = new DateTime(2012, 6, 7), name = "Greg", default_test = 42 },
             new Person() { birthday = new DateTime(1948, 9, 20), name = "George R.R. Martin", default_test = 5 }
         };
 
-        protected List<Book> GetExpectedBooks(List<Person> people)
+        protected static List<Book> GetExpectedBooks(List<Person> people)
         {
             int authorId = people.Where(p => p.name == "George R.R. Martin").Select(p => p.person_id).First();
             return new List<Book>()
@@ -62,11 +68,19 @@ namespace dbsc.Postgres.Integration
             };
         }
 
+        protected Func<List<Person>, List<Book>> GetExpectedBooksFunc = people => GetExpectedBooks(people);
+
         protected List<script_isolation_test> ExpectedIsolationTestValues = new List<script_isolation_test>()
         {
             new script_isolation_test() { step = 0, val = "on" },
             new script_isolation_test() { step = 1, val = "off" },
             new script_isolation_test() { step = 2, val = "on" }
+        };
+
+        protected List<script_isolation_test> ExpectedRevision0IsolationTestValues = new List<script_isolation_test>()
+        {
+            new script_isolation_test() { step = 0, val = "on" },
+            new script_isolation_test() { step = 1, val = "off" },
         };
 
         protected int ExpectedCreateTemplateConnLimit = 19;
@@ -94,7 +108,7 @@ namespace dbsc.Postgres.Integration
             }
         }
 
-        protected void RunSuccesfulCommand(string arguments)
+        protected void RunSuccessfulCommand(string arguments)
         {
             ProcessUtils.RunSuccesfulCommand(PgdbscPath, arguments, ScriptsDir);
         }
@@ -104,20 +118,24 @@ namespace dbsc.Postgres.Integration
             ProcessUtils.RunUnsuccesfulCommand(PgdbscPath, arguments, ScriptsDir);
         }
 
-        public void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks, int expectedVersion)
+        public void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks, List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
             using (NpgsqlConnection conn = new NpgsqlConnection(GetConnectionString(dbName)))
             {
                 conn.Open();
                 List<Person> people = conn.Query<Person>("SELECT * FROM person").ToList();
-                List<Book> books = conn.Query<Book>("SELECT * FROM book").ToList();
                 List<script_isolation_test> isolationTest = conn.Query<script_isolation_test>("SELECT * FROM script_isolation_test").ToList();
 
                 Assert.That(people, Is.EquivalentTo(expectedPeople));
 
-                List<Book> expectedBooks = getExpectedBooks(people);
-                Assert.That(books, Is.EquivalentTo(expectedBooks));
-                Assert.That(isolationTest, Is.EquivalentTo(ExpectedIsolationTestValues));
+                if (getExpectedBooks != null)
+                {
+                    List<Book> books = conn.Query<Book>("SELECT * FROM book").ToList();
+                    List<Book> expectedBooks = getExpectedBooks(people);
+                    Assert.That(books, Is.EquivalentTo(expectedBooks));
+                }
+
+                Assert.That(isolationTest, Is.EquivalentTo(expectedIsolationTestValues));
 
                 string indexQuerySql = @"SELECT ind_more.relname AS index_name
 FROM pg_index AS ind

@@ -131,7 +131,7 @@ namespace dbsc.Mongo.Integration
             }
         }
 
-        protected void RunSuccesfulCommand(string arguments)
+        protected void RunSuccessfulCommand(string arguments)
         {
             ProcessUtils.RunSuccesfulCommand(MongodbscPath, arguments, ScriptsDir);
         }
