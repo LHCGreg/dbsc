@@ -144,6 +144,16 @@ namespace dbsc.Mongo.Integration
             VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, expectedNumbers: new List<Number>());
         }
 
+        [Test]
+        public void TestImportWhenAtSourceRevision()
+        {
+            DropDatabase(TestDatabaseName);
+            RunSuccessfulCommand(string.Format("checkout"));
+            RunSuccessfulCommand(string.Format("update -sourceDbServer localhost -sourceDb {0}",
+                SourceDatabaseName));
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers);
+        }
+
         private void CheckoutZero()
         {
             RunSuccessfulCommand("checkout -r 0");
