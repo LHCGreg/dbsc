@@ -59,6 +59,10 @@ namespace dbsc.Mongo
 
         public void CreateDatabase(string databaseName)
         {
+            // Mongo creates databases when you insert something into one.
+            // You cannot simply tell it "create a database named foo".
+
+            // Make sure the database doesn't already exist
             if (m_server.DatabaseExists(databaseName))
             {
                 throw new DbscException(string.Format(

@@ -55,16 +55,15 @@ namespace dbsc.Mongo
 
         protected override void CreateDatabase(MongoCheckoutOptions options)
         {
-            // Mongo creates databases when you insert something into one.
-            // So no need to actually create the database here. Just check that it doesn't already exist so
-            // we don't get putting stuff on an existing database.
             DbConnectionInfo adminDb = options.TargetDatabase.Clone();
             adminDb.Database = "admin";
 
+            Console.WriteLine("Creating database {0} on {1}.", options.TargetDatabase.Database, options.TargetDatabase.Server);
             using (MongoDbscConnection conn = new MongoDbscConnection(adminDb))
             {
                 conn.CreateDatabase(options.TargetDatabase.Database);
             }
+            Console.WriteLine("Created database {0} on {1}.", options.TargetDatabase.Database, options.TargetDatabase.Server);
 
             if (options.CreationTemplate != null)
             {
