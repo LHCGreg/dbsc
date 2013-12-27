@@ -12,7 +12,7 @@ CREATE TABLE book
 	book_id serial NOT NULL PRIMARY KEY,
 	title text NOT NULL,
 	subtitle text NULL,
-	author_person_id int REFERENCES person (person_id)
+	author_person_id int NOT NULL REFERENCES person (person_id)
 );
 
 INSERT INTO book

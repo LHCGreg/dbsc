@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pgdbsc.Integration", "pgdbs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtils", "TestUtils\TestUtils.csproj", "{A6397C4B-4661-4DD6-B73E-BEA66AAF14CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "msdbsc.Integration", "msdbsc.Integration\msdbsc.Integration.csproj", "{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -156,6 +158,16 @@ Global
 		{A6397C4B-4661-4DD6-B73E-BEA66AAF14CA}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{A6397C4B-4661-4DD6-B73E-BEA66AAF14CA}.Release|x86.ActiveCfg = Release|Any CPU
 		{A6397C4B-4661-4DD6-B73E-BEA66AAF14CA}.Release|x86.Build.0 = Release|Any CPU
+		{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}.Debug|x86.ActiveCfg = Debug|x86
+		{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}.Debug|x86.Build.0 = Debug|x86
+		{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}.Release|Any CPU.ActiveCfg = Release|x86
+		{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}.Release|Mixed Platforms.Build.0 = Release|x86
+		{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}.Release|x86.ActiveCfg = Release|x86
+		{F5F140B7-9E77-4EC1-B0C2-EACCDEC230F8}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

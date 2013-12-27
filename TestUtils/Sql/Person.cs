@@ -3,26 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace dbsc.Postgres.Integration
+namespace TestUtils.Sql
 {
-    class Book : IEquatable<Book>
+    public class Person : IEquatable<Person>
     {
-        public int book_id { get; set; }
-        public string title { get; set; }
-        public string subtitle { get; set; }
-        public int author_person_id { get; set; }
+        public int person_id { get; set; }
+        public string name { get; set; }
+        public DateTime birthday { get; set; }
+        public int? default_test { get; set; }
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as Book);
+            return Equals(obj as Person);
         }
 
-        public bool Equals(Book other)
+        public bool Equals(Person other)
         {
             if (other == null) return false;
-            return string.Equals(this.title, other.title, StringComparison.Ordinal) &&
-                string.Equals(this.subtitle, other.subtitle, StringComparison.Ordinal)
-                && this.author_person_id == other.author_person_id;
+            return string.Equals(this.name, other.name, StringComparison.Ordinal) && this.birthday == other.birthday
+                && this.default_test == other.default_test;
         }
 
         public override int GetHashCode()
@@ -30,16 +29,16 @@ namespace dbsc.Postgres.Integration
             unchecked
             {
                 int hash = 17;
-                hash += 31 * title.GetHashCode();
-                if (subtitle != null) hash += 31 * subtitle.GetHashCode();
-                hash += 31 * author_person_id;
+                hash += 31 * name.GetHashCode();
+                hash += 31 * birthday.GetHashCode();
+                hash += 31 * default_test.GetHashCode();
                 return hash;
             }
         }
 
         public override string ToString()
         {
-            return string.Format("{0},{1},{2},{3}", book_id, title, subtitle, author_person_id);
+            return string.Format("{0},{1},{2},{3}", person_id, name, birthday.ToString("yyyy-MM-dd"), default_test);
         }
     }
 }

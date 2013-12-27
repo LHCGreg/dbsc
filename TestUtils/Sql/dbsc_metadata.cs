@@ -1,15 +1,14 @@
-﻿using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using TestUtils.Sql;
 
-namespace dbsc.Postgres.Integration
+namespace TestUtils.Sql
 {
-    [TestFixture]
-    class UpdateTestFixture : AbstractUpdateTestFixture<PgTestHelper>
+    class dbsc_metadata
     {
+        public string property_name { get; set; }
+        public string property_value { get; set; }
     }
 }
 

@@ -3,22 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace dbsc.Postgres.Integration
+namespace TestUtils.Sql
 {
-    class script_isolation_test : IEquatable<script_isolation_test>
+    public class Book : IEquatable<Book>
     {
-        public int step { get; set; }
-        public string val { get; set; }
+        public int book_id { get; set; }
+        public string title { get; set; }
+        public string subtitle { get; set; }
+        public int author_person_id { get; set; }
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as script_isolation_test);
+            return Equals(obj as Book);
         }
 
-        public bool Equals(script_isolation_test other)
+        public bool Equals(Book other)
         {
             if (other == null) return false;
-            return this.step == other.step && this.val.Equals(other.val, StringComparison.Ordinal);
+            return string.Equals(this.title, other.title, StringComparison.Ordinal) &&
+                string.Equals(this.subtitle, other.subtitle, StringComparison.Ordinal)
+                && this.author_person_id == other.author_person_id;
         }
 
         public override int GetHashCode()
@@ -26,10 +30,16 @@ namespace dbsc.Postgres.Integration
             unchecked
             {
                 int hash = 17;
-                hash += 31 * step;
-                hash += 31 * val.GetHashCode();
+                hash += 31 * title.GetHashCode();
+                if (subtitle != null) hash += 31 * subtitle.GetHashCode();
+                hash += 31 * author_person_id;
                 return hash;
             }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0},{1},{2},{3}", book_id, title, subtitle, author_person_id);
         }
     }
 }

@@ -1,15 +1,16 @@
-﻿using NUnit.Framework;
+﻿using dbsc.Postgres.Integration;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using TestUtils.Sql;
 
-namespace dbsc.Postgres.Integration
+namespace dbsc.SqlServer.Integration
 {
     [TestFixture]
-    class UpdateTestFixture : AbstractUpdateTestFixture<PgTestHelper>
+    public class CheckoutTestFixture : AbstractCheckoutTestFixture<MSTestHelper>
     {
+        protected override bool IgnoreNonexistentPortTests { get { return true; } }
     }
 }
 

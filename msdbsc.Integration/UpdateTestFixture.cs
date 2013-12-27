@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using TestUtils.Sql;
 
-namespace dbsc.Postgres.Integration
+namespace dbsc.SqlServer.Integration
 {
     [TestFixture]
-    class UpdateTestFixture : AbstractUpdateTestFixture<PgTestHelper>
+    public class UpdateTestFixture : AbstractUpdateTestFixture<MSTestHelper>
     {
     }
 }

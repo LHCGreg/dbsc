@@ -3,25 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace dbsc.Postgres.Integration
+namespace TestUtils.Sql
 {
-    class Person : IEquatable<Person>
+    public class script_isolation_test : IEquatable<script_isolation_test>
     {
-        public int person_id { get; set; }
-        public string name { get; set; }
-        public DateTime birthday { get; set; }
-        public int? default_test { get; set; }
+        public int step { get; set; }
+        public string val { get; set; }
 
         public override bool Equals(object obj)
         {
-            return Equals(obj as Person);
+            return Equals(obj as script_isolation_test);
         }
 
-        public bool Equals(Person other)
+        public bool Equals(script_isolation_test other)
         {
             if (other == null) return false;
-            return string.Equals(this.name, other.name, StringComparison.Ordinal) && this.birthday == other.birthday
-                && this.default_test == other.default_test;
+            return this.step == other.step && this.val.Equals(other.val, StringComparison.Ordinal);
         }
 
         public override int GetHashCode()
@@ -29,16 +26,10 @@ namespace dbsc.Postgres.Integration
             unchecked
             {
                 int hash = 17;
-                hash += 31 * name.GetHashCode();
-                hash += 31 * birthday.GetHashCode();
-                hash += 31 * default_test.GetHashCode();
+                hash += 31 * step;
+                hash += 31 * val.GetHashCode();
                 return hash;
             }
-        }
-
-        public override string ToString()
-        {
-            return string.Format("{0},{1},{2},{3}", person_id, name, birthday.ToString("yyyy-MM-dd"), default_test);
         }
     }
 }

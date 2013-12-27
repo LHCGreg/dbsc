@@ -1,14 +1,17 @@
-﻿BEGIN TRANSACTION;
+﻿BEGIN TRANSACTION
 
 CREATE TABLE person
 (
-	person_id serial NOT NULL PRIMARY KEY,
-	name text NOT NULL,
+	person_id INT NOT NULL IDENTITY PRIMARY KEY,
+	name nvarchar(128) NOT NULL,
 	birthday date NOT NULL,
 	default_test int NULL DEFAULT 42
 );
+GO
 
 CREATE UNIQUE INDEX ix_person__name ON person (name);
+
+-- Omit Greg
 
 INSERT INTO person
 (name, birthday, default_test)
@@ -21,6 +24,8 @@ CREATE TABLE script_isolation_test
 	val text NOT NULL
 );
 
+GO
+
 INSERT INTO script_isolation_test
 (step, val)
 VALUES
@@ -30,11 +35,13 @@ VALUES
 
 CREATE TABLE book
 (
-	book_id serial NOT NULL PRIMARY KEY,
-	title text NOT NULL,
-	subtitle text NULL,
+	book_id int NOT NULL IDENTITY PRIMARY KEY,
+	title nvarchar(128) NOT NULL,
+	subtitle nvarchar(128) NULL,
 	author_person_id int NOT NULL REFERENCES person (person_id)
 );
+
+GO
 
 INSERT INTO book
 (title, subtitle, author_person_id)
@@ -48,15 +55,16 @@ VALUES
 
 CREATE TABLE dbsc_metadata
 (
-    property_name text NOT NULL PRIMARY KEY,
-    property_value text
+    property_name nvarchar(256) NOT NULL PRIMARY KEY,
+    property_value nvarchar(max)
 );
+GO
 
 INSERT INTO dbsc_metadata
 (property_name, property_value)
 VALUES
-('MasterDatabaseName', 'pgdbsc_test'),
+('MasterDatabaseName', 'msdbsc_test'),
 ('Version', '2'),
 ('LastChangeUTC', '2013-12-22T04:01:48');
 
-COMMIT TRANSACTION;
+COMMIT TRANSACTION
