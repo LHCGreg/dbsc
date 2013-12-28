@@ -35,10 +35,10 @@ namespace dbsc.Core
         protected override void CreateDatabase(TCheckoutOptions options)
         {
             DbConnectionInfo masterDatabaseConnectionInfo = GetSystemDatabaseConnectionInfo(options.TargetDatabase);
+            Console.WriteLine("Creating database {0} on {1}.", options.TargetDatabase.Database, options.TargetDatabase.Server);
             using (TConnection masterDatabaseConnection = OpenConnection(masterDatabaseConnectionInfo))
             {
                 string creationSql = options.CreationTemplate.Replace("$DatabaseName$", options.TargetDatabase.Database);
-                Console.WriteLine("Creating database {0} on {1}.", options.TargetDatabase.Database, options.TargetDatabase.Server);
                 masterDatabaseConnection.ExecuteSqlScript(creationSql);
                 Console.WriteLine("Created database {0} on {1}.", options.TargetDatabase.Database, options.TargetDatabase.Server);
             }
