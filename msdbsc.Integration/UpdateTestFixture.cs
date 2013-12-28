@@ -10,6 +10,7 @@ namespace dbsc.SqlServer.Integration
     [TestFixture]
     public class UpdateTestFixture : AbstractUpdateTestFixture<MSTestHelper>
     {
+        protected override int? Port { get { return null; } }
     }
 }
 

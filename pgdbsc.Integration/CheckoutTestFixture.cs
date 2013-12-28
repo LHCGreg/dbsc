@@ -10,6 +10,7 @@ namespace dbsc.Postgres.Integration
     [TestFixture]
     class CheckoutTestFixture : AbstractCheckoutTestFixture<PgTestHelper>
     {
+        protected override int? Port { get { return 5432; } }
     }
 }
 

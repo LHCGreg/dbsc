@@ -13,6 +13,8 @@ namespace TestUtils.Sql
     {
         protected THelper Helper { get; private set; }
 
+        protected abstract int? Port { get; }
+
         public AbstractUpdateTestFixture()
         {
             Helper = new THelper();
@@ -108,10 +110,18 @@ namespace TestUtils.Sql
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -targetDb {2} -sourceDbServer localhost -sourceDb {3} -sourceUsername {4} -sourcePassword {5}",
                 Username, Password, TestDatabaseName, SourceDatabaseName, Username, Password));
 
+            string portArg = "";
+            string sourcePortArg = "";
+            if (Port != null)
+            {
+                portArg = string.Format("-port {0}", Port);
+                sourcePortArg = string.Format("-sourcePort {0}", Port);
+            }
+
             // Then import from the main test database into the alt test database
             CheckoutZeroOnAltDatabase();
-            RunSuccessfulCommand(string.Format("update -u {0} -p {1} -targetDbServer localhost -targetDb {2} -port 5432 -sourceDbServer localhost -sourcePort 5432 -sourceUsername {3} -sourcePassword {4}",
-                Username, Password, AltTestDatabaseName, Username, Password));
+            RunSuccessfulCommand(string.Format("update -u {0} -p {1} -targetDbServer localhost -targetDb {2} {3} -sourceDbServer localhost {4} -sourceUsername {5} -sourcePassword {6}",
+                Username, Password, AltTestDatabaseName, portArg, sourcePortArg, Username, Password));
             VerifyDatabase(AltTestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
 

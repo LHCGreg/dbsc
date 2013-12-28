@@ -10,7 +10,7 @@ namespace dbsc.SqlServer.Integration
     [TestFixture]
     public class CheckoutTestFixture : AbstractCheckoutTestFixture<MSTestHelper>
     {
-        protected override bool IgnoreNonexistentPortTests { get { return true; } }
+        protected override int? Port { get { return null; } }
     }
 }
 

@@ -1,13 +1,12 @@
 BEGIN TRANSACTION
 
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE Name = 'person')
-	CREATE TABLE person
-	(
-		person_id INT NOT NULL IDENTITY PRIMARY KEY,
-		name nvarchar(128) NOT NULL,
-		birthday date NOT NULL,
-		default_test int NULL DEFAULT 42
-	);
+CREATE TABLE person
+(
+	person_id INT NOT NULL IDENTITY PRIMARY KEY,
+	name nvarchar(128) NOT NULL,
+	birthday date NOT NULL,
+	default_test int NULL DEFAULT 42
+);
 
 GO
 

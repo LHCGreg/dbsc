@@ -1,6 +1,6 @@
 BEGIN TRANSACTION;
 
-CREATE TABLE IF NOT EXISTS person
+CREATE TABLE person
 (
 	person_id serial NOT NULL PRIMARY KEY,
 	name text NOT NULL,
