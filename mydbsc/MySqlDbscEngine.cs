@@ -35,7 +35,8 @@ namespace dbsc.MySql
 (
     property_name nvarchar(128) NOT NULL PRIMARY KEY,
     property_value text
-)";
+)
+ENGINE=InnoDB";
             }
         }
 
