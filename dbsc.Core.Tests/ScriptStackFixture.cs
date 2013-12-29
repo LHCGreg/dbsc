@@ -10,50 +10,67 @@ namespace dbsc.Core.Tests
     [TestFixture]
     public class ScriptStackFixture
     {
+        // On Linux, C:\db.0000.sql is treated as a relative path.
+        private string GetPrefix()
+        {
+            if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
+            {
+                return "/foo/";
+            }
+            else
+            {
+                return  @"C:\";
+            }
+        }
+        
         [Test]
         public void TestHappyPath()
         {
+            string prefix = GetPrefix();
+
             List<string> filePaths = new List<string>()
             {
-                @"C:\db.0000.sql",
-                @"C:\db.0001.comment.sql",
-                @"C:\db.02.SQL"
+                prefix+"db.0000.sql",
+                prefix+"db.0001.comment.sql",
+                prefix+"db.02.SQL"
             };
 
             ScriptStack stack = new ScriptStack(filePaths, "sql");
             Assert.That(stack.MasterDatabaseName, Is.EqualTo("db"));
-            Assert.That(stack.ScriptsByRevision[0], Is.EqualTo(@"C:\db.0000.sql"));
-            Assert.That(stack.ScriptsByRevision[1], Is.EqualTo(@"C:\db.0001.comment.sql"));
-            Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(@"C:\db.02.SQL"));
+            Assert.That(stack.ScriptsByRevision[0], Is.EqualTo(prefix+"db.0000.sql"));
+            Assert.That(stack.ScriptsByRevision[1], Is.EqualTo(prefix+"db.0001.comment.sql"));
+            Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(prefix+"db.02.SQL"));
             Assert.That(stack.ScriptsByRevision.Count, Is.EqualTo(3));
         }
 
         [Test]
         public void NonSqlExtension()
         {
+            string prefix = GetPrefix();
             List<string> filePaths = new List<string>()
             {
-                @"C:\db.0000.js",
-                @"C:\db.0001.comment.js",
-                @"C:\db.02.JS"
+                prefix+"db.0000.js",
+                prefix+"db.0001.comment.js",
+                prefix+"db.02.JS"
             };
 
             ScriptStack stack = new ScriptStack(filePaths, "js");
             Assert.That(stack.MasterDatabaseName, Is.EqualTo("db"));
-            Assert.That(stack.ScriptsByRevision[0], Is.EqualTo(@"C:\db.0000.js"));
-            Assert.That(stack.ScriptsByRevision[1], Is.EqualTo(@"C:\db.0001.comment.js"));
-            Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(@"C:\db.02.JS"));
+            Assert.That(stack.ScriptsByRevision[0], Is.EqualTo(prefix+"db.0000.js"));
+            Assert.That(stack.ScriptsByRevision[1], Is.EqualTo(prefix+"db.0001.comment.js"));
+            Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(prefix+"db.02.JS"));
             Assert.That(stack.ScriptsByRevision.Count, Is.EqualTo(3));
         }
 
         [Test]
         public void DifferentMasterDatabaseNameThrows()
         {
+            string prefix = GetPrefix();
             List<string> filePaths = new List<string>()
             {
-                @"C:\db.0000.sql",
-                @"C:\DB.0001.comment.sql",
-                @"C:\db.02.SQL"
+                prefix+"db.0000.sql",
+                prefix+"DB.0001.comment.sql",
+                prefix+"db.02.SQL"
             };
 
             Assert.Throws<DbscException>(() => new ScriptStack(filePaths, "sql"));
@@ -62,27 +79,29 @@ namespace dbsc.Core.Tests
         [Test]
         public void DifferentExtensionNotPickedUp()
         {
+            string prefix = GetPrefix();
             List<string> filePaths = new List<string>()
             {
-                @"C:\db.0000.sql",
-                @"C:\db.0001.comment.sqlx",
-                @"C:\db.02.SQL"
+                prefix+"db.0000.sql",
+                prefix+"db.0001.comment.sqlx",
+                prefix+"db.02.SQL"
             };
 
             ScriptStack stack = new ScriptStack(filePaths, "sql");
-            Assert.That(stack.ScriptsByRevision[0], Is.EqualTo(@"C:\db.0000.sql"));
-            Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(@"C:\db.02.SQL"));
+            Assert.That(stack.ScriptsByRevision[0], Is.EqualTo(prefix+"db.0000.sql"));
+            Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(prefix+"db.02.SQL"));
             Assert.That(stack.ScriptsByRevision.Count, Is.EqualTo(2));
         }
 
         [Test]
         public void MultipleScriptsForSameRevisionThrows()
         {
+            string prefix = GetPrefix();
             List<string> filePaths = new List<string>()
             {
-                @"C:\db.0000.sql",
-                @"C:\db.0000.comment.sql",
-                @"C:\db.02.SQL"
+                prefix+"db.0000.sql",
+                prefix+"db.0000.comment.sql",
+                prefix+"db.02.SQL"
             };
 
             Assert.Throws<DbscException>(() => new ScriptStack(filePaths, "sql"));
@@ -91,9 +110,10 @@ namespace dbsc.Core.Tests
         [Test]
         public void NoZeroRevisionScriptThrows()
         {
+            string prefix = GetPrefix();
             List<string> filePaths = new List<string>()
             {
-                @"C:\db.02.SQL"
+                prefix+"db.02.SQL"
             };
 
             Assert.Throws<DbscException>(() => new ScriptStack(filePaths, "sql"));
@@ -102,15 +122,16 @@ namespace dbsc.Core.Tests
         [Test]
         public void GapInRevisionsDoesNotThrow()
         {
+            string prefix = GetPrefix();
             List<string> filePaths = new List<string>()
             {
-                @"C:\db.0000.sql",
-                @"C:\db.02.SQL"
+                prefix+"db.0000.sql",
+                prefix+"db.02.SQL"
             };
 
             ScriptStack stack = new ScriptStack(filePaths, "sql");
             Assert.That(stack.ScriptsByRevision.ContainsKey(1), Is.False);
-            Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(@"C:\db.02.SQL"));
+            Assert.That(stack.ScriptsByRevision[2], Is.EqualTo(prefix+"db.02.SQL"));
         }
     }
 }
