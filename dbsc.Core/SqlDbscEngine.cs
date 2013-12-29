@@ -156,7 +156,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 conn.ExecuteSqlScript(scriptText);
 
                 string newRevisionString = newRevision.ToString(CultureInfo.InvariantCulture);
-                UpdateMetadataProperty(conn, RevisionPropertyName, newRevision.ToString(CultureInfo.InvariantCulture));
+                UpdateMetadataProperty(conn, RevisionPropertyName, newRevisionString);
 
                 string utcTimestampString = GetTimestampString(utcTimestamp);
                 UpdateMetadataProperty(conn, LastUpdatedPropertyName, utcTimestampString);
