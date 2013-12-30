@@ -32,6 +32,13 @@
     </BuildDependsOn>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanDynamicAssemblyInfo
+    </CleanDependsOn>
+  </PropertyGroup>
+
   <Target Name="BuildInstaller" DependsOnTargets="Build;_BuildInstaller;_BuildBundle">
 
   </Target>
