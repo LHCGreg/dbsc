@@ -122,6 +122,17 @@ namespace dbsc.SqlServer
             }
         }
 
+        public static string QuoteSqlServerIdentifier(string identifier)
+        {
+            // Replace ] with ]] and enclose in []
+            return "[" + identifier.Replace("]", "]]") + "]";
+        }
+
+        public static string QuoteSqlServerIdentifier(string schema, string identifier)
+        {
+            return QuoteSqlServerIdentifier(schema) + "." + QuoteSqlServerIdentifier(identifier);
+        }
+
         public override void Dispose()
         {
             Connection.Dispose();

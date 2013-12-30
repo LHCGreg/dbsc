@@ -12,7 +12,8 @@
     <AssemblyName>dbsc.Core</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -35,20 +36,20 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
@@ -73,17 +74,25 @@
   <ItemGroup>
     <Compile Include="BaseCommandLineArgs.cs" />
     <Compile Include="BaseDbscDbConnection.cs" />
-    <Compile Include="CheckoutOptions.cs" />
+    <Compile Include="SqlCheckoutOptions.cs" />
     <Compile Include="DbConnectionInfo.cs" />
+    <Compile Include="DbscEngine.cs" />
+    <Compile Include="ICheckoutOptions.cs" />
+    <Compile Include="ISqlCheckoutOptions.cs" />
+    <Compile Include="ISqlUpdateOptions.cs" />
+    <Compile Include="IUpdateOptions.cs" />
     <Compile Include="DbscApp.cs" />
     <Compile Include="DbscException.cs" />
     <Compile Include="DbscOperation.cs" />
-    <Compile Include="DbscEngine.cs" />
+    <Compile Include="SqlCommandLineArgs.cs" />
+    <Compile Include="SqlDbscEngine.cs" />
     <Compile Include="IDbscDbConnection.cs" />
     <Compile Include="ImportOptions.cs" />
-    <Compile Include="SqlStack.cs" />
+    <Compile Include="ScriptStack.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UpdateOptions.cs" />
+    <Compile Include="SqlUpdateOptions.cs" />
+    <Compile Include="StringExtensions.cs" />
+    <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

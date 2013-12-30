@@ -98,6 +98,17 @@ namespace dbsc.Postgres
             return Connection.BeginTransaction();
         }
 
+        public static string QuotePgIdentifier(string identifier)
+        {
+            // Replace quotes with quotequote and enclose in quotes
+            return "\"" + identifier.Replace("\"", "\"\"") + "\"";
+        }
+
+        public static string QuotePgIdentifier(string schema, string identifier)
+        {
+            return QuotePgIdentifier(schema) + "." + QuotePgIdentifier(identifier);
+        }
+
         /// <summary>
         /// 
         /// </summary>

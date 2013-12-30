@@ -55,7 +55,7 @@ namespace dbsc.Core
 
             int realTimeoutInSeconds = timeoutInSeconds ?? ConnectionInfo.CommandTimeoutInSeconds;
 
-            return Connection.Query<T>(sql, param: dapperParams, transaction: transaction);
+            return Connection.Query<T>(sql, param: dapperParams, transaction: transaction, commandTimeout: realTimeoutInSeconds);
         }
 
         public abstract void Dispose();

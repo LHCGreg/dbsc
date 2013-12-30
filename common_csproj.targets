@@ -10,15 +10,18 @@
   <Target Name="_CreateDynamicAssemblyInfo" Inputs="$(MSBuildThisFileFullPath)" Outputs="Properties\AssemblyInfo_$(Version).cs">
     <MSBuild.Community.Tasks.AssemblyInfo CodeLanguage="CS" OutputFile="Properties\AssemblyInfo_$(Version).cs"
                   AssemblyVersion="$(Version)" AssemblyFileVersion="$(Version)" />
-    <ItemGroup>
-      <Compile Include="Properties\AssemblyInfo_$(Version).cs" />
-    </ItemGroup>
+
+    <!-- Don't use an <ItemGroup> because mono's xbuild doesn't support dynamic items. -->
+    <CreateItem Include="Properties\AssemblyInfo_$(Version).cs">
+      <Output TaskParameter="Include" ItemName="Compile"/>
+    </CreateItem>
   </Target>
 
   <Target Name="CleanDynamicAssemblyInfo" DependsOnTargets="SetVersionProperties">
-    <ItemGroup>
-      <DynamicAssemblyInfoFiles Include="Properties\AssemblyInfo_*.cs" />
-    </ItemGroup>
+    <CreateItem Include="Properties\AssemblyInfo_*.cs">
+      <Output TaskParameter="Include" ItemName="DynamicAssemblyInfoFiles" />
+    </CreateItem>
+    
     <Delete Files="@(DynamicAssemblyInfoFiles)" />
   </Target>
 
@@ -29,22 +32,29 @@
     </BuildDependsOn>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanDynamicAssemblyInfo
+    </CleanDependsOn>
+  </PropertyGroup>
+
   <Target Name="BuildInstaller" DependsOnTargets="Build;_BuildInstaller;_BuildBundle">
 
   </Target>
   <Target Name="_BuildInstaller">
     <MSBuild Projects="installer.wixproj"
-             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
   </Target>
   <Target Name="_BuildBundle">
     <MSBuild Projects="bundle.wixproj"
-             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
   </Target>
   <Target Name="CleanInstaller">
     <MSBuild Projects="installer.wixproj" Targets="Clean" Condition="Exists('installer.wixproj')"
-             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
     <MSBuild Projects="bundle.wixproj" Targets="Clean" Condition="Exists('bundle.wixproj')"
-             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
   </Target>
 
   <PropertyGroup>
@@ -57,10 +67,10 @@
   <Target Name="BuildZipPackage" DependsOnTargets="_CheckZipProperties;SetVersionProperties;Build">
     <RemoveDir Directories="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)" />
 
-    <ItemGroup>
-      <BuildOutput Include="bin\$(Configuration) ($(Platform))\**\*"
-                   Exclude="**\*.pdb;**\*.mdb;**\*.xml;**\*vshost.exe*" />
-    </ItemGroup>
+    <CreateItem Include="bin\$(Configuration)_$(Platform)\**\*" Exclude="**\*.pdb;**\*.mdb;**\*.xml;**\*vshost.exe*">
+      <Output TaskParameter="Include" ItemName="BuildOutput" />
+    </CreateItem>
+
     <Copy SourceFiles="@(BuildOutput)" DestinationFolder="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)\%(RecursiveDir)" />
     <MSBuild.ExtensionPack.Compression.Zip TaskAction="Create" ZipFileName="$(ZipNameWithoutVersion)_$(Version).zip" CompressPath="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)" />
     <Move SourceFiles="$(ZipNameWithoutVersion)_$(Version).zip" DestinationFolder="ZipReleases" />

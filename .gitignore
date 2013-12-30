@@ -5,3 +5,5 @@ obj/
 ZipReleases
 AssemblyInfo_*.cs
 packages/*/
+test_stdout.txt
+test_stderr.txt

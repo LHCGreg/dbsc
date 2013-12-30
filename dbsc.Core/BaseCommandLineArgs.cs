@@ -42,26 +42,6 @@ namespace dbsc.Core
         private string m_scriptDirectory = Environment.CurrentDirectory;
         public string ScriptDirectory { get { return m_scriptDirectory; } set { m_scriptDirectory = value; } }
         public int? Revision { get; private set; }
-        public string DbTemplateFilePath { get; private set; }
-
-        public string GetDbCreationTemplate()
-        {
-            if (DbTemplateFilePath == null)
-            {
-                return "CREATE DATABASE $DatabaseName$";
-            }
-            else
-            {
-                try
-                {
-                    return File.ReadAllText(DbTemplateFilePath);
-                }
-                catch (Exception ex)
-                {
-                    throw new OptionException(string.Format("Error reading DB creation template: {0}.", ex.Message), "dbCreationTemplate");
-                }
-            }
-        }
 
         public string SourceDbServer { get; private set; }
         public string SourceDb { get; private set; }
@@ -77,27 +57,6 @@ namespace dbsc.Core
 
             string[] lines = File.ReadAllLines(ImportTableListPath);
             return lines.Where(line => !string.IsNullOrWhiteSpace(line)).ToList();
-        }
-
-        public virtual CheckoutOptions GetCheckoutOptions()
-        {
-            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, port: TargetDbPort, username: Username, password: Password);
-            CheckoutOptions options = new CheckoutOptions(targetDbInfo);
-            options.CreationTemplate = GetDbCreationTemplate();
-            options.Directory = ScriptDirectory;
-            options.Revision = Revision;
-            options.ImportOptions = GetImportOptions();
-            return options;
-        }
-
-        public virtual UpdateOptions GetUpdateOptions()
-        {
-            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, port: TargetDbPort, username: Username, password: Password);
-            UpdateOptions options = new UpdateOptions(targetDbInfo);
-            options.Directory = ScriptDirectory;
-            options.Revision = Revision;
-            options.ImportOptions = GetImportOptions();
-            return options;
         }
 
         public virtual ImportOptions GetImportOptions()
@@ -124,7 +83,6 @@ namespace dbsc.Core
                 { "p|password=", "Password to use to log in to the target database. If not specified and username is not specified, log in with integrated security. If not specified and username is specified, you will be prompted for your password.", arg => Password = arg },
                 { "dir|scriptDirectory=", "Directory with sql scripts to run. If not specified, defaults to the current directory.", arg => ScriptDirectory = arg },
                 { "r=", "Revision number to check out or update up to. If not specified, goes up to the highest available revision.", arg => Revision = int.Parse(arg) }, // TODO: tryparse and throw friendly error
-                { "dbCreateTemplate=", "File with a template to use when creating the database in a checkout. $DatabaseName$ will be replaced with the database name. If not specified, a simple \"CREATE DATABASE $DatabaseName$\" will be used. This is a good place to set database options or grant permissions.", arg => DbTemplateFilePath = arg },
                 { "sourceDbServer=", "Database server to import data from. Data will be imported when the target database's revision matches the source database's revision. The source database must have been created using dbsc.", arg => SourceDbServer = arg },
                 { "sourceDb=", "Database to import data from. If not specified, defaults to the master database name.", arg => SourceDb = arg },
                 { "sourcePort|sourceDbPort=", "Port number of the source database to connect to. Defaults to the normal port. Not relevant for MS SQL Server.", arg => SourceDbPort = int.Parse(arg) },
