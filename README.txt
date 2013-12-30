@@ -9,6 +9,7 @@ dbsc comes in different flavors for different database engines. dbsc currently s
 * PostgreSQL (pgdbsc)
 * Microsoft SQL Server (msdbsc)
 * MySQL (mydbsc)
+* MongoDB (mongodbsc)
 
 dbsc runs on Windows and (except for msdbsc) Linux and Mac OS X using Mono.
 
@@ -21,5 +22,7 @@ or
 msdbsc -h
 or
 mydbsc -h
+or
+mongodbsc -h
 
 depending on which flavor you are using.
