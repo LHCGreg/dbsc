@@ -23,9 +23,13 @@
     <MSBuild.ExtensionPack.Xml.XmlFile TaskAction="ReadElementText" File="version.xml" XPath="/Versions/BuildVersion">
       <Output TaskParameter="Value" PropertyName="BuildVersion"/>
     </MSBuild.ExtensionPack.Xml.XmlFile>
-    <PropertyGroup>
-      <Version>$(MajorVersion).$(MinorVersion).$(FixVersion).$(BuildVersion)</Version>
-      <VersionWithoutBuild>$(MajorVersion).$(MinorVersion).$(FixVersion)</VersionWithoutBuild>
-    </PropertyGroup>
+    
+    <!-- Don't use a <PropertyGroup> because mono's xbuild doesn't support dynamic properties. -->
+    <CreateProperty Value="$(MajorVersion).$(MinorVersion).$(FixVersion).$(BuildVersion)">
+      <Output TaskParameter="Value" PropertyName="Version" />
+    </CreateProperty>
+    <CreateProperty Value="$(MajorVersion).$(MinorVersion).$(FixVersion)">
+      <Output TaskParameter="Value" PropertyName="VersionWithoutBuild" />
+    </CreateProperty>
   </Target>
 </Project>
