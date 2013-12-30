@@ -1,2 +1,2 @@
 xbuild /t:Build "/p:Configuration=Debug;Platform=x86" mongodbsc.Integration.csproj
-nunit-console "bin/Debug (x86)/mongodbsc.Integration.dll" -nologo -noxml "-out=bin/Debug (x86)/test_stdout.txt" "-err=bin/Debug (x86)/test_stderr.txt"
+nunit-console "bin/Debug_x86/mongodbsc.Integration.dll" -nologo -noxml "-out=bin/Debug_x86/test_stdout.txt" "-err=bin/Debug_x86/test_stderr.txt"

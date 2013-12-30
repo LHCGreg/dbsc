@@ -44,17 +44,17 @@
   </Target>
   <Target Name="_BuildInstaller">
     <MSBuild Projects="installer.wixproj"
-             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
   </Target>
   <Target Name="_BuildBundle">
     <MSBuild Projects="bundle.wixproj"
-             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
   </Target>
   <Target Name="CleanInstaller">
     <MSBuild Projects="installer.wixproj" Targets="Clean" Condition="Exists('installer.wixproj')"
-             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
     <MSBuild Projects="bundle.wixproj" Targets="Clean" Condition="Exists('bundle.wixproj')"
-             Properties="OutputPath=Installer\bin\$(Configuration) ($(Platform))\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
+             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
   </Target>
 
   <PropertyGroup>
@@ -67,7 +67,7 @@
   <Target Name="BuildZipPackage" DependsOnTargets="_CheckZipProperties;SetVersionProperties;Build">
     <RemoveDir Directories="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)" />
 
-    <CreateItem Include="bin\$(Configuration) ($(Platform))\**\*" Exclude="**\*.pdb;**\*.mdb;**\*.xml;**\*vshost.exe*">
+    <CreateItem Include="bin\$(Configuration)_$(Platform)\**\*" Exclude="**\*.pdb;**\*.mdb;**\*.xml;**\*vshost.exe*">
       <Output TaskParameter="Include" ItemName="BuildOutput" />
     </CreateItem>
 
