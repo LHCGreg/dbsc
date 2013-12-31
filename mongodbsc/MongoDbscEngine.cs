@@ -67,18 +67,17 @@ namespace dbsc.Mongo
 
             if (options.CreationTemplate != null)
             {
-                MongoUpdateOptions scriptOptions = options.UpdateOptions.Clone();
-                scriptOptions.TargetDatabase.Database = "admin";
                 string tempFilePath = Path.GetTempFileName();
                 try
                 {
+                    string creationScript = options.CreationTemplate.Replace("$DatabaseName$", options.TargetDatabase.Database);
                     using (StreamWriter tempFileWriter = new StreamWriter(tempFilePath))
                     {
-                        tempFileWriter.Write(options.CreationTemplate);
+                        tempFileWriter.Write(creationScript);
                     }
                     // Must close the file before mongo can read it because mongo opens it
                     // without the equivalent of FileShare.Write.
-                    RunScript(scriptOptions, tempFilePath);
+                    RunScript(options.UpdateOptions, tempFilePath);
                 }
                 finally
                 {

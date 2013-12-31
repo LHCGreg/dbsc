@@ -41,7 +41,7 @@ namespace dbsc.Mongo
             OptionSet options = base.GetOptionSet();
 
             options.Add("dbCreateTemplate=",
-                "Javascript file to run when creating a database in a checkout. $DatabaseName$ will be replaced with the database name. mongodbsc does not actually create the database because in MongoDB, a database is created when you first do something with it. This is a good place to grant permissions. The script will run in the admin database.",
+                "Javascript file to run when creating a database in a checkout. The script will be run *after* the database is created and will be run on the newly created database. $DatabaseName$ will be replaced with the database name. This is a good place to grant permissions.",
                 arg => DbTemplateFilePath = arg);
             return options;
         }

@@ -1,5 +1,4 @@
-﻿db.createCollection('books');
-db.books.ensureIndex({ name: 1 });
+﻿db.books.ensureIndex({ name: 1 });
 db.books.insert(
 	[
 		{

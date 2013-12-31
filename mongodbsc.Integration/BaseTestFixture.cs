@@ -19,7 +19,6 @@ namespace dbsc.Mongo.Integration
         protected static readonly string AltTestDatabaseName = "mongodbsc_test_2";
         protected static readonly string SourceDatabaseName = "mongodbsc_test_source";
         protected static readonly string AltSourceDatabaseName = "mongodbsc_test_source_2";
-        protected static readonly string CreationTemplateDatabaseName = "creation_template_test";
 
         protected string MongodbscPath { get; private set; }
         protected string ScriptsDir { get; private set; }
@@ -59,6 +58,15 @@ namespace dbsc.Mongo.Integration
             {
                 name = "Charlie and the Chocolate Factory",
                 author = "Roald Dahl"
+            }
+        };
+
+        protected List<Book> BooksFromCreationTemplate = new List<Book>()
+        {
+            new Book()
+            {
+                name = "The Eye of the World",
+                author = "Robert Jordan"
             }
         };
 
@@ -201,24 +209,6 @@ namespace dbsc.Mongo.Integration
             Assert.That(metadata.MasterDatabaseName, Is.EqualTo("mongodbsc_test"));
             Assert.That(metadata.LastChangeUTC, Is.LessThan(DateTime.UtcNow + TimeSpan.FromMinutes(5)));
             Assert.That(metadata.LastChangeUTC, Is.GreaterThan(DateTime.UtcNow - TimeSpan.FromMinutes(5)));
-        }
-
-        protected void VerifyCreationTemplateDatabase()
-        {
-            MongoClient mongoClient = new MongoClient("mongodb://localhost");
-            MongoServer server = mongoClient.GetServer();
-            MongoDatabase database = server.GetDatabase(CreationTemplateDatabaseName);
-            MongoCollection<TestCollectionObject> testCollection = database.GetCollection<TestCollectionObject>("testCollection");
-            Assert.That(testCollection.FindAll().First().pass, Is.True);
-        }
-
-        protected void VerifyCreationTemplateDatabaseOnAuthMongo()
-        {
-            MongoClient mongoClient = new MongoClient("mongodb://useradmin:testpw@localhost:30017");
-            MongoServer server = mongoClient.GetServer();
-            MongoDatabase database = server.GetDatabase(CreationTemplateDatabaseName);
-            MongoCollection<TestCollectionObject> testCollection = database.GetCollection<TestCollectionObject>("testCollection");
-            Assert.That(testCollection.FindAll().First().pass, Is.True);
         }
     }
 }

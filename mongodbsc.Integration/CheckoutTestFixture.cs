@@ -108,18 +108,18 @@ namespace dbsc.Mongo.Integration
         public void TestCreationTemplate()
         {
             DropDatabase(TestDatabaseName);
-            DropDatabase(CreationTemplateDatabaseName);
             RunSuccessfulCommand("checkout -dbCreateTemplate creation_template.js");
-            VerifyCreationTemplateDatabase();
+            List<Book> expectedBooksWithCreationTemplate = ExpectedBooks.Concat(BooksFromCreationTemplate).ToList();
+            VerifyDatabase(TestDatabaseName, expectedBooksWithCreationTemplate, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
         public void TestCreationTemplateWithAuth()
         {
             DropDatabaseOnAuthMongo(TestDatabaseName);
-            DropDatabaseOnAuthMongo(CreationTemplateDatabaseName);
             RunSuccessfulCommand("checkout -port 30017 -u useradmin -p testpw -dbCreateTemplate creation_template.js");
-            VerifyCreationTemplateDatabaseOnAuthMongo();
+            List<Book> expectedBooksWithCreationTemplate = ExpectedBooks.Concat(BooksFromCreationTemplate).ToList();
+            VerifyDatabaseOnAuthMongo(TestDatabaseName, expectedBooksWithCreationTemplate, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
