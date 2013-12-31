@@ -24,9 +24,9 @@
   -->
   <Target Name="SetProperties" DependsOnTargets="SetVersionProperties" BeforeTargets="_CheckForInvalidConfigurationAndPlatform">
     <PropertyGroup>
-      <OutputName>mongodb_mongodbsc-$(VersionWithoutBuild)-setup</OutputName>
-      <TargetName>mongodb_mongodbsc-$(VersionWithoutBuild)-setup</TargetName>
-      <TargetPdbName>mongodb_mongodbsc-$(VersionWithoutBuild)-setup.wixpdb</TargetPdbName>
+      <OutputName>DBSC_for_MongoDB_$(VersionWithoutBuild)_setup</OutputName>
+      <TargetName>DBSC_for_MongoDB_$(VersionWithoutBuild)_setup</TargetName>
+      <TargetPdbName>DBSC_for_MongoDB_$(VersionWithoutBuild)_setup.wixpdb</TargetPdbName>
       <DefineConstants>VersionWithoutBuild=$(VersionWithoutBuild)</DefineConstants>
     </PropertyGroup>
   </Target>

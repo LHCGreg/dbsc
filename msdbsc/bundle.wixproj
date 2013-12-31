@@ -30,9 +30,9 @@
   -->
   <Target Name="SetProperties" DependsOnTargets="SetVersionProperties" BeforeTargets="_CheckForInvalidConfigurationAndPlatform">
     <PropertyGroup>
-      <OutputName>DBSC for SQL Server-$(VersionWithoutBuild)-setup</OutputName>
-      <TargetName>DBSC for SQL Server-$(VersionWithoutBuild)-setup</TargetName>
-      <TargetPdbName>DBSC for SQL Server-$(VersionWithoutBuild)-setup.wixpdb</TargetPdbName>
+      <OutputName>DBSC_for_SQL_Server_$(VersionWithoutBuild)_setup</OutputName>
+      <TargetName>DBSC_for_SQL_Server_$(VersionWithoutBuild)_setup</TargetName>
+      <TargetPdbName>DBSC_for_SQL_Server_$(VersionWithoutBuild)_setup.wixpdb</TargetPdbName>
       <DefineConstants>VersionWithoutBuild=$(VersionWithoutBuild);SMO11x86MSI=$(SMO11x86MSI);SqlClrTypesx86MSI=$(SqlClrTypes2012x86MSI)</DefineConstants>
     </PropertyGroup>
   </Target>
