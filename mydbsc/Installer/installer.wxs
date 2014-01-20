@@ -4,7 +4,7 @@ The installer generated is intended to be included in the installation bundle (b
 It could be run standalone but the user would get an error message if .NET 4.0 is not installed. -->
 
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
-  <Product Name='DBSC for MySQL' Id='{D0BCBEFB-C366-4979-8CD8-C768FFDBA851}' UpgradeCode='{6BA42748-AA9B-4000-84C1-952CE454A21D}'
+  <Product Name='DBSC for MySQL' Id='{8A0D4B0D-5D0A-491D-87F7-BD252AA0CD0D}' UpgradeCode='{6BA42748-AA9B-4000-84C1-952CE454A21D}'
         Language='1033' Codepage='1252' Version='$(var.VersionWithoutBuild)' Manufacturer='Greg Najda'>
     <Package Id='*' Description="DBSC for MySQL $(var.VersionWithoutBuild)" Manufacturer='Greg Najda' Languages='1033'
                  Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>

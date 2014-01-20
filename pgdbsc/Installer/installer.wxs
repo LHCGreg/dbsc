@@ -7,7 +7,7 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
   <!-- -ext WiXNetFxExtension -->
   <!-- -ext WixUIExtension -->
 
-  <Product Name='DBSC for PostgreSQL' Id='{FE0F2439-047D-41B2-B86C-2069D3CE6EFD}' UpgradeCode='{543D4029-0E75-4FEA-9B2C-A0E03823889A}'
+  <Product Name='DBSC for PostgreSQL' Id='{290A5056-2D62-4114-963E-443FE913BFD3}' UpgradeCode='{543D4029-0E75-4FEA-9B2C-A0E03823889A}'
       Language='1033' Codepage='1252' Version='$(var.VersionWithoutBuild)' Manufacturer='Greg Najda'>
     <Package Id='*' Description="DBSC for PostgreSQL $(var.VersionWithoutBuild)" Manufacturer='Greg Najda' Languages='1033'
              Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>
