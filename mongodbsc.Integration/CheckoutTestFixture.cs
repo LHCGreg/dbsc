@@ -46,7 +46,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import.txt", SourceDatabaseName));
-            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, new List<Person>(), new List<Number>(), expectedVersion: 2);
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace dbsc.Mongo.Integration
         {
             DropDatabaseOnAuthMongo(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -port 30017 -u useradmin -p testpw -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import.txt", SourceDatabaseName));
-            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, new List<Person>(), new List<Number>(), expectedVersion: 2);
+            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]

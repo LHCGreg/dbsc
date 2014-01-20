@@ -89,7 +89,7 @@ namespace dbsc.Mongo.Integration
             DropDatabase(TestDatabaseName);
             CheckoutZero();
             RunSuccessfulCommand(string.Format("update -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import.txt", SourceDatabaseName));
-            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, new List<Person>(), new List<Number>(), expectedVersion: 2);
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -98,7 +98,7 @@ namespace dbsc.Mongo.Integration
             DropDatabaseOnAuthMongo(TestDatabaseName);
             CheckoutZeroOnAuthMongo();
             RunSuccessfulCommand(string.Format("update -port 30017 -u useradmin -p testpw -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import.txt", SourceDatabaseName));
-            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, new List<Person>(), new List<Number>(), expectedVersion: 2);
+            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         [Test]

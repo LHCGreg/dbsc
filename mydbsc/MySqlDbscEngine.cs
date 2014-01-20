@@ -127,10 +127,20 @@ AND TABLE_TYPE = 'BASE TABLE'";
 
                 // Can only disable indexes on MyISAM tables, so don't do that for now.
 
-                // Clear tables
-                Utils.DoTimedOperation("Clearing all tables", () =>
+                string clearMessage;
+                if (tablesToImportAlreadyEscaped.Count == allTablesExceptMetadataAlreadyEscaped.Count)
                 {
-                    foreach (string table in allTablesExceptMetadataAlreadyEscaped)
+                    clearMessage = "Clearing all tables";
+                }
+                else
+                {
+                    clearMessage = "Clearing tables to import";
+                }
+
+                // Clear tables
+                Utils.DoTimedOperation(clearMessage, () =>
+                {
+                    foreach (string table in tablesToImportAlreadyEscaped)
                     {
                         string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
                         targetConn.ExecuteSql(clearTableSql);

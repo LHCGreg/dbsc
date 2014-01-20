@@ -92,9 +92,19 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
                 }
             });
 
-            Utils.DoTimedOperation("Clearing all tables", () =>
+            string clearMessage;
+            if (m_tablesToImportAlreadyEscaped.Count == m_allTablesExceptMetadataAlreadyEscaped.Count)
             {
-                foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
+                clearMessage = "Clearing all tables";
+            }
+            else
+            {
+                clearMessage = "Clearing tables to import";
+            }
+
+            Utils.DoTimedOperation(clearMessage, () =>
+            {
+                foreach (string table in m_tablesToImportAlreadyEscaped)
                 {
                     //string truncateSql = string.Format("TRUNCATE TABLE {0}", table);
                     // Can't use TRUNCATE if there's a foreign key to the table, even if the FK constraint is disabled.

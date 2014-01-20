@@ -9,15 +9,17 @@ ENGINE=InnoDB;
 
 CREATE UNIQUE INDEX ix_person__name ON person (name);
 
-INSERT INTO person
-(name, birthday)
-VALUES
-('Greg', '2012-06-07');
+-- George R.R. Martin must have the same ID it has in the source database to simplify the test for importing only certain tables.
 
 INSERT INTO person
 (name, birthday, default_test)
 VALUES
 ('George R.R. Martin', '1948-09-20', 5);
+
+INSERT INTO person
+(name, birthday)
+VALUES
+('Greg', '2012-06-07');
 
 CREATE TABLE script_isolation_test
 (

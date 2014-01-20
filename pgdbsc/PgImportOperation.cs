@@ -130,9 +130,19 @@ AND tab.relname <> 'dbsc_metadata'";
                 }
             });
 
-            Utils.DoTimedOperation("Clearing all tables", () =>
+            string clearMessage;
+            if (m_tablesToImportAlreadyEscaped.Count == m_allTablesExceptMetadataAlreadyEscaped.Count)
             {
-                foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
+                clearMessage = "Clearing all tables";
+            }
+            else
+            {
+                clearMessage = "Clearing tables to import";
+            }
+
+            Utils.DoTimedOperation(clearMessage, () =>
+            {
+                foreach (string table in m_tablesToImportAlreadyEscaped)
                 {
                     string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
                     targetConn.ExecuteSql(clearTableSql, targetTransaction);

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using TestUtils.Sql;
 
-namespace dbsc.Postgres.Integration
+namespace TestUtils.Sql
 {
     [TestFixture]
     public abstract class AbstractCheckoutTestFixture<THelper>
@@ -44,7 +44,7 @@ namespace dbsc.Postgres.Integration
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4} -importTableList tables_to_import.txt",
                 Username, Password, SourceDatabaseName, Username, Password));
-            VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, people => new List<Book>(), ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
 
         [Test]

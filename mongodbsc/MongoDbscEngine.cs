@@ -208,10 +208,20 @@ namespace dbsc.Mongo
         {
             using (MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase))
             {
-                // Drop collections
-                Utils.DoTimedOperation("Removing all collections", () =>
+                string clearMessage;
+                if (tablesToImportAlreadyEscaped.Count == allTablesExceptMetadataAlreadyEscaped.Count)
                 {
-                    foreach (string collectionName in allTablesExceptMetadataAlreadyEscaped)
+                    clearMessage = "Removing all collections";
+                }
+                else
+                {
+                    clearMessage = "Removing collections to import";
+                }
+                
+                // Drop collections
+                Utils.DoTimedOperation(clearMessage, () =>
+                {
+                    foreach (string collectionName in tablesToImportAlreadyEscaped)
                     {
                         conn.DropCollection(collectionName);
                     }
