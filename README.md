@@ -18,11 +18,31 @@ The .exe installers will install the given flavor of dbsc along with anything it
 You can get the available command-line options with
 
 pgdbsc -h
+
 or
+
 msdbsc -h
+
 or
+
 mydbsc -h
+
 or
+
 mongodbsc -h
 
 depending on which flavor you are using.
+
+# Changelog
+
+### msdbsc 2.1.0
+* When using -importTableList to import data for only certain tables, don't clear tables that are not being imported.
+
+### pgdbsc 2.1.0
+* When using -importTableList to import data for only certain tables, don't clear tables that are not being imported.
+
+### mydbsc 2.1.0
+* When using -importTableList to import data for only certain tables, don't clear tables that are not being imported.
+
+### mongodbsc 2.1.0
+* When using -importTableList to import data for only certain tables, don't clear tables that are not being imported.
