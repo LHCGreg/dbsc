@@ -5,7 +5,6 @@ using System.Text;
 using Npgsql;
 using Dapper;
 using dbsc.Core;
-using MiscUtil.IO;
 using System.Diagnostics;
 
 namespace dbsc.Postgres
