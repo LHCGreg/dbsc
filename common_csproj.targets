@@ -91,4 +91,72 @@
       CleanZipReleases
     </CleanDependsOn>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <DebSourceDir>$(MSBuildProjectDirectory)/deb/</DebSourceDir>
+    <DebStagingBaseDir>$(MSBuildProjectDirectory)/deb/staging/</DebStagingBaseDir>
+    <DebOutputDir>$(MSBuildProjectDirectory)/deb/bin/</DebOutputDir>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <DebControlFiles Include="$(DebSourceDir)control" />
+  </ItemGroup>
+  
+  <Target Name="SetDebProperties" DependsOnTargets="CheckDebProperties;SetVersionProperties;Build">
+    <!-- Don't use a <PropertyGroup> because mono's xbuild doesn't support dynamic properties. -->
+    <CreateProperty Value="$(MajorVersion).$(MinorVersion).$(FixVersion)">
+      <Output TaskParameter="Value" PropertyName="DebianPackageVersion" />
+    </CreateProperty>
+    
+    <CreateProperty Value="$(DebStagingBaseDir)$(DebianPackageName)_$(DebianPackageVersion)/">
+      <Output TaskParameter="Value" PropertyName="DebStagingDir" />
+    </CreateProperty>
+    
+    <CreateItem Include="$(TargetDir)*.dll;$(TargetDir)*.exe;$(TargetDir)*.config">
+      <Output TaskParameter="Include" ItemName="UsrLibFiles" />
+    </CreateItem>
+    
+    <CreateItem Include="linux_common/$(DebianPackageName)">
+      <Output TaskParameter="Include" ItemName="UsrBinFiles" />
+    </CreateItem>
+    
+    <CreateProperty Value="$(DebOutputDir)$(DebianPackageName)_$(DebianPackageVersion).deb">
+      <Output TaskParameter="Value" PropertyName="DebOutputFilePath" />
+    </CreateProperty>
+  </Target>
+  
+  <Target Name="BuildDebianPackage" DependsOnTargets="CheckDebProperties;CleanDeb;Build;SetDebProperties;">
+    <!-- Copy control files to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/DEBIAN/ -->
+    <Copy SourceFiles="@(DebControlFiles)" DestinationFolder="$(DebStagingDir)DEBIAN/" />
+    
+    <!-- Copy *.dll, *.exe, *.config to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/usr/lib/$(DebianPackageName)/ -->
+    <Copy SourceFiles="@(UsrLibFiles)" DestinationFolder="$(DebStagingDir)usr/lib/$(DebianPackageName)/" />
+    
+    <!-- Mark the .exe as executable as per packaging guidelines. It's not required to run it using "mono foo.exe" but it does allow
+    it to be executed if the system is set to be able to execute CLR assemblies like regular binaries. -->
+    <Exec Command="chmod +x $(DebStagingDir)usr/lib/$(DebianPackageName)/*.exe" />
+    
+    <!-- Copy wrapper shell script to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)usr/bin/ -->
+    <Copy SourceFiles="@(UsrBinFiles)" DestinationFolder="$(DebStagingDir)usr/bin/" />
+    
+    <!-- fakeroot dpkg-deb - -build deb/staging/$(DebianPackageName)_$(DebianPackageVersion) deb/bin/$(DebianPackageName)_$(DebianPackageVersion).deb -->
+    <!-- - -build above should have the dashes together but you can't have two dashes together in XML. -_- -->
+    <Exec Command="fakeroot dpkg-deb --build $(DebStagingDir) $(DebOutputFilePath)" />
+  </Target>
+  
+  <Target Name="CheckDebProperties">
+    <Error Condition="'$(DebianPackageName)' == ''" Message="DebianPackageName not set. It should be set in the .targets file for the project." />
+  </Target>
+  
+  <Target Name="CleanDeb">
+    <!-- Clear the staging and output directories -->
+    <RemoveDir Directories="$(DebStagingBaseDir);$(DebOutputDir)" />
+  </Target>
+  
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanDeb
+    </CleanDependsOn>
+  </PropertyGroup>
 </Project>

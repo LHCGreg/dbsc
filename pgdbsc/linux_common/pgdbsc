@@ -1,0 +1,2 @@
+﻿#!/bin/sh
+mono $MONO_OPTIONS /usr/lib/pgdbsc/pgdbsc.exe "$@"
