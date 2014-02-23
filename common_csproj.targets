@@ -135,6 +135,9 @@
     <!-- Mark the .exe as executable as per packaging guidelines. It's not required to run it using "mono foo.exe" but it does allow
     it to be executed if the system is set to be able to execute CLR assemblies like regular binaries. -->
     <Exec Command="chmod +x $(DebStagingDir)usr/lib/$(DebianPackageName)/*.exe" />
+
+    <!-- Mark dlls as not executable to fix a lintian warning. -->
+    <Exec Command="chmod -x $(DebStagingDir)usr/lib/$(DebianPackageName)/*.dll" />
     
     <!-- Copy wrapper shell script to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)usr/bin/ -->
     <Copy SourceFiles="@(UsrBinFiles)" DestinationFolder="$(DebStagingDir)usr/bin/" />
