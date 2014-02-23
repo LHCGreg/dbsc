@@ -69,6 +69,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\common.targets">
+      <Link>common.targets</Link>
+    </None>
+    <None Include="..\common_csproj.targets">
+      <Link>common_csproj.targets</Link>
+    </None>
     <None Include="app.config" />
     <None Include="license.rtf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
