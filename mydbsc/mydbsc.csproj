@@ -117,6 +117,12 @@
     <Content Include="notice.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="..\common.targets">
+      <Link>common.targets</Link>
+    </None>
+    <None Include="..\common_csproj.targets">
+      <Link>common_csproj.targets</Link>
+    </None>
     <None Include="license.rtf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -83,6 +83,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\common.targets">
+      <Link>common.targets</Link>
+    </None>
+    <None Include="..\common_csproj.targets">
+      <Link>common_csproj.targets</Link>
+    </None>
     <None Include="license.rtf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
