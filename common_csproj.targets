@@ -147,6 +147,8 @@
     <!-- fakeroot dpkg-deb - -build deb/staging/$(DebianPackageName)_$(DebianPackageVersion) deb/bin/$(DebianPackageName)_$(DebianPackageVersion).deb -->
     <!-- - -build above should have the dashes together but you can't have two dashes together in XML. -_- -->
     <Exec Command="fakeroot dpkg-deb --build $(DebStagingDir) $(DebOutputFilePath)" />
+
+    <Exec Command="lintian $(DebOutputFilePath)" />
   </Target>
   
   <Target Name="CheckDebProperties">
