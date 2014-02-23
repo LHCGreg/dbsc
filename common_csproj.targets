@@ -162,6 +162,7 @@
   
   <Target Name="CheckDebProperties">
     <Error Condition="'$(DebianPackageName)' == ''" Message="DebianPackageName not set. It should be set in the .targets file for the project." />
+    <Error Condition="'@(LicenseFiles)' == ''" Message="LicenseFiles not set. It should be set in the .targets file for the project." />
   </Target>
   
   <Target Name="CleanDeb">
