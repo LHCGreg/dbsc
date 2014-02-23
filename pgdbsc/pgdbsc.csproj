@@ -126,6 +126,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />
+    <None Include="pgdbsc.targets" />
     <None Include="version.xml" />
   </ItemGroup>
   <ItemGroup>
