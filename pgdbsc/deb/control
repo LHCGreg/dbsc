@@ -1,7 +1,7 @@
 Package: pgdbsc
 Architecture: all
 Version: 2.1.0
-Depends: mono-runtime (>= 2.10.1), libmono-corlib4.0-cil (>= 2.10.1), libmono-system4.0-cil (>= 2.10.1), libmono-system-core4.0-cil (>= 2.10.1, libmono-microsoft-csharp4.0-cil (>= 2.10.1), libmono-system-data4.0-cil (>= 2.10.1), libmono-system-xml4.0-cil(>= 2.10.1), libmono-system-transactions4.0-cil (>= 2.10.1)
+Depends: mono-runtime (>= 2.10.1), libmono-corlib4.0-cil (>= 2.10.1), libmono-system4.0-cil (>= 2.10.1), libmono-system-core4.0-cil (>= 2.10.1), libmono-microsoft-csharp4.0-cil (>= 2.10.1), libmono-system-data4.0-cil (>= 2.10.1), libmono-system-xml4.0-cil(>= 2.10.1), libmono-system-transactions4.0-cil (>= 2.10.1)
 Section: database
 Priority: extra
 Maintainer: Greg Najda <???@???.com>
@@ -10,5 +10,4 @@ Description: Tool for version controlling PostgreSQL databases.
  This is the first paragraph in the extended description.
  .
  This is the second paragraph in the extended description.
- .
- TODO: Make sure .exe and wrapper script are +x
+
