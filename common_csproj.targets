@@ -139,6 +139,8 @@
     <!-- Copy wrapper shell script to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)usr/bin/ -->
     <Copy SourceFiles="@(UsrBinFiles)" DestinationFolder="$(DebStagingDir)usr/bin/" />
     
+    <MakeDir Directories="$(DebOutputDir)" />
+
     <!-- fakeroot dpkg-deb - -build deb/staging/$(DebianPackageName)_$(DebianPackageVersion) deb/bin/$(DebianPackageName)_$(DebianPackageVersion).deb -->
     <!-- - -build above should have the dashes together but you can't have two dashes together in XML. -_- -->
     <Exec Command="fakeroot dpkg-deb --build $(DebStagingDir) $(DebOutputFilePath)" />
