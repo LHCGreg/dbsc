@@ -97,6 +97,7 @@
     <DebSourceDir>$(MSBuildProjectDirectory)/deb/</DebSourceDir>
     <DebStagingBaseDir>$(MSBuildProjectDirectory)/deb/staging/</DebStagingBaseDir>
     <DebOutputDir>$(MSBuildProjectDirectory)/deb/bin/</DebOutputDir>
+    <LintianSuppressFilePath>$(MSBuildProjectDirectory)/../linux_common/lintian_suppress.txt</LintianSuppressFilePath>
   </PropertyGroup>
   
   <ItemGroup>
@@ -156,7 +157,7 @@
     <!-- - -build above should have the dashes together but you can't have two dashes together in XML. -_- -->
     <Exec Command="fakeroot dpkg-deb --build $(DebStagingDir) $(DebOutputFilePath)" />
 
-    <Exec Command="lintian $(DebOutputFilePath)" />
+    <Exec Command="lintian --suppress-tags-from-file $(LintianSuppressFilePath) $(DebOutputFilePath)" />
   </Target>
   
   <Target Name="CheckDebProperties">
