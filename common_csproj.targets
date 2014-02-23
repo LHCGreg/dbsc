@@ -149,8 +149,8 @@
   </Target>
   
   <Target Name="CleanDeb">
-    <!-- Clear the staging and output directories -->
-    <RemoveDir Directories="$(DebStagingBaseDir);$(DebOutputDir)" />
+    <RemoveDir Directories="$(DebStagingBaseDir)" Condition="Exists('$(DebStagingBaseDir)')" />
+    <RemoveDir Directories="$(DebOutputDir)" Condition="Exists('$(DebOutputDir)')" />
   </Target>
   
   <PropertyGroup>
