@@ -3,6 +3,18 @@
   <!-- Includes MSBuild properties and targets common across all C# projects, excluding installer projects. -->
   <Import Project="$(MSBuildThisFileDirectory)common.targets"/>
 
+  <!-- The default clean only removes files from the bin folder that it knows about. Make sure a clean totally cleans the bin folder.-->
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      ReallyCleanBinDir
+    </CleanDependsOn>
+  </PropertyGroup>
+
+  <Target Name="ReallyCleanBinDir">
+    <RemoveDir Directories="$(OutputPath)" Condition="Exists('$(OutputPath)')" />
+  </Target>
+
   <!-- Can't do up-to-date checking of creating the dynamic assembly info file until SetVersionProperties has run -->
   <Target Name="CreateDynamicAssemblyInfo" DependsOnTargets="SetVersionProperties;_CreateDynamicAssemblyInfo">
 
