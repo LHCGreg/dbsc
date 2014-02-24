@@ -143,7 +143,7 @@
     </CreateProperty>
   </Target>
   
-  <Target Name="BuildDebianPackage" DependsOnTargets="CheckDebProperties;CleanDeb;Build;SetDebProperties;">
+  <Target Name="BuildDebianPackage" DependsOnTargets="CheckDebProperties;Rebuild;SetDebProperties;">
     <!-- Copy control files to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/DEBIAN/ -->
     <Copy SourceFiles="@(DebControlFiles)" DestinationFolder="$(DebStagingDir)DEBIAN/" />
     
