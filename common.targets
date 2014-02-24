@@ -9,6 +9,11 @@
 
   <Import Project="$(MSBuildThisFileDirectory)build\ExtensionPack\MSBuild.ExtensionPack.tasks"/>
   <Import Project="$(MSBuildThisFileDirectory)build\CommunityTasks\MSBuild.Community.Tasks.Targets"/>
+
+  <PropertyGroup>
+    <BuildingOnWindows Condition="'$(OS)' == 'Windows_NT'">true</BuildingOnWindows>
+    <BuildingOnWindows Condition="'$(OS)' != 'Windows_NT'">false</BuildingOnWindows>
+  </PropertyGroup>
   
   <Target Name="SetVersionProperties">
     <!-- Read properties from the calling project's version.xml -->

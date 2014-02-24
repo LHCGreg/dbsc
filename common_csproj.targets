@@ -58,7 +58,8 @@
              Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
   </Target>
 
-  <PropertyGroup>
+  <!-- WiX will not be present when building on non-Windows systems so CleanInstaller will not work. -->
+  <PropertyGroup Condition="'$(BuildingOnWindows)' == 'true'">
     <CleanDependsOn>
       $(CleanDependsOn);
       CleanInstaller
