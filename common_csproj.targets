@@ -67,7 +67,7 @@
   </PropertyGroup>
 
   <Target Name="BuildZipPackage" DependsOnTargets="_CheckZipProperties;SetVersionProperties;Build">
-    <RemoveDir Directories="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)" />
+    <RemoveDir Directories="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)" Condition="Exists('ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)')" />
 
     <CreateItem Include="bin\$(Configuration)_$(Platform)\**\*" Exclude="**\*.pdb;**\*.mdb;**\*.xml;**\*vshost.exe*">
       <Output TaskParameter="Include" ItemName="BuildOutput" />
@@ -76,7 +76,7 @@
     <Copy SourceFiles="@(BuildOutput)" DestinationFolder="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)\%(RecursiveDir)" />
     <MSBuild.ExtensionPack.Compression.Zip TaskAction="Create" ZipFileName="$(ZipNameWithoutVersion)_$(Version).zip" CompressPath="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)" />
     <Move SourceFiles="$(ZipNameWithoutVersion)_$(Version).zip" DestinationFolder="ZipReleases" />
-    <RemoveDir Directories="ZipReleases\Staging" />
+    <RemoveDir Directories="ZipReleases\Staging" Condition="Exists('ZipReleases\Staging')" />
   </Target>
 
   <Target Name="_CheckZipProperties">
@@ -84,7 +84,7 @@
   </Target>
 
   <Target Name="CleanZipReleases">
-    <RemoveDir Directories="ZipReleases" />
+    <RemoveDir Directories="ZipReleases" Condition="Exists('ZipReleases')" />
   </Target>
 
   <PropertyGroup>
