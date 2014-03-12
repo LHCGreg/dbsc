@@ -7,6 +7,6 @@
 
   <!-- Used for Debian packaging. -->
   <ItemGroup>
-    <LicenseFiles Include="license.txt;notice.txt;..\linux_common\apache\copyright;..\licenses\Dapper\dapper_license.txt;..\licenses\Npgsql\mono_security_license.txt;..\licenses\NDesk.Options\ndesk_options_license.txt;..\licenses\Npgsql\npgsql_license.txt" />
+    <LicenseFiles Include="license.txt;notice.txt;..\linux_common\apache\copyright;..\licenses\Dapper\dapper_license.txt;..\licenses\NDesk.Options\ndesk_options_license.txt;..\licenses\Npgsql\npgsql_license.txt" />
   </ItemGroup>
 </Project>
