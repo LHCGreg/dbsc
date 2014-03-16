@@ -144,9 +144,17 @@
     </CreateProperty>
   </Target>
   
-  <Target Name="BuildDebianPackage" DependsOnTargets="CheckDebProperties;Rebuild;SetDebProperties;">
+  <Target Name="BuildDebianPackage" DependsOnTargets="CheckDebProperties;Rebuild;SetVersionProperties;SetDebProperties">
     <!-- Copy control files to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/DEBIAN/ -->
     <Copy SourceFiles="@(DebControlFiles)" DestinationFolder="$(DebStagingDir)DEBIAN/" />
+
+    <CreateItem Include="$(DebStagingDir)DEBIAN/**/*">
+      <Output TaskParameter="Include" ItemName="CopiedDebControlFiles" />
+    </CreateItem>
+
+    <!-- Replace %version% in the control file with the actual 3-part version number.
+    Use UTF-8 without BOM because dpkg-deb can't handle the BOM. -->
+    <FileUpdate Files="@(CopiedDebControlFiles)" Regex="%version%" ReplacementText="$(VersionWithoutBuild)" Encoding="utf-8-without-bom" />
     
     <!-- Copy *.dll, *.exe, *.config to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/usr/lib/$(DebianPackageName)/ -->
     <Copy SourceFiles="@(UsrLibPackageFiles)" DestinationFolder="$(DebStagingDir)usr/lib/$(DebianPackageName)/" />
