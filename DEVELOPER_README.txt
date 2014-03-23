@@ -78,7 +78,7 @@ Why not use the system Npgsql? Because the Debian Npgsql package appears to be u
 
 BUILDING THE DEBIAN PACKAGE
 ---------------------------
-To build the Debian package, you must be running Debian and have the fakeroot and lintian packages installed.
+To build the Debian package, you must be running Debian and have fpm (https://github.com/jordansissel/fpm) and the lintian package installed.
 
 To build the Debian package, run
 
