@@ -100,8 +100,6 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
       <ComponentRef Id="dbsc.Core.dll"/>
       <ComponentRef Id="license.rtf"/>
       <ComponentRef Id="license.txt"/>
-      <ComponentRef Id="MiscUtil.dll"/>
-      <ComponentRef Id="misc_util_licence.txt"/>
       <ComponentRef Id="Mono.Security.dll"/>
       <ComponentRef Id="mono_security_license.txt"/>
       <ComponentRef Id="NDesk.Options.dll"/>
