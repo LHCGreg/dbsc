@@ -4,6 +4,8 @@ dbsc (DataBase Source Control) is a command line tool for helping you create, re
 
 When creating or updating a database, dbsc allows you to import data from another database. When the database being created or updated reaches the revision that the other database is on, dbsc will clear the tables in the database being created or updated and import data for all tables from the other database. This makes it a snap to bring in test data.
 
+Check out the [tutorial](https://github.com/LHCGreg/dbsc/wiki/Tutorial) to learn how to use dbsc.
+
 dbsc comes in different flavors for different database engines. dbsc currently supports
 
 * PostgreSQL (pgdbsc)
@@ -13,23 +15,34 @@ dbsc comes in different flavors for different database engines. dbsc currently s
 
 dbsc runs on Windows and (except for msdbsc) Linux and Mac OS X using Mono.
 
-The .exe installers will install the given flavor of dbsc along with anything it needs to run and will add the installed version of dbsc to your PATH environment variable. This is the recommended way of installing in Windows. On Linux and Mac OS X you can download the .zip package. You will need to have mono installed and run "mono <path to dbsc> <command line arguments>" or make a shell script to do that for you. Better support for non-Windows systems is planned for the future.
+There are .exe installers and .zip archives on the [releases](https://github.com/LHCGreg/dbsc/releases) page. The .exe installers will install the given flavor of dbsc along with anything it needs to run and will add the installed version of dbsc to your PATH environment variable. This is the recommended way of installing in Windows.
+
+Packages for Debian and Debian-based Linux distributions are available. Currently only pgdbsc is available. Packages for the other flavors are coming soon.
+
+```
+wget -O - http://apt.dbsourcecontrol.org/keys/gregnajda@gmail.com.gpg.key | sudo apt-key add -
+echo 'deb http://apt.dbsourcecontrol.org dbsc main' | sudo tee /etc/apt/sources.list.d/dbsc.list
+sudo apt-get update
+sudo apt-get install pgdbsc
+```
+
+On other Linux distributions and Unix systems and Mac OS X you can download a .zip from the [releases](https://github.com/LHCGreg/dbsc/releases) page. You will need to have mono installed and run "mono <path to dbsc> <command line arguments>" or make a shell script to do that for you.
 
 You can get the available command-line options with
 
-pgdbsc -h
+`pgdbsc -h`
 
 or
 
-msdbsc -h
+`msdbsc -h`
 
 or
 
-mydbsc -h
+`mydbsc -h`
 
 or
 
-mongodbsc -h
+`mongodbsc -h`
 
 depending on which flavor you are using.
 
