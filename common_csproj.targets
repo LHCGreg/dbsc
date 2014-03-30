@@ -3,6 +3,18 @@
   <!-- Includes MSBuild properties and targets common across all C# projects, excluding installer projects. -->
   <Import Project="$(MSBuildThisFileDirectory)common.targets"/>
 
+  <!-- The default clean only removes files from the bin folder that it knows about. Make sure a clean totally cleans the bin folder.-->
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      ReallyCleanBinDir
+    </CleanDependsOn>
+  </PropertyGroup>
+
+  <Target Name="ReallyCleanBinDir">
+    <RemoveDir Directories="$(OutputPath)" Condition="Exists('$(OutputPath)')" />
+  </Target>
+
   <!-- Can't do up-to-date checking of creating the dynamic assembly info file until SetVersionProperties has run -->
   <Target Name="CreateDynamicAssemblyInfo" DependsOnTargets="SetVersionProperties;_CreateDynamicAssemblyInfo">
 
@@ -91,6 +103,87 @@
     <CleanDependsOn>
       $(CleanDependsOn);
       CleanZipReleases
+    </CleanDependsOn>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <DebSourceDir>$(MSBuildProjectDirectory)/deb/</DebSourceDir>
+    <DebStagingBaseDir>$(MSBuildProjectDirectory)/deb/staging/</DebStagingBaseDir>
+    <DebOutputDir>$(MSBuildProjectDirectory)/deb/bin/</DebOutputDir>
+    <LintianSuppressFilePath>$(MSBuildProjectDirectory)/../linux_common/lintian_suppress.txt</LintianSuppressFilePath>
+    <DebDescriptionFilePath>$(DebSourceDir)description.txt</DebDescriptionFilePath>
+  </PropertyGroup>
+  
+  <Target Name="SetDebProperties" DependsOnTargets="CheckDebProperties;SetVersionProperties;Build">
+    <!-- Don't use a <PropertyGroup> because mono's xbuild doesn't support dynamic properties. -->
+    <CreateProperty Value="$(MajorVersion).$(MinorVersion).$(FixVersion)">
+      <Output TaskParameter="Value" PropertyName="DebianPackageVersion" />
+    </CreateProperty>
+    
+    <CreateProperty Value="$(DebStagingBaseDir)$(DebianPackageName)_$(DebianPackageVersion)/">
+      <Output TaskParameter="Value" PropertyName="DebStagingDir" />
+    </CreateProperty>
+    
+    <CreateItem Include="$(TargetDir)*.dll;$(TargetDir)*.exe;$(TargetDir)*.config">
+      <Output TaskParameter="Include" ItemName="UsrLibPackageFiles" />
+    </CreateItem>
+    
+    <CreateItem Include="linux_common/$(DebianPackageName)">
+      <Output TaskParameter="Include" ItemName="UsrBinFiles" />
+    </CreateItem>
+
+    <CreateItem Include="@(LicenseFiles)">
+      <Output TaskParameter="Include" ItemName="UsrShareDocPackageFiles" />
+    </CreateItem>
+    
+    <CreateProperty Value="$(DebOutputDir)$(DebianPackageName)_$(DebianPackageVersion).deb">
+      <Output TaskParameter="Value" PropertyName="DebOutputFilePath" />
+    </CreateProperty>
+  </Target>
+  
+  <Target Name="BuildDebianPackage" DependsOnTargets="CheckDebProperties;Rebuild;SetVersionProperties;SetDebProperties">
+    <!-- Copy *.dll, *.exe, *.config to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/usr/lib/$(DebianPackageName)/ -->
+    <Copy SourceFiles="@(UsrLibPackageFiles)" DestinationFolder="$(DebStagingDir)usr/lib/$(DebianPackageName)/" />
+    
+    <!-- Copy copyright and license files to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/usr/share/doc/$(DebianPackageName)/ -->
+    <Copy SourceFiles="@(UsrShareDocPackageFiles)" DestinationFolder="$(DebStagingDir)usr/share/doc/$(DebianPackageName)/" />
+    
+    <!-- Mark the .exe as executable as per packaging guidelines. It's not required to run it using "mono foo.exe" but it does allow
+    it to be executed if the system is set to be able to execute CLR assemblies like regular binaries. -->
+    <Exec Command="chmod +x $(DebStagingDir)usr/lib/$(DebianPackageName)/*.exe" />
+
+    <!-- Mark dlls as not executable to fix a lintian warning. -->
+    <Exec Command="chmod -x $(DebStagingDir)usr/lib/$(DebianPackageName)/*.dll" />
+    
+    <!-- Copy wrapper shell script to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)usr/bin/ -->
+    <Copy SourceFiles="@(UsrBinFiles)" DestinationFolder="$(DebStagingDir)usr/bin/" />
+    
+    <MakeDir Directories="$(DebOutputDir)" />
+    
+    <CreateProperty Value="fpm -t deb -s dir --package $(DebOutputFilePath) --force --name $(DebianPackageName) --version $(DebianPackageVersion) --deb-priority extra --category database --architecture all --maintainer 'Greg Najda &lt;gregnajda@gmail.com&gt;' --url 'https://github.com/lhcgreg/dbsc' --vendor '' --license '' --description &quot;`cat $(DebDescriptionFilePath)`&quot; $(DebianDependencyFpmFlags) .">
+      <Output TaskParameter="Value" PropertyName="fpmCommandLine" />
+    </CreateProperty>
+    
+    <Exec Command="$(fpmCommandLine)" WorkingDirectory="$(DebStagingDir)" />
+
+    <Exec Command="lintian --suppress-tags-from-file $(LintianSuppressFilePath) $(DebOutputFilePath)" />
+  </Target>
+  
+  <Target Name="CheckDebProperties">
+    <Error Condition="'$(DebianPackageName)' == ''" Message="DebianPackageName not set. It should be set in the .targets file for the project." />
+    <Error Condition="'@(LicenseFiles)' == ''" Message="LicenseFiles not set. It should be set in the .targets file for the project." />
+    <Error Condition="'$(DebianDependencyFpmFlags)' == ''" Message="DebianDependencyFpmFlags not set. It should be set in the .targets file for the project." />
+  </Target>
+  
+  <Target Name="CleanDeb">
+    <RemoveDir Directories="$(DebStagingBaseDir)" Condition="Exists('$(DebStagingBaseDir)')" />
+    <RemoveDir Directories="$(DebOutputDir)" Condition="Exists('$(DebOutputDir)')" />
+  </Target>
+  
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanDeb
     </CleanDependsOn>
   </PropertyGroup>
 </Project>
