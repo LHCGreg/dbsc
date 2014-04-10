@@ -116,7 +116,7 @@
     <Content Include="license.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="linux_common\mydbsc.txt" />
+    <Content Include="linux_common\mydbsc" />
     <Content Include="notice.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
