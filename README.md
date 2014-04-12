@@ -17,13 +17,15 @@ dbsc runs on Windows and (except for msdbsc) Linux and Mac OS X using Mono.
 
 There are .exe installers and .zip archives on the [releases](https://github.com/LHCGreg/dbsc/releases) page. The .exe installers will install the given flavor of dbsc along with anything it needs to run and will add the installed version of dbsc to your PATH environment variable. This is the recommended way of installing in Windows.
 
-Packages for Debian and Debian-based Linux distributions (such as Ubuntu) are available. Currently only pgdbsc is available. Packages for the other flavors are coming soon.
+Packages for Debian and Debian-based Linux distributions (such as Ubuntu) are available. Currently pgdbsc and mydbsc are available. A package for mongodbsc is coming soon.
 
 ```
 wget -O - http://apt.dbsourcecontrol.org/keys/gregnajda@gmail.com.gpg.key | sudo apt-key add -
 echo 'deb http://apt.dbsourcecontrol.org dbsc main' | sudo tee /etc/apt/sources.list.d/dbsc.list
 sudo apt-get update
 sudo apt-get install pgdbsc
+# for the PostgreSQL version
+# or sudo apt-get install mydbsc for the MySQL version
 ```
 
 On other Linux distributions and Unix systems and Mac OS X you can download a .zip from the [releases](https://github.com/LHCGreg/dbsc/releases) page. You will need to have mono installed and run "mono <path to dbsc> <command line arguments>" or make a shell script to do that for you.
