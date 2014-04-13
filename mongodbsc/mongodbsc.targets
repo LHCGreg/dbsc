@@ -2,5 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ZipNameWithoutVersion>DBSC for MongoDB</ZipNameWithoutVersion>
+    <DebianPackageName>mongodbsc</DebianPackageName>
+    <DebianDependencyFpmFlags>-d 'mono-runtime (>= 2.10.8.1)' -d 'libmono-corlib4.0-cil (>= 2.10.8.1)' -d 'libmono-system4.0-cil (>= 2.10.8.1)' -d 'libmono-system-core4.0-cil (>= 2.10.8.1)' -d 'libmono-system-data4.0-cil (>= 2.10.8.1)' -d 'libmono-microsoft-csharp4.0-cil (>= 2.10.8.1)' -d 'libmono-system-xml4.0-cil (>= 2.10.8.1)' -d 'libmono-windowsbase4.0-cil (>= 2.10.8.1)' -d 'libmono-system-drawing4.0-cil (>= 2.10.8.1)' -d 'mongodb-org-shell | mongodb-org-unstable-shell | mongodb-clients'</DebianDependencyFpmFlags>
   </PropertyGroup>
+
+  <!-- Used for Debian packaging. -->
+  <ItemGroup>
+    <LicenseFiles Include="..\linux_common\apache\copyright;..\licenses\Dapper\dapper_license.txt;license.txt;notice.txt;..\licenses\NDesk.Options\ndesk_options_license.txt;..\licenses\Mongo\mongo_license.txt" />
+  </ItemGroup>
 </Project>

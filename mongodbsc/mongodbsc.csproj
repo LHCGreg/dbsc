@@ -115,12 +115,15 @@
       <Link>ndesk_options_license.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="deb\description.txt" />
+    <Content Include="deb\description_readme.txt" />
     <Content Include="Installer\bundle.wxs" />
     <Content Include="Installer\installer.wxs" />
     <Content Include="Installer\installer_readme.txt" />
     <Content Include="license.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="linux_common\mongodbsc" />
     <Content Include="notice.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

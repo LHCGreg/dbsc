@@ -1,0 +1,11 @@
+Tool for version controlling MongoDB databases.
+mongodbsc (DataBase Source Control for MongoDB) is a tool for creating
+and updating MongoDB databases. mongodbsc uses numbered scripts written
+in javascript, executed by the mongo shell, that can be stored in
+source control. You can use mongodbsc to create a database by running
+the scripts in order. You can also update a database to a newer
+revision after adding scripts. mongodbsc stores the current
+revision of the database in a metadata collection. When creating or
+updating a database, you can import data from another database that
+was created using mongodbsc, which is useful for getting test data
+into a development database.
