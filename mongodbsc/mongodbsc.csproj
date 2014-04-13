@@ -92,6 +92,7 @@
     <None Include="license.rtf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="mongodbsc.targets" />
     <None Include="packages.config" />
     <None Include="version.xml" />
   </ItemGroup>
