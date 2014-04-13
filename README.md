@@ -19,6 +19,8 @@ There are .exe installers and .zip archives on the [releases](https://github.com
 
 Packages for Debian and Debian-based Linux distributions (such as Ubuntu) are available.
 
+mongodbsc depends on the Mongo shell to run scripts. You may wish to follow the instructions at http://docs.mongodb.org/manual/tutorial/install-mongodb-on-debian/ or http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/ to add the mongodb.org APT repository to your system as a package source. This way you will get the latest stable release from mongodb.org instead of the (likely old) version that your distro repository has.
+
 ```
 wget -O - http://apt.dbsourcecontrol.org/keys/gregnajda@gmail.com.gpg.key | sudo apt-key add -
 echo 'deb http://apt.dbsourcecontrol.org dbsc main' | sudo tee /etc/apt/sources.list.d/dbsc.list
