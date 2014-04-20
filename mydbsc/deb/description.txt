@@ -1,4 +1,4 @@
-Tool for version controlling MySQL databases.
+Tool for version controlling MySQL databases
 mydbsc (DataBase Source Control for MYSQL) is a tool for creating
 and updating MySQL databases. mydbsc uses numbered scripts written
 in SQL that can be stored in source control. You can use mydbsc to create
