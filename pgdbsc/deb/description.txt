@@ -1,4 +1,4 @@
-﻿Tool for version controlling PostgreSQL databases.
+Tool for version controlling PostgreSQL databases.
 pgdbsc (DataBase Source Control for PostGreSQL) is a tool for creating
 and updating PostgreSQL databases. pgdbsc uses numbered scripts written
 in SQL that can be stored in source control. You can use pgdbsc to create
