@@ -170,9 +170,9 @@
   </Target>
   
   <Target Name="CheckDebProperties">
-    <Error Condition="'$(DebianPackageName)' == ''" Message="DebianPackageName not set. It should be set in the .targets file for the project." />
-    <Error Condition="'@(LicenseFiles)' == ''" Message="LicenseFiles not set. It should be set in the .targets file for the project." />
-    <Error Condition="'$(DebianDependencyFpmFlags)' == ''" Message="DebianDependencyFpmFlags not set. It should be set in the .targets file for the project." />
+    <Error Condition="'$(DebianPackageName)' == ''" Text="DebianPackageName not set. It should be set in the .targets file for the project." />
+    <Error Condition="'@(LicenseFiles)' == ''" Text="LicenseFiles not set. It should be set in the .targets file for the project." />
+    <Error Condition="'$(DebianDependencyFpmFlags)' == ''" Text="DebianDependencyFpmFlags not set. It should be set in the .targets file for the project." />
   </Target>
   
   <Target Name="CleanDeb">
