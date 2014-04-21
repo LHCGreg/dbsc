@@ -105,6 +105,11 @@
       CleanZipReleases
     </CleanDependsOn>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageMaintainer>Greg Najda &lt;gregnajda@gmail.com&gt;</PackageMaintainer>
+    <PackageUrl>https://github.com/lhcgreg/dbsc</PackageUrl>
+  </PropertyGroup>
   
   <PropertyGroup>
     <DebSourceDir>$(MSBuildProjectDirectory)/deb/</DebSourceDir>
@@ -129,7 +134,7 @@
     </CreateItem>
     
     <CreateItem Include="linux_common/$(DebianPackageName)">
-      <Output TaskParameter="Include" ItemName="UsrBinFiles" />
+      <Output TaskParameter="Include" ItemName="UsrBinPackageFiles" />
     </CreateItem>
 
     <CreateItem Include="@(LicenseFiles)">
@@ -156,11 +161,11 @@
     <Exec Command="chmod -x $(DebStagingDir)usr/lib/$(DebianPackageName)/*.dll" />
     
     <!-- Copy wrapper shell script to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)usr/bin/ -->
-    <Copy SourceFiles="@(UsrBinFiles)" DestinationFolder="$(DebStagingDir)usr/bin/" />
+    <Copy SourceFiles="@(UsrBinPackageFiles)" DestinationFolder="$(DebStagingDir)usr/bin/" />
     
     <MakeDir Directories="$(DebOutputDir)" />
     
-    <CreateProperty Value="fpm -t deb -s dir --package $(DebOutputFilePath) --force --name $(DebianPackageName) --version $(DebianPackageVersion) --deb-priority extra --category database --architecture all --maintainer 'Greg Najda &lt;gregnajda@gmail.com&gt;' --url 'https://github.com/lhcgreg/dbsc' --vendor '' --license '' --description &quot;`cat $(DebDescriptionFilePath)`&quot; $(DebianDependencyFpmFlags) .">
+    <CreateProperty Value="fpm -t deb -s dir --package $(DebOutputFilePath) --force --name $(DebianPackageName) --version $(DebianPackageVersion) --deb-priority extra --category database --architecture all --maintainer '$(PackageMaintainer)' --url '$(PackageUrl)' --vendor '' --license '' --description &quot;`cat $(DebDescriptionFilePath)`&quot; $(DebianDependencyFpmFlags) .">
       <Output TaskParameter="Value" PropertyName="fpmCommandLine" />
     </CreateProperty>
     
@@ -184,6 +189,89 @@
     <CleanDependsOn>
       $(CleanDependsOn);
       CleanDeb
+    </CleanDependsOn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RpmSourceDir>$(MSBuildProjectDirectory)/rpm/</RpmSourceDir>
+    <RpmStagingBaseDir>$(MSBuildProjectDirectory)/rpm/staging/</RpmStagingBaseDir>
+    <RpmOutputDir>$(MsBuildProjectDirectory)/rpm/bin/</RpmOutputDir>
+    <RpmDescriptionFilePath>$(RpmSourceDir)description.txt</RpmDescriptionFilePath>
+    <RpmGroup>Development/Tools</RpmGroup>
+    <RpmlintSuppressFilePath>$(MSBuildProjectDirectory)/../linux_common/rpmlint_suppress.txt</RpmlintSuppressFilePath>
+  </PropertyGroup>
+
+  <Target Name="CheckRpmProperties">
+    <Error Condition="'$(RpmPackageName)' == ''" Text="RpmPackageName not set. It should be set in the .targets file for the project." />
+    <Error Condition="'@(LicenseFiles)' == ''" Text="LicenseFiles not set. It should be set in the .targets file for the project." />
+    <Error Condition="'$(RpmDependencyFpmFlags)' == ''" Text="RpmDependencyFpmFlags not set. It should be set in the .targets file for the project." />
+    <Error Condition="'$(RpmLicense)' == ''" Text="RpmLicense not set. It should be set in the .targets file for the project." />
+  </Target>
+
+  <Target Name="SetRpmProperties" DependsOnTargets="CheckRpmProperties;SetVersionProperties;Build">
+    <!-- Don't use a <PropertyGroup> because mono's xbuild doesn't support dynamic properties. -->
+    <CreateProperty Value="$(MajorVersion).$(MinorVersion).$(FixVersion)">
+      <Output TaskParameter="Value" PropertyName="RpmPackageVersion" />
+    </CreateProperty>
+    
+    <CreateProperty Value="$(RpmStagingBaseDir)$(RpmPackageName)_$(RpmPackageVersion)/">
+      <Output TaskParameter="Value" PropertyName="RpmStagingDir" />
+    </CreateProperty>
+    
+    <CreateItem Include="$(TargetDir)*.dll;$(TargetDir)*.exe;$(TargetDir)*.config">
+      <Output TaskParameter="Include" ItemName="UsrLibPackageFiles" />
+    </CreateItem>
+    
+    <CreateItem Include="linux_common/$(RpmPackageName)">
+      <Output TaskParameter="Include" ItemName="UsrBinPackageFiles" />
+    </CreateItem>
+
+    <CreateItem Include="@(LicenseFiles)">
+      <Output TaskParameter="Include" ItemName="UsrShareDocPackageFiles" />
+    </CreateItem>
+    
+    <CreateProperty Value="$(RpmOutputDir)$(RpmPackageName)-$(RpmPackageVersion).noarch.rpm">
+      <Output TaskParameter="Value" PropertyName="RpmOutputFilePath" />
+    </CreateProperty>
+  </Target>
+  
+  <Target Name="BuildRpmPackage" DependsOnTargets="CheckRpmProperties;Rebuild;SetVersionProperties;SetRpmProperties">
+    <!-- Copy *.dll, *.exe, *.config to rpm/staging/$(RpmPackageName)_$(RpmPackageVersion)/usr/lib/$(RpmPackageName)/ -->
+    <Copy SourceFiles="@(UsrLibPackageFiles)" DestinationFolder="$(RpmStagingDir)usr/lib/$(RpmPackageName)/" />
+    
+    <!-- Copy copyright and license files to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/usr/share/doc/$(DebianPackageName)/ -->
+    <Copy SourceFiles="@(UsrShareDocPackageFiles)" DestinationFolder="$(RpmStagingDir)usr/share/doc/$(RpmPackageName)/" />
+    
+    <!-- Mark the .exe as executable as per packaging guidelines. It's not required to run it using "mono foo.exe" but it does allow
+    it to be executed if the system is set to be able to execute CLR assemblies like regular binaries. -->
+    <Exec Command="chmod +x $(RpmStagingDir)usr/lib/$(RpmPackageName)/*.exe" />
+
+    <!-- Mark dlls as not executable. -->
+    <Exec Command="chmod -x $(RpmStagingDir)usr/lib/$(RpmPackageName)/*.dll" />
+    
+    <!-- Copy wrapper shell script to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)usr/bin/ -->
+    <Copy SourceFiles="@(UsrBinPackageFiles)" DestinationFolder="$(RpmStagingDir)usr/bin/" />
+    
+    <MakeDir Directories="$(RpmOutputDir)" />
+    
+    <CreateProperty Value="fpm -s dir -t rpm --package '$(RpmOutputFilePath)' --force --name '$(RpmPackageName)' --version '$(RpmPackageVersion)' --epoch 1 --category '$(RpmGroup)' --architecture all --maintainer '$(PackageMaintainer)' --url '$(PackageUrl)' --vendor '' --license '$(RpmLicense)' --description '`cat $(RpmDescriptionFilePath)`' $(RpmDependencyFpmFlags) .">
+      <Output TaskParameter="Value" PropertyName="fpmCommandLine" />
+    </CreateProperty>
+    
+    <Exec Command="$(fpmCommandLine)" WorkingDirectory="$(RpmStagingDir)" />
+  
+    <Exec Command="rpmlint -f '$(RpmlintSuppressFilePath)' $(RpmOutputFilePath)" />
+  </Target>
+
+  <Target Name="CleanRpm">
+    <RemoveDir Directories="$(RpmStagingBaseDir)" Condition="Exists('$(RpmStagingBaseDir)')" />
+    <RemoveDir Directories="$(RpmOutputDir)" Condition="Exists('$(RpmOutputDir)')" />
+  </Target>
+  
+  <PropertyGroup>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanRpm
     </CleanDependsOn>
   </PropertyGroup>
 </Project>
