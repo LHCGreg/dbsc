@@ -254,7 +254,7 @@
     
     <MakeDir Directories="$(RpmOutputDir)" />
     
-    <CreateProperty Value="fpm -s dir -t rpm --package '$(RpmOutputFilePath)' --force --name '$(RpmPackageName)' --version '$(RpmPackageVersion)' --epoch 1 --category '$(RpmGroup)' --architecture all --maintainer '$(PackageMaintainer)' --url '$(PackageUrl)' --vendor '' --license '$(RpmLicense)' --description `cat $(RpmDescriptionFilePath)` $(RpmDependencyFpmFlags) .">
+    <CreateProperty Value="fpm -s dir -t rpm --package '$(RpmOutputFilePath)' --force --name '$(RpmPackageName)' --version '$(RpmPackageVersion)' --epoch 1 --category '$(RpmGroup)' --architecture all --maintainer '$(PackageMaintainer)' --url '$(PackageUrl)' --vendor '' --license '$(RpmLicense)' --description &quot;`cat $(RpmDescriptionFilePath)`&quot; $(RpmDependencyFpmFlags) .">
       <Output TaskParameter="Value" PropertyName="fpmCommandLine" />
     </CreateProperty>
     
