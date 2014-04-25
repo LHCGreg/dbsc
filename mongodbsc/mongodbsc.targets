@@ -4,6 +4,9 @@
     <ZipNameWithoutVersion>DBSC for MongoDB</ZipNameWithoutVersion>
     <DebianPackageName>mongodbsc</DebianPackageName>
     <DebianDependencyFpmFlags>-d 'mono-runtime (>= 2.10.8.1)' -d 'libmono-corlib4.0-cil (>= 2.10.8.1)' -d 'libmono-system4.0-cil (>= 2.10.8.1)' -d 'libmono-system-core4.0-cil (>= 2.10.8.1)' -d 'libmono-system-data4.0-cil (>= 2.10.8.1)' -d 'libmono-microsoft-csharp4.0-cil (>= 2.10.8.1)' -d 'libmono-system-xml4.0-cil (>= 2.10.8.1)' -d 'libmono-windowsbase3.0-cil (>= 2.10.8.1)' -d 'libmono-system-drawing4.0-cil (>= 2.10.8.1)' -d 'mongodb-org-shell | mongodb-org-unstable-shell | mongodb-clients'</DebianDependencyFpmFlags>
+    <RpmPackageName>mongodbsc</RpmPackageName>
+    <RpmDependencyFpmFlags>-d 'mono-core >= 2.10.8' -d 'mono-winfx >= 2.10.8' -d 'mongodb-org-shell | mongodb'</RpmDependencyFpmFlags>
+    <RpmLicense>Apache Software License</RpmLicense>
   </PropertyGroup>
 
   <!-- Used for Debian packaging. -->
