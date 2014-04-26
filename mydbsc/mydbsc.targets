@@ -4,6 +4,9 @@
     <ZipNameWithoutVersion>DBSC for MySQL</ZipNameWithoutVersion>
     <DebianPackageName>mydbsc</DebianPackageName>
     <DebianDependencyFpmFlags>-d 'mono-runtime (>= 2.10.8.1)' -d 'libmono-corlib4.0-cil (>= 2.10.8.1)' -d 'libmono-system4.0-cil (>= 2.10.8.1)' -d 'libmono-system-core4.0-cil (>= 2.10.8.1)' -d 'libmono-system-data4.0-cil (>= 2.10.8.1)' -d 'libmono-microsoft-csharp4.0-cil (>= 2.10.8.1)' -d 'libmono-system-configuration4.0-cil (>= 2.10.8.1)' -d 'libmono-system-configuration-install4.0-cil (>= 2.10.8.1)' -d 'libmono-system-drawing4.0-cil (>= 2.10.8.1)' -d 'libmono-system-management4.0-cil (>= 2.10.8.1)' -d 'libmono-system-transactions4.0-cil (>= 2.10.8.1)' -d 'libmono-system-xml4.0-cil (>= 2.10.8.1)' --deb-suggests 'mysql-client (>= 5.5.33)'</DebianDependencyFpmFlags>
+    <RpmPackageName>mydbsc</RpmPackageName>
+    <RpmDependencyFpmFlags>-d 'mono-core >= 2.10.8' -d 'mono-extras >= 2.10.8'</RpmDependencyFpmFlags>
+    <RpmLicense>GPLv3</RpmLicense>
   </PropertyGroup>
 
   <!-- Used for Debian packaging. -->

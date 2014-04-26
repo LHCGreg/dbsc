@@ -8,3 +8,5 @@ packages/*/
 test_stdout.txt
 test_stderr.txt
 **/deb/staging/
+**/rpm/staging/
+

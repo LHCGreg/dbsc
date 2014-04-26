@@ -7,5 +7,5 @@ to a newer revision after adding scripts. mydbsc stores the current
 revision of the database in a metadata table. When creating or updating
 a database, you can import data from another database that was created
 using mydbsc, which is useful for getting test data into a development
-database. mysql-client must be installed to import data but is not
+database. mariadb or mysql must be installed to import data but are not
 required if you just want to create or update databases.

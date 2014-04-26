@@ -1,0 +1,17 @@
+# Suppress spelling errors that are not really errors, like "metadata"
+addFilter("W: spelling-error")
+
+# Don't bother with a changelog in the rpm, there's one on the github readme
+addFilter("E: no-changelogname-tag")
+
+# rpmlint wants the .rpm to be <NAME>-<VERSION>-<RELEASE>.<ARCH>.rpm
+# dbsc is not tied to a specific fedora or centos or RHEL release
+# so the RELEASE is left out.
+addFilter("W: non-coherent-filename")
+
+# The files in /usr/lib/<package name> are dlls, which actually are binaries.
+addFilter("W: only-non-binary-in-usr-lib")
+
+# We're not signing the rpm at build time, we're signing it later.
+addFilter("E: no-signature")
+

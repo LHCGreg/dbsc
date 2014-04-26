@@ -9,9 +9,9 @@ DEPLOYMENT CONSIDERATIONS
 -------------------------
 Take care when adding references. Non-system references that must be present at runtime must be explicitly included in the Windows installer (Installer/installer.wxs). Linux packages will automatically pick up *.dll, *.exe, and *.config from the bin folder. License files must be explicitly included in both Windows installers and Linux packages. They are added to the Windows installer in Installer/installer.wxs and to Linux packages in pgdbsc.targets (or whatever.targets).
 
-The Mono Linux packages are very granular with system libraries so even something innocent like System.Xml.dll must be listed as a package dependency. When adding new non-system dependencies, check what its system dependencies are using a decompiler like JetBrains DotPeek (http://www.jetbrains.com/decompiler/). Recursively check the system dependencies of its non-system dependencies as well.
+The Mono Linux packages on Debian are very granular with system libraries so even something innocent like System.Xml.dll must be listed as a package dependency. When adding new non-system dependencies, check what its system dependencies are using a decompiler like JetBrains DotPeek (http://www.jetbrains.com/decompiler/). Recursively check the system dependencies of its non-system dependencies as well. Add system dependencies to .targets file for the project in the DebianDependencyFpmFlags and RpmDependencyFpmFlags properties.
 
-The version number to be used for executable projects is stored in version.xml so that it can be read during the build process and used when building the installer, Debian package, and zip package.
+The version number to be used for executable projects is stored in version.xml so that it can be read during the build process and used when building the installer, Debian package, Red Hat package, and zip package.
 
 msdbsc can only be built x86, not AnyCPU or x64 due to dependencies on 32-bit SQL Server native dlls.
 
@@ -42,7 +42,13 @@ Test projects have a run_tests.bat and run_tests.sh script that will build the p
 
 BUILDING ON LINUX WITH MONO
 ---------------------------
-You must have the mono-complete package (Debian) or similar installed. You must have Mono version 3.0.6 or higher to build, but Mono 2.10.8.1 is the minimum supported end-user version. The higher version for build is required for NuGet to work properly. Currently Debian and Ubuntu users must get Mono 3.0.6 from a ppa or Debian Testing (Jessie).
+You must have the mono-complete package (Debian) or similar installed. You must have Mono version 3.0.6 or higher to build, but Mono 2.10.8.1 is the minimum supported end-user version. The higher version for build is required for NuGet to work properly. Currently Debian users must get Mono 3.0.6 from Debian Testing (Jessie). Ubuntu 14.04 (Trusty Tahr) has mono 3.2.8 in its repository so all is good if you're on the latest Ubuntu. At the time of this writing (2014-04-21), the latest CentOS is on mono 2.4.x, which can neither build nor run dbsc. Even the latest Fedora is only on 2.10.8, enough to run but not to build. If you want to build from one of those distros, you'll have to find a more recent version of mono somewhere.
+
+INSTALLING ROOT CERTIFICATES INTO MONO'S CERTIFICATE STORE
+-----------------------------------------------------------
+For NuGet to be able to download packages when building with Mono, you must install root certificates into Mono's certificate store by running
+
+mozroots --import --sync
 
 HOW TO INSTALL MONO FROM DEBIAN TESTING ON DEBIAN STABLE
 --------------------------------------------------------
@@ -64,12 +70,6 @@ You can then use
 
 sudo apt-get install -t testing mono-complete
 
-INSTALLAING ROOT CERTIFICATES INTO MONO'S CERTIFICATE STORE
------------------------------------------------------------
-For NuGet to be able to download packages you must install root certificates into Mono's certificate store by running
-
-mozroots --import --sync
-
 MONO DEPENDENCY NOTES
 ---------------------
 When building on non-Windows systems, pgdbsc will rely on Mono.Security being in the GAC. It is a dependency of Npgsql but is not needed by pgdbsc itself, so it is not actually referenced when building on non-Windows systems.
@@ -78,7 +78,7 @@ Why not use the system Npgsql? Because the Debian Npgsql package appears to be u
 
 BUILDING THE DEBIAN PACKAGE
 ---------------------------
-To build the Debian package, you must be running Debian and have fpm (https://github.com/jordansissel/fpm) and the lintian package installed.
+To build the Debian package, you must have fpm (https://github.com/jordansissel/fpm) and the lintian package installed.
 
 To build the Debian package, run
 
@@ -87,3 +87,15 @@ xbuild /t:BuildDebianPackage "/p:Configuration=Release;Platform=AnyCPU" pgdbsc.c
 (or whatever.csproj).
 
 The built package will be in deb/bin/package_name_<version>.deb. Lintian is run as part of the build process. linux_common/lintian_suppress.txt contains lintian warnings/errors to ignore.
+
+BUILDING THE RPM PACKAGE
+------------------------
+To build the rpm package, you must have fpm (https://github.com/jordansissel/fpm), rpmbuild (in the "rpm" package in Debian and Debian-based distros), and rpmlint (in the "rpmlint" package in Debian and Debian-based distros) installed. rpmlint is currently only in Debian Testing (Jessie).
+
+To build the .rpm package, run
+
+xbuild /t:BuildRpmPackage "/p:Configuration=Release;Platform=AnyCPU" pgdbsc.csproj
+
+(or whatever.csproj).
+
+The built package will be in rpm/bin/package_name-<version>.noarch.rpm. rpmlint is run as part of the build process. linux_common/rpmlint_suppress.txt contains rpmlint warnings/errors to ignore.
