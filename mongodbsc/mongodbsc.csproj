@@ -123,6 +123,8 @@
     <Content Include="license.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="rpm\description.txt" />
+    <Content Include="rpm\description_readme.txt" />
     <None Include="linux_common\mongodbsc" />
     <Content Include="notice.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
