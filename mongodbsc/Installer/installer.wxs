@@ -18,7 +18,7 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
     <UIRef Id="WixUI_ErrorProgressText" />
     <WixVariable Id="WixUILicenseRtf" Value="SourceDir\license.rtf" />
 
-    <MajorUpgrade DowngradeErrorMessage="A later version of DBSC for PostgreSQL is already installed." />
+    <MajorUpgrade DowngradeErrorMessage="A later version of DBSC for MongoDB is already installed." />
 
     <PropertyRef Id="NETFRAMEWORK40FULL"/>
     <Condition Message="DBSC for PostgreSQL requires .NET 4.0 to be installed.">Installed OR NETFRAMEWORK40FULL</Condition>
@@ -31,12 +31,6 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
     <Directory Id='TARGETDIR' Name='SourceDir'>
       <Directory Id='ProgramFilesFolder' Name='PFiles'>
         <Directory Id='INSTALLDIR' Name='DBSC for MongoDB'>
-          <Component Id="Dapper.dll" Guid="{E385207D-C54D-42B0-802F-7511907111A8}">
-            <File Id="Dapper.dll" KeyPath="yes" Source="SourceDir\Dapper.dll" />
-          </Component>
-          <Component Id="dapper_license.txt" Guid="{7B972E9C-3087-4163-83E3-A8B995F17316}">
-            <File Id="dapper_license.txt" KeyPath="yes" Source="SourceDir\dapper_license.txt" />
-          </Component>
           <Component Id="dbsc.Core.dll" Guid="{835CC21A-5527-41AB-A235-6B6EA8A8BB71}">
             <File Id="dbsc.Core.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.dll" />
           </Component>
@@ -80,8 +74,6 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
     <Feature Id="mongodbsc" Title="mongodbsc" Description="DBSC for MongoDB" Display="expand"
              ConfigurableDirectory="INSTALLDIR" Level="1" Absent="disallow" InstallDefault="local" AllowAdvertise="no">
       <ComponentRef Id="AddToPath"/>
-      <ComponentRef Id="Dapper.dll"/>
-      <ComponentRef Id="dapper_license.txt"/>
       <ComponentRef Id="dbsc.Core.dll"/>
       <ComponentRef Id="license.rtf"/>
       <ComponentRef Id="license.txt"/>

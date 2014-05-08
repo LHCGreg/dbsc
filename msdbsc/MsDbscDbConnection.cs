@@ -60,7 +60,7 @@ namespace dbsc.SqlServer
             ServerConnection serverConnection = new ServerConnection(Connection);
             Server server = new Server(serverConnection);
             server.ConnectionContext.ServerMessage += OnServerMessage;
-            server.ConnectionContext.StatementTimeout = ConnectionInfo.ScriptTimeoutInSeconds;
+            server.ConnectionContext.StatementTimeout = TimeoutSettings.ScriptTimeoutInSeconds;
             try
             {
                 server.ConnectionContext.ExecuteNonQuery(sql);
@@ -98,7 +98,7 @@ namespace dbsc.SqlServer
         public void ImportTable(MsDbscDbConnection sourceConn, string table, SqlTransaction sourceDbTransaction = null)
         {
             SqlBulkCopy bulkCopy = new SqlBulkCopy(Connection, SqlBulkCopyOptions.KeepIdentity | SqlBulkCopyOptions.KeepNulls | SqlBulkCopyOptions.TableLock, externalTransaction: null);
-            bulkCopy.BulkCopyTimeout = ConnectionInfo.ImportTableTimeoutInSeconds;
+            bulkCopy.BulkCopyTimeout = TimeoutSettings.ImportTableTimeoutInSeconds;
             bulkCopy.DestinationTableName = table;
 
             string importSql = string.Format("SELECT * FROM {0}", table);
@@ -111,7 +111,7 @@ namespace dbsc.SqlServer
             {
                 importQuery = new SqlCommand(importSql, sourceConn.Connection);
             }
-            importQuery.CommandTimeout = ConnectionInfo.ImportTableTimeoutInSeconds;
+            importQuery.CommandTimeout = TimeoutSettings.ImportTableTimeoutInSeconds;
 
             using (importQuery)
             {
@@ -131,11 +131,6 @@ namespace dbsc.SqlServer
         public static string QuoteSqlServerIdentifier(string schema, string identifier)
         {
             return QuoteSqlServerIdentifier(schema) + "." + QuoteSqlServerIdentifier(identifier);
-        }
-
-        public override void Dispose()
-        {
-            Connection.Dispose();
         }
     }
 }

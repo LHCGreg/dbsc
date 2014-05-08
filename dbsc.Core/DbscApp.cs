@@ -2,47 +2,62 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using dbsc.Core.Options;
 
 namespace dbsc.Core
 {
-    public class DbscApp<TCommandLineArgs, TCheckoutOptions, TUpdateOptions>
-        where TCommandLineArgs : BaseCommandLineArgs
-        where TCheckoutOptions : ICheckoutOptions<TUpdateOptions>
-        where TUpdateOptions : IUpdateOptions
+    /// <summary>
+    /// Serves as an entry point for the a dbsc application. An application's Main(string[] args)
+    /// creates a DbscApp object and calls Run(args).
+    /// </summary>
+    /// <typeparam name="TCommandLineArgs"></typeparam>
+    /// <typeparam name="TCheckoutSettings"></typeparam>
+    /// <typeparam name="TConnectionSettings"></typeparam>
+    /// <typeparam name="TImportSettings"></typeparam>
+    /// <typeparam name="TUpdateSettings"></typeparam>
+    public abstract class DbscApp<TCommandLineArgs, TConnectionSettings, TCheckoutSettings, TImportSettings, TUpdateSettings>
+        where TCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<TCheckoutSettings, TUpdateSettings>, new()
+        where TConnectionSettings : IConnectionSettings
+        where TCheckoutSettings : ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateSettings>
+        where TImportSettings : IImportSettings<TConnectionSettings>
+        where TUpdateSettings : IUpdateOptions<TConnectionSettings, TImportSettings>
     {
-        private Func<string[], TCommandLineArgs> m_parseArgsFunc;
-        private Func<TCommandLineArgs, TCheckoutOptions> m_getCheckoutOptionsFunc;
-        private Func<TCommandLineArgs, TUpdateOptions> m_getUpdateOptionsFunc;
-        private DbscEngine<TCheckoutOptions, TUpdateOptions> m_engine;
+        private DbscEngine<TConnectionSettings, TCheckoutSettings, TImportSettings, TUpdateSettings> _engine;
         
-        public DbscApp(DbscEngine<TCheckoutOptions, TUpdateOptions> engine, Func<string[], TCommandLineArgs> parseArgsFunc,
-            Func<TCommandLineArgs, TCheckoutOptions> getCheckoutOptionsFunc, Func<TCommandLineArgs, TUpdateOptions> getUpdateOptionsFunc)
+        public DbscApp(DbscEngine<TConnectionSettings, TCheckoutSettings, TImportSettings, TUpdateSettings> engine)
         {
-            m_engine = engine;
-            m_parseArgsFunc = parseArgsFunc;
-            m_getCheckoutOptionsFunc = getCheckoutOptionsFunc;
-            m_getUpdateOptionsFunc = getUpdateOptionsFunc;
+            _engine = engine;
         }
 
         public void Run(string[] args)
         {
+            TCommandLineArgs commandLine = new TCommandLineArgs();
             try
             {
-                TCommandLineArgs commandLine = m_parseArgsFunc(args);
+                commandLine.Parse(args);
                 if (commandLine.Operation == DbscOperation.Checkout)
                 {
-                    TCheckoutOptions options = m_getCheckoutOptionsFunc(commandLine);
-                    m_engine.Checkout(options);
+                    TCheckoutSettings options = commandLine.GetCheckoutSettings();
+                    _engine.Checkout(options);
                 }
                 else if (commandLine.Operation == DbscOperation.Update)
                 {
-                    TUpdateOptions options = m_getUpdateOptionsFunc(commandLine);
-                    m_engine.Update(options);
+                    TUpdateSettings options = commandLine.GetUpdateSettings();
+                    _engine.Update(options);
                 }
                 else
                 {
                     throw new DbscException(string.Format("Oops, missed an operation: {0}", commandLine.Operation));
                 }
+            }
+            catch (DbscOptionException ex)
+            {
+                Console.WriteLine(ex.Message);
+                if (ex.ShowHelp)
+                {
+                    commandLine.DisplayHelp(Console.Out);
+                }
+                Environment.ExitCode = 1;
             }
             catch (Exception ex)
             {
@@ -64,7 +79,7 @@ namespace dbsc.Core
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

@@ -11,7 +11,9 @@ using System.IO;
 
 namespace dbsc.Mongo
 {
-    class MongoDbscEngine : DbscEngine<MongoCheckoutOptions, MongoUpdateOptions>
+    class MongoDbscEngine
+        : DbscEngine<DbConnectionInfo, MongoCheckoutOptions, ImportOptions<DbConnectionInfo>, MongoUpdateOptions>
+        , IDbscEngineWithTableImport<DbConnectionInfo, ImportOptions<DbConnectionInfo>, MongoUpdateOptions>
     {
         protected override string ScriptExtensionWithoutDot { get { return "js"; } }
 
@@ -112,10 +114,10 @@ namespace dbsc.Mongo
             }
         }
 
-        protected override void RunScriptAndUpdateMetadata(MongoUpdateOptions options, string scriptPath, int newRevision, DateTime utcTimestamp)
+        protected override void RunScriptAndUpdateMetadata(MongoUpdateOptions options, string scriptPath, int newRevision)
         {
             RunScript(options, scriptPath);
-            UpdateMetadata(options, newRevision, utcTimestamp);
+            UpdateMetadata(options, newRevision, DateTime.UtcNow);
         }
 
         private void RunScript(MongoUpdateOptions options, string scriptPath)
@@ -204,7 +206,12 @@ namespace dbsc.Mongo
             }
         }
 
-        protected override void ImportData(MongoUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        protected override void ImportData(MongoUpdateOptions options)
+        {
+            DbscEngineWithTableImportExtensions.ImportData(this, options);
+        }
+
+        public void ImportData(MongoUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
             using (MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase))
             {
@@ -235,7 +242,7 @@ namespace dbsc.Mongo
             }
         }
 
-        protected override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)
+        public ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)
         {
             // No need to escape names because there is no query language to escape them for.
 
@@ -250,7 +257,7 @@ namespace dbsc.Mongo
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

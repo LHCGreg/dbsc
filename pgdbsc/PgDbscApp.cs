@@ -3,18 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using dbsc.Core;
+using dbsc.Core.Sql;
 
 namespace dbsc.Postgres
 {
-    class PgDbscApp : DbscApp<SqlCommandLineArgs, SqlCheckoutOptions, SqlUpdateOptions>
+    class PgDbscApp : DbscApp<PgDbscCommandLineArgs, DbConnectionInfo, SqlCheckoutOptions, ImportOptions<DbConnectionInfo>, SqlUpdateOptions>
     {
         public PgDbscApp()
-            : base(
-            engine: new PgDbscEngine(),
-            parseArgsFunc: args => { SqlCommandLineArgs commandLine = new SqlCommandLineArgs(); commandLine.Parse(args); return commandLine; },
-            getCheckoutOptionsFunc: commandLine => commandLine.GetCheckoutOptions(),
-            getUpdateOptionsFunc: commandLine => commandLine.GetUpdateOptions()
-            )
+            : base(new PgDbscEngine())
         {
             ;
         }
@@ -22,7 +18,7 @@ namespace dbsc.Postgres
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

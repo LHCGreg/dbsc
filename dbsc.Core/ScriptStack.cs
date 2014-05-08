@@ -26,7 +26,7 @@ namespace dbsc.Core
             ScriptsByRevision = new Dictionary<int, string>();
 
             // DatabaseName.#+[.Comment].sql
-						Regex upgradeScriptRegex = new Regex(@"^(?<MasterDatabaseName>[^.]+)\.(?<Revision>\d+)(?<CommentWithDot>\.[^.]+)?\." + Regex.Escape(extensionWithoutDot) + "$", RegexOptions.IgnoreCase);
+			Regex upgradeScriptRegex = new Regex(@"^(?<MasterDatabaseName>[^.]+)\.(?<Revision>\d+)(?<CommentWithDot>\.[^.]+)?\." + Regex.Escape(extensionWithoutDot) + "$", RegexOptions.IgnoreCase);
 
             foreach (string filePath in filePaths)
             {

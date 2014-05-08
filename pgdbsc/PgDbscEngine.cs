@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Npgsql;
-using Dapper;
 using dbsc.Core;
-using System.Diagnostics;
+using dbsc.Core.Sql;
 
 namespace dbsc.Postgres
 {
-    class PgDbscEngine : SqlDbscEngine<SqlCheckoutOptions, SqlUpdateOptions, PgDbscDbConnection>
+    class PgDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutOptions, ImportOptions<DbConnectionInfo>, SqlUpdateOptions, PgDbscDbConnection>
     {
         public PgDbscEngine()
         {
@@ -47,7 +45,15 @@ namespace dbsc.Postgres
             public string table_name { get; set; }
         }
 
-        protected override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(PgDbscDbConnection conn)
+        public override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)
+        {
+            using (PgDbscDbConnection conn = OpenConnection(connectionInfo))
+            {
+                return GetTableNamesExceptMetadataAlreadyEscaped(conn);
+            }
+        }
+
+        protected ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(PgDbscDbConnection conn)
         {
             string sql = @"SELECT table_schema, table_name FROM information_schema.tables
 WHERE table_schema NOT LIKE 'pg_%' AND table_schema <> 'information_schema'
@@ -78,7 +84,7 @@ AND table_name = 'dbsc_metadata'";
             return true;
         }
 
-        protected override void ImportData(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public override void ImportData(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
             PgImportOperation import = new PgImportOperation(options, tablesToImportAlreadyEscaped, allTablesExceptMetadataAlreadyEscaped);
             import.Run();
@@ -87,7 +93,7 @@ AND table_name = 'dbsc_metadata'";
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

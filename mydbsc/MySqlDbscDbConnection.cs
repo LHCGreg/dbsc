@@ -74,11 +74,6 @@ namespace dbsc.MySql
                 Console.WriteLine("{0}: {1}", message.Level, message.Message);
             }
         }
-
-        public override void Dispose()
-        {
-            Connection.Dispose();
-        }
     }
 }
 

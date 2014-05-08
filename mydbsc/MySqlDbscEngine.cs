@@ -51,7 +51,7 @@ ENGINE=InnoDB";
 
         protected override bool MetadataTableExists(MySqlDbscDbConnection conn)
         {
-            DbConnectionInfo connInfo = conn.ConnectionInfo;
+            DbConnectionInfo connInfo = conn.TimeoutSettings;
             string sql =
 @"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME = 'dbsc_metadata'
@@ -65,7 +65,7 @@ AND TABLE_SCHEMA = @db";
 
         protected override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(MySqlDbscDbConnection conn)
         {
-            DbConnectionInfo connInfo = conn.ConnectionInfo;
+            DbConnectionInfo connInfo = conn.TimeoutSettings;
             string sql =
 @"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME <> 'dbsc_metadata'

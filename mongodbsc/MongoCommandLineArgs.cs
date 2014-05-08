@@ -1,76 +1,115 @@
-﻿using dbsc.Core;
-using NDesk.Options;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using dbsc.Core;
+using dbsc.Core.Options;
 
 namespace dbsc.Mongo
 {
-    class MongoCommandLineArgs : BaseCommandLineArgs
+    class MongoCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<MongoCheckoutOptions, MongoUpdateOptions>
     {
-        public string DbTemplateFilePath { get; private set; }
+        private TargetDBOptionBundle _targetDB = new TargetDBOptionBundle()
+        {
+            IntegratedSecuritySupported = false,
+            AuthenticationRequired = false,
+            UsernameMessageWithoutIntegratedSecuritySupport = "Username to use to log in to the target database. Only specify if the target MongoDB has authentication enabled.",
+            PasswordMessageWithoutIntegratedSecuritySupport = "Password to use to log in to the target database. If username is specified and no password is specified, you will be prompted for your password. Only specify if the target MongoDB has authentication enabled."
+        };
+
+        private TargetDBPortOptionBundle _targetDBPort = new TargetDBPortOptionBundle();
+
+        private DBCreateTemplateOptionBundle _template = new DBCreateTemplateOptionBundle(defaultTemplate: null)
+        {
+            HelpMessage = @"File with a template javascript file to run after creating the database in a checkout. $DatabaseName$ will be replaced with the database name."
+        };
+
+        private SourceDBOptionBundle _sourceDB = new SourceDBOptionBundle()
+        {
+            IntegratedSecuritySupported = false,
+            AuthenticationRequired = false,
+            UsernameMessageWithoutIntegratedSecuritySupport = "Username to use to log in to the source database. Only specify if the source MongoDB has authentication enabled.",
+            PasswordMessageWithoutIntegratedSecuritySupport = "Password to use to log in to the source database. If username is specified and no password is specified, you will be prompted for your password. Only specify if the source MongoDB has authentication enabled."
+        };
+
+        private SourceDBPortOptionBundle _sourceDBPort = new SourceDBPortOptionBundle();
+        private ImportTableListFileOptionBundle _importTableListFile = new ImportTableListFileOptionBundle()
+        {
+            HelpMessage = "File with a list of collections to import from the source database, one per line. If not specified, all collections will be imported."
+        };
         
         public MongoCommandLineArgs()
         {
-            ;
+            ExtraOptions.Add(_targetDB);
+            ExtraOptions.Add(_targetDBPort);
+            ExtraOptions.Add(_template);
+            ExtraOptions.Add(_sourceDB);
+            ExtraOptions.Add(_sourceDBPort);
+            ExtraOptions.Add(_importTableListFile);
         }
 
-        public string GetDbCreationTemplate()
+        private DbConnectionInfo GetTargetConnectionSettings()
         {
-            if (DbTemplateFilePath == null)
+            return new DbConnectionInfo(
+                server: _targetDB.TargetDBServer,
+                database: _targetDB.TargetDB,
+                port: _targetDBPort.TargetDBPort,
+                username: _targetDB.Username,
+                password: _targetDB.Password
+            );
+        }
+
+        private ImportOptions<DbConnectionInfo> GetImportSettings()
+        {
+            if (_sourceDB.SourceDBServer != null)
             {
-                return null;
+                DbConnectionInfo sourceConnectionSettings = new DbConnectionInfo(
+                    server: _sourceDB.SourceDBServer,
+                    database: _sourceDB.SourceDB,
+                    port: _sourceDBPort.SourceDBPort,
+                    username: _sourceDB.SourceUsername,
+                    password: _sourceDB.SourcePassword
+                );
+
+                ImportOptions<DbConnectionInfo> importSettings = new ImportOptions<DbConnectionInfo>(sourceConnectionSettings);
+                importSettings.TablesToImport = _importTableListFile.TablesToImport;
+                return importSettings;
             }
             else
             {
-                try
-                {
-                    return File.ReadAllText(DbTemplateFilePath);
-                }
-                catch (Exception ex)
-                {
-                    throw new OptionException(string.Format("Error reading DB creation template: {0}.", ex.Message), "dbCreationTemplate");
-                }
+                return null;
             }
         }
 
-        public override OptionSet GetOptionSet()
+        public MongoCheckoutOptions GetCheckoutSettings()
         {
-            OptionSet options = base.GetOptionSet();
+            DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
 
-            options.Add("dbCreateTemplate=",
-                "Javascript file to run when creating a database in a checkout. The script will be run *after* the database is created and will be run on the newly created database. $DatabaseName$ will be replaced with the database name. This is a good place to grant permissions.",
-                arg => DbTemplateFilePath = arg);
-            return options;
+            MongoCheckoutOptions checkoutOptions = new MongoCheckoutOptions(connectionSettings);
+            checkoutOptions.CreationTemplate = _template.Template;
+            checkoutOptions.Directory = this.ScriptDirectory;
+            checkoutOptions.ImportOptions = GetImportSettings();
+            checkoutOptions.Revision = this.Revison;
+
+            return checkoutOptions;
         }
 
-        public MongoCheckoutOptions GetCheckoutOptions()
+        public MongoUpdateOptions GetUpdateSettings()
         {
-            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, port: TargetDbPort, username: Username, password: Password);
-            MongoCheckoutOptions options = new MongoCheckoutOptions(targetDbInfo);
-            options.Directory = ScriptDirectory;
-            options.Revision = Revision;
-            options.ImportOptions = GetImportOptions();
-            options.CreationTemplate = GetDbCreationTemplate();
-            return options;
-        }
+            DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
+            MongoUpdateOptions updateSettings = new MongoUpdateOptions(connectionSettings);
+            updateSettings.Directory = this.ScriptDirectory;
+            updateSettings.Revision = this.Revison;
+            updateSettings.ImportOptions = GetImportSettings();
 
-        public MongoUpdateOptions GetUpdateOptions()
-        {
-            DbConnectionInfo targetDbInfo = new DbConnectionInfo(server: TargetDbServer, database: TargetDb, port: TargetDbPort, username: Username, password: Password);
-            MongoUpdateOptions options = new MongoUpdateOptions(targetDbInfo);
-            options.Directory = ScriptDirectory;
-            options.Revision = Revision;
-            options.ImportOptions = GetImportOptions();
-            return options;
+            return updateSettings;
         }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

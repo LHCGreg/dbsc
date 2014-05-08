@@ -5,13 +5,20 @@ using System.Text;
 
 namespace dbsc.Core
 {
-    public interface ISqlUpdateOptions : IUpdateOptions
+    public interface IConnectionSettings
     {
+        /// <summary>
+        /// Returns a string that could be used in a phrase like "Source database X was not created with dbsc and cannot be imported from".
+        /// </summary>
+        /// <returns></returns>
+        string ToDescriptionString();
+
+        string Database { get; set; }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

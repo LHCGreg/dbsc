@@ -5,23 +5,32 @@ using System.Text;
 
 namespace dbsc.Core
 {
-    public interface ICheckoutOptions<TUpdateOptions>
-        where TUpdateOptions : IUpdateOptions
+    /// <summary>
+    /// Generic interface for settings needed to check out a database.
+    /// </summary>
+    /// <typeparam name="TConnectionSettings"></typeparam>
+    /// <typeparam name="TImportSettings"></typeparam>
+    /// <typeparam name="TUpdateOptions"></typeparam>
+    public interface ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
+        where TUpdateOptions : IUpdateOptions<TConnectionSettings, TImportSettings>
     {
         string Directory { get; set; }
-        DbConnectionInfo TargetDatabase { get; set; }
+        TConnectionSettings TargetDatabase { get; set; }
         int? Revision { get; set; }
-        ImportOptions ImportOptions { get; set; }
+        TImportSettings ImportOptions { get; set; }
 
         TUpdateOptions UpdateOptions { get; }
-        ICheckoutOptions<TUpdateOptions> Clone();
+        ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions> Clone();
     }
 
     public static class CheckoutOptionsExtensions
     {
-        public static TCheckoutOptions CloneCheckoutOptionsWithDatabaseNamesFilledIn<TCheckoutOptions, TUpdateOptions>(this TCheckoutOptions options, string dbNameFromScripts)
-            where TCheckoutOptions : ICheckoutOptions<TUpdateOptions>
-            where TUpdateOptions : IUpdateOptions
+        public static TCheckoutOptions CloneCheckoutOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions>
+            (this TCheckoutOptions options, string dbNameFromScripts)
+            where TCheckoutOptions : ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
+            where TUpdateOptions : IUpdateOptions<TConnectionSettings, TImportSettings>
+            where TConnectionSettings : IConnectionSettings
+            where TImportSettings : IImportSettings<TConnectionSettings>
         {
             TCheckoutOptions clone = (TCheckoutOptions) options.Clone();
 
@@ -41,7 +50,7 @@ namespace dbsc.Core
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

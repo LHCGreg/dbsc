@@ -6,12 +6,12 @@ using dbsc.Core;
 
 namespace dbsc.Mongo
 {
-    class MongoUpdateOptions : IUpdateOptions
+    class MongoUpdateOptions : IUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
         public int? Revision { get; set; }
-        public ImportOptions ImportOptions { get; set; }
+        public ImportOptions<DbConnectionInfo> ImportOptions { get; set; }
 
         public MongoUpdateOptions(DbConnectionInfo targetDatabase)
         {
@@ -46,7 +46,7 @@ namespace dbsc.Mongo
             return clone;
         }
 
-        IUpdateOptions IUpdateOptions.Clone()
+        IUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>> IUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>>.Clone()
         {
             return Clone();
         }
@@ -54,7 +54,7 @@ namespace dbsc.Mongo
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

@@ -3,37 +3,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace dbsc.Core
+namespace dbsc.Core.Sql
 {
-    public class SqlCheckoutOptions : ISqlCheckoutOptions<SqlUpdateOptions>
+    /// <summary>
+    /// Typical settings needed for updating a SQL database
+    /// </summary>
+    public class SqlUpdateOptions : ISqlUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
         public int? Revision { get; set; }
-        public string CreationTemplate { get; set; }
-        public ImportOptions ImportOptions { get; set; }
+        public ImportOptions<DbConnectionInfo> ImportOptions { get; set; }
 
-        public SqlCheckoutOptions(DbConnectionInfo targetDatabase)
+        public SqlUpdateOptions(DbConnectionInfo targetDatabase)
         {
-            TargetDatabase = targetDatabase;
             Directory = Environment.CurrentDirectory;
-            CreationTemplate = "CREATE DATABASE $DatabaseName$";
+            TargetDatabase = targetDatabase;
         }
 
-        public SqlUpdateOptions UpdateOptions
+        public SqlUpdateOptions(SqlCheckoutOptions checkoutOptions)
         {
-            get
+            Directory = checkoutOptions.Directory;
+            TargetDatabase = checkoutOptions.TargetDatabase.Clone();
+            Revision = checkoutOptions.Revision;
+
+            if (checkoutOptions.ImportOptions != null)
             {
-                return new SqlUpdateOptions(this);
+                ImportOptions = checkoutOptions.ImportOptions.Clone();
             }
         }
 
-        public SqlCheckoutOptions Clone()
+        public SqlUpdateOptions Clone()
         {
-            SqlCheckoutOptions clone = new SqlCheckoutOptions(TargetDatabase.Clone());
+            SqlUpdateOptions clone = new SqlUpdateOptions(TargetDatabase.Clone());
             clone.Directory = Directory;
             clone.Revision = Revision;
-            clone.CreationTemplate = CreationTemplate;
 
             if (ImportOptions != null)
             {
@@ -43,7 +47,7 @@ namespace dbsc.Core
             return clone;
         }
 
-        ICheckoutOptions<SqlUpdateOptions> ICheckoutOptions<SqlUpdateOptions>.Clone()
+        IUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>> IUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>>.Clone()
         {
             return Clone();
         }
@@ -51,7 +55,7 @@ namespace dbsc.Core
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ZipNameWithoutVersion>DBSC for Oracle</ZipNameWithoutVersion>
+    <DebianPackageName>oradbsc</DebianPackageName>
+    <!--<DebianDependencyFpmFlags>-d 'mono-runtime (>= 2.10.8.1)' -d 'libmono-corlib4.0-cil (>= 2.10.8.1)' -d 'libmono-system4.0-cil (>= 2.10.8.1)' -d 'libmono-system-core4.0-cil (>= 2.10.8.1)' -d 'libmono-microsoft-csharp4.0-cil (>= 2.10.8.1)' -d 'libmono-system-data4.0-cil (>= 2.10.8.1)' -d 'libmono-system-xml4.0-cil(>= 2.10.8.1)' -d 'libmono-system-transactions4.0-cil (>= 2.10.8.1)' -d 'libmono-security4.0-cil (>= 2.10.8.1)'</DebianDependencyFpmFlags>-->
+    <RpmPackageName>oradbsc</RpmPackageName>
+    <!--<RpmDependencyFpmFlags>-d 'mono-core >= 2.10.8'</RpmDependencyFpmFlags>-->
+    <RpmLicense>Apache Software License</RpmLicense>
+  </PropertyGroup>
+
+  <!-- Used for Debian/rpm packaging. -->
+  <ItemGroup>
+    <!--<LicenseFiles Include="license.txt;notice.txt;..\linux_common\apache\copyright;..\licenses\Dapper\dapper_license.txt;..\licenses\NDesk.Options\ndesk_options_license.txt;..\licenses\Npgsql\npgsql_license.txt" />-->
+  </ItemGroup>
+</Project>

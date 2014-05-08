@@ -2,18 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace dbsc.Core
+namespace dbsc.Oracle
 {
-    public interface ISqlCheckoutOptions<TUpdateOptions> : ICheckoutOptions<TUpdateOptions>
-        where TUpdateOptions : ISqlUpdateOptions
+    class Program
     {
-        string CreationTemplate { get; set; }
+        static void Main(string[] args)
+        {
+            OracleDbscApp app = new OracleDbscApp();
+            app.Run(args);
+        }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
