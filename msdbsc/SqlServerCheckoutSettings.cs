@@ -2,38 +2,31 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using dbsc.Core;
+using dbsc.Core.Sql;
 
-namespace dbsc.Core.Sql
+namespace dbsc.SqlServer
 {
-    /// <summary>
-    /// Typical settings needed for checking out a SQL database.
-    /// </summary>
-    public class SqlCheckoutOptions : ISqlCheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateOptions>
+    class SqlServerCheckoutSettings : ISqlCheckoutOptions<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings>
     {
         public string Directory { get; set; }
-        public DbConnectionInfo TargetDatabase { get; set; }
+        public SqlServerConnectionSettings TargetDatabase { get; set; }
         public int? Revision { get; set; }
         public string CreationTemplate { get; set; }
-        public ImportOptions<DbConnectionInfo> ImportOptions { get; set; }
+        public ImportOptions<SqlServerConnectionSettings> ImportOptions { get; set; }
 
-        public SqlCheckoutOptions(DbConnectionInfo targetDatabase)
+        public SqlServerCheckoutSettings(SqlServerConnectionSettings targetDatabase)
         {
             TargetDatabase = targetDatabase;
             Directory = Environment.CurrentDirectory;
             CreationTemplate = dbsc.Core.Options.DBCreateTemplateOptionBundle.DefaultSQLTemplate;
         }
 
-        public SqlUpdateOptions UpdateOptions
-        {
-            get
-            {
-                return new SqlUpdateOptions(this);
-            }
-        }
+        public SqlServerUpdateSettings UpdateOptions { get { return new SqlServerUpdateSettings(this); } }
 
-        public SqlCheckoutOptions Clone()
+        public SqlServerCheckoutSettings Clone()
         {
-            SqlCheckoutOptions clone = new SqlCheckoutOptions(TargetDatabase.Clone());
+            SqlServerCheckoutSettings clone = new SqlServerCheckoutSettings(TargetDatabase.Clone());
             clone.Directory = Directory;
             clone.Revision = Revision;
             clone.CreationTemplate = CreationTemplate;
@@ -46,7 +39,8 @@ namespace dbsc.Core.Sql
             return clone;
         }
 
-        ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateOptions> ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateOptions>.Clone()
+
+        ICheckoutOptions<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings> ICheckoutOptions<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings>.Clone()
         {
             return Clone();
         }

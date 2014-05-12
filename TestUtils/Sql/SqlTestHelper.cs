@@ -24,7 +24,7 @@ namespace TestUtils.Sql
         public string DbscExePath { get; private set; }
         public string ScriptsDir { get; private set; }
 
-        public abstract void DropDatabase(string dbName);
+        public abstract void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection);
         public abstract void VerifyCreationTemplateRan(string dbName);
         public abstract IDbConnection GetDbConnection(string dbName);
         public abstract void VerifyPersonNameIndexExists(IDbConnection conn);
@@ -36,6 +36,11 @@ namespace TestUtils.Sql
             string thisAssemblyDir = Path.GetDirectoryName(thisAssemblyPath);
             DbscExePath = Path.Combine(thisAssemblyDir, DbscExeName);
             ScriptsDir = Path.Combine(thisAssemblyDir, "scripts");
+        }
+
+        public void DropDatabase(string dbName)
+        {
+            DropDatabase(dbName, databaseName => GetDbConnection(databaseName));
         }
 
         public List<Person> ExpectedPeople
@@ -127,7 +132,13 @@ namespace TestUtils.Sql
         public void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
             List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
-            using (IDbConnection conn = GetDbConnection(dbName))
+            VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion, GetDbConnection);
+        }
+
+        public void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
+            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion, Func<string, IDbConnection> getDbConnection)
+        {
+            using (IDbConnection conn = getDbConnection(dbName))
             {
                 List<Person> people = conn.Query<Person>("SELECT * FROM person").ToList();
                 List<script_isolation_test> isolationTest = conn.Query<script_isolation_test>("SELECT * FROM script_isolation_test").ToList();
@@ -160,7 +171,7 @@ namespace TestUtils.Sql
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

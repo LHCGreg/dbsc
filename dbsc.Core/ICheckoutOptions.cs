@@ -5,6 +5,14 @@ using System.Text;
 
 namespace dbsc.Core
 {
+    public interface ICheckoutOptions<TConnectionSettings, TImportSettings>
+    {
+        string Directory { get; set; }
+        TConnectionSettings TargetDatabase { get; set; }
+        int? Revision { get; set; }
+        TImportSettings ImportOptions { get; set; }
+    }
+    
     /// <summary>
     /// Generic interface for settings needed to check out a database.
     /// </summary>
@@ -12,13 +20,9 @@ namespace dbsc.Core
     /// <typeparam name="TImportSettings"></typeparam>
     /// <typeparam name="TUpdateOptions"></typeparam>
     public interface ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
+        : ICheckoutOptions<TConnectionSettings, TImportSettings>
         where TUpdateOptions : IUpdateOptions<TConnectionSettings, TImportSettings>
     {
-        string Directory { get; set; }
-        TConnectionSettings TargetDatabase { get; set; }
-        int? Revision { get; set; }
-        TImportSettings ImportOptions { get; set; }
-
         TUpdateOptions UpdateOptions { get; }
         ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions> Clone();
     }

@@ -16,63 +16,39 @@ namespace dbsc.Core.Options
         public string Username { get; private set; }
         public string Password { get; private set; }
 
-        public bool UseIntegratedSecurity { get { return Username == null && IntegratedSecuritySupported; } }
-
-        private bool _integratedSecuritySupported = false;
-        /// <summary>
-        /// Set to true if integrated security is supported. This will add to the help messages for username and password
-        /// and not cause validation to fail if username is not specified.
-        /// </summary>
-        public bool IntegratedSecuritySupported { get { return _integratedSecuritySupported; } set { _integratedSecuritySupported = value; } }
-
         private bool _authenticationRequired = true;
         public bool AuthenticationRequired { get { return _authenticationRequired; } set { _authenticationRequired = value; } }
 
-        private const string DefaultUsernameMessageWithoutIntegratedSecuritySupport = "Username to use to log in to the target database. REQUIRED.";
-        private const string DefaultPasswordMessageWithoutIntegratedSecuritySupport = "Password to use to log in to the target database. If not specified, you will be prompted for your password.";
+        private const string DefaultUsernameMessage = "Username to use to log in to the target database. REQUIRED.";
+        private const string DefaultPasswordMessage = "Password to use to log in to the target database. If not specified, you will be prompted for your password.";
 
-        private const string DefaultUsernameMessageWithIntegratedSecuritySupport = "Username to use to log in to the target database. If not specified, log in with integrated security.";
-        private const string DefaultPasswordMessageWithIntegratedSecuritySupport = "Password to use to log in to the target database. If not specified and username is not specified, log in with integrated security. If not specified and username is specified, you will be prompted for your password.";
+        private string _usernameMessage = DefaultUsernameMessage;
+        public string UsernameMessage { get { return _usernameMessage; } set { _usernameMessage = value; } }
 
-        public string UsernameMessageWithoutIntegratedSecuritySupport { get; set; }
-        public string PasswordMessageWithoutIntegratedSecuritySupport { get; set; }
-        public string UsernameMessageWithIntegratedSecuritySupport { get; set; }
-        public string PasswordMessageWithIntegratedSecuritySupport { get; set; }
+        private string _passwordMesage = DefaultPasswordMessage;
+        public string PasswordMessage { get { return _passwordMesage; } set { _passwordMesage = value; } }
 
-        public TargetDBOptionBundle()
-        {
-            UsernameMessageWithoutIntegratedSecuritySupport = DefaultUsernameMessageWithoutIntegratedSecuritySupport;
-            PasswordMessageWithoutIntegratedSecuritySupport = DefaultPasswordMessageWithoutIntegratedSecuritySupport;
-            UsernameMessageWithIntegratedSecuritySupport = DefaultUsernameMessageWithIntegratedSecuritySupport;
-            PasswordMessageWithIntegratedSecuritySupport = DefaultPasswordMessageWithIntegratedSecuritySupport;
-        }
+        public static readonly string DefaultTargetDbOptionText = "Target database name to create or update. Defaults to the master database name detected from script names.";
+        public static readonly string DefaultTargetDbServerOptionText = "Server of the target database. Defaults to localhost.";
         
         public void AddToOptionSet(OptionSet optionSet)
-        {
-            string usernameMessage;
-            string passwordMessage;
-            if (IntegratedSecuritySupported)
-            {
-                usernameMessage = UsernameMessageWithIntegratedSecuritySupport;
-                passwordMessage = PasswordMessageWithIntegratedSecuritySupport;
-            }
-            else
-            {
-                usernameMessage = UsernameMessageWithoutIntegratedSecuritySupport;
-                passwordMessage = PasswordMessageWithoutIntegratedSecuritySupport;
-            }
-            
-            optionSet.Add("targetDb=", "Target database name to create or update. Defaults to the master database name detected from script names.", arg => TargetDB = arg);
-            optionSet.Add("targetDbServer=", "Server of the target database. Defaults to localhost.", arg => TargetDBServer = arg);
-            optionSet.Add("u|username=", usernameMessage, arg => Username = arg);
-            optionSet.Add("p|password=", passwordMessage, arg => Password = arg);
+        {        
+            optionSet.Add("targetDb=", DefaultTargetDbOptionText, arg => TargetDB = arg);
+            optionSet.Add("targetDbServer=", DefaultTargetDbServerOptionText, arg => TargetDBServer = arg);
+            optionSet.Add("u|username=", UsernameMessage, arg => Username = arg);
+            optionSet.Add("p|password=", PasswordMessage, arg => Password = arg);
         }
 
         public void Validate()
         {
-            if (!IntegratedSecuritySupported && Username == null && AuthenticationRequired)
+            if (Username == null && AuthenticationRequired)
             {
-                throw new DbscOptionException("Username must be specified with -u username");
+                throw new DbscOptionException("Username must be specified with -u username.");
+            }
+
+            if (Username == null && Password != null)
+            {
+                throw new DbscOptionException("Password but not username specified for target database.");
             }
         }
 

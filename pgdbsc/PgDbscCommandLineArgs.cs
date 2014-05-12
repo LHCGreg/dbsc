@@ -10,10 +10,24 @@ namespace dbsc.Postgres
 {
     class PgDbscCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<SqlCheckoutOptions, SqlUpdateOptions>
     {
-        private TargetDBOptionBundle _targetDB = new TargetDBOptionBundle() { IntegratedSecuritySupported = Utils.RunningOnWindows() };
+        // Postgres handles integrated security (SSPI) weirdly.
+        // You still have to specify what user you're logging in as.
+        // The server checks pg_hba.conf and matches against connection method (network vs. unix socket), database,
+        // username connecting as, and IP address. The first line that matches is used and determines what authentication
+        // method to use (password, SSPI, others). Thus, if you are connecting to the same database from the same IP
+        // to the same postgres user, it will always use password authentication, or always SSPI, you cannot change which
+        // without changing pg_hba.conf.
+        //
+        // PostgreSQL then pg_ident.conf to see if your Windows login is mapped to the PostgreSQL username requested.
+        // If so, access is granted. If not, access is denied.
+        //
+        // dbsc will handle this by always required username to be specified but not using password if the -sspi flag is specified.
+        //
+        // Does anyone even use SSPI with PostgreSQL?
+        private PgTargetDBOptionBundle _targetDB = new PgTargetDBOptionBundle();
         private TargetDBPortOptionBundle _targetDBPort = new TargetDBPortOptionBundle();
         private DBCreateTemplateOptionBundle _template = new DBCreateTemplateOptionBundle(DBCreateTemplateOptionBundle.DefaultSQLTemplate);
-        private SourceDBOptionBundle _sourceDB = new SourceDBOptionBundle() { IntegratedSecuritySupported = Utils.RunningOnWindows() };
+        private PgSourceDBOptionBundle _sourceDB = new PgSourceDBOptionBundle();
         private SourceDBPortOptionBundle _sourceDBPort = new SourceDBPortOptionBundle();
         private ImportTableListFileOptionBundle _importTableListFile = new ImportTableListFileOptionBundle();
         
@@ -34,7 +48,7 @@ namespace dbsc.Postgres
                 database: _targetDB.TargetDB,
                 port: _targetDBPort.TargetDBPort,
                 username: _targetDB.Username,
-                password: _targetDB.Password
+                password: _targetDB.Password // Null password indicates using SSPI
             );
         }
 
@@ -47,7 +61,7 @@ namespace dbsc.Postgres
                     database: _sourceDB.SourceDB,
                     port: _sourceDBPort.SourceDBPort,
                     username: _sourceDB.SourceUsername,
-                    password: _sourceDB.SourcePassword
+                    password: _sourceDB.SourcePassword // Null password indicates using SSPI
                 );
 
                 ImportOptions<DbConnectionInfo> importSettings = new ImportOptions<DbConnectionInfo>(sourceConnectionSettings);

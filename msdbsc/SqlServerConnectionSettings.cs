@@ -2,38 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using dbsc.Core;
 
-namespace dbsc.Core
+namespace dbsc.SqlServer
 {
     /// <summary>
     /// Typical settings needed for opening a database connection.
     /// </summary>
-    public class DbConnectionInfo : IConnectionSettings, ICloneable
+    public class SqlServerConnectionSettings : IConnectionSettings, ICloneable
     {
         public string Server { get; set; }
         public string Database { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
 
-        public bool UseIntegratedSecurity { get { return Password == null; } }
-
-        /// <summary>
-        /// If null, use the normal port for the database.
-        /// </summary>
-        public int? Port { get; set; }
+        public bool UseIntegratedSecurity { get { return Username == null; } }
 
         public int ConnectTimeoutInSeconds { get; set; }
         public int ScriptTimeoutInSeconds { get; set; }
         public int CommandTimeoutInSeconds { get; set; }
         public int ImportTableTimeoutInSeconds { get; set; }
 
-        public DbConnectionInfo(string server, string database, int? port, string username, string password)
+        public SqlServerConnectionSettings(string server, string database, string username, string password)
         {
             Server = server;
             Database = database;
             Username = username;
             Password = password;
-            Port = port;
 
             ConnectTimeoutInSeconds = 10;
             ScriptTimeoutInSeconds = 60 * 60 * 24 * 7; // 1 week
@@ -46,9 +41,9 @@ namespace dbsc.Core
             return Database + " on " + Server;
         }
 
-        public virtual DbConnectionInfo Clone()
+        public virtual SqlServerConnectionSettings Clone()
         {
-            DbConnectionInfo clone = new DbConnectionInfo(server: Server, database: Database, port: Port, username: Username, password: Password);
+            SqlServerConnectionSettings clone = new SqlServerConnectionSettings(server: Server, database: Database, username: Username, password: Password);
             clone.ConnectTimeoutInSeconds = this.ConnectTimeoutInSeconds;
             clone.ScriptTimeoutInSeconds = this.ScriptTimeoutInSeconds;
             clone.CommandTimeoutInSeconds = this.CommandTimeoutInSeconds;

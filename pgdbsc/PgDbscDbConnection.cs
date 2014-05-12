@@ -50,13 +50,14 @@ namespace dbsc.Postgres
             // Do not set this to true! Imports get weird threading issues if you do - probably a bug in Npgsql
             builder.SyncNotification = false;
 
+            builder.UserName = connectionInfo.Username;
+
             if (connectionInfo.UseIntegratedSecurity)
             {
                 builder.IntegratedSecurity = true;
             }
             else
             {
-                builder.UserName = connectionInfo.Username;
                 builder.Password = connectionInfo.Password;
             }
 

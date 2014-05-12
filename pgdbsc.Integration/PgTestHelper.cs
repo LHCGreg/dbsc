@@ -20,9 +20,12 @@ namespace dbsc.Postgres.Integration
         public override string Password { get { return "testpw"; } }
         public override string DbscExeName { get { return "pgdbsc.exe"; } }
 
-        public override void DropDatabase(string dbName)
+        public string IntegratedSecurityTargetDatabaseName { get { return "pgdbsc_integrated_security_test"; } }
+        public string IntegratedSecurityPostgresUsername { get { return "dbsc_test_user_sspi"; } }
+
+        public override void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection)
         {
-            using (IDbConnection conn = GetDbConnection("postgres"))
+            using (IDbConnection conn = getDbConnection("postgres"))
             {
                 conn.Execute(string.Format("DROP DATABASE IF EXISTS {0}", dbName));
             }
@@ -41,13 +44,22 @@ namespace dbsc.Postgres.Integration
             }
         }
 
-        public override IDbConnection GetDbConnection(string dbName)
+        private IDbConnection GetDbConnection(string dbName, bool useIntegratedSecurity)
         {
             NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder();
             builder.Database = dbName;
             builder.Host = "localhost";
-            builder.Password = Password;
-            builder.UserName = Username;
+
+            if (useIntegratedSecurity)
+            {
+                builder.UserName = IntegratedSecurityPostgresUsername;
+                builder.IntegratedSecurity = true;
+            }
+            else
+            {
+                builder.Password = Password;
+                builder.UserName = Username;
+            }
 
             // Turn off connection pooling so that connections don't hang around preventing the database from being able to be dropped
             builder.Pooling = false;
@@ -57,6 +69,16 @@ namespace dbsc.Postgres.Integration
             NpgsqlConnection conn = new NpgsqlConnection(connectionString);
             conn.Open();
             return conn;
+        }
+
+        public override IDbConnection GetDbConnection(string dbName)
+        {
+            return GetDbConnection(dbName, useIntegratedSecurity: false);
+        }
+
+        public IDbConnection GetDbConnectionWithIntegratedSecurity(string dbName)
+        {
+            return GetDbConnection(dbName, useIntegratedSecurity: true);
         }
 
         public override void VerifyPersonNameIndexExists(IDbConnection conn)

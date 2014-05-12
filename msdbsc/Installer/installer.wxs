@@ -46,6 +46,9 @@ It could be run standalone but the user would get an error message if .NET 4.0 o
           <Component Id="dbsc.Core.dll" Guid="{820EF55A-7ACB-44A6-A66E-4A3D0A84A5F9}">
             <File Id="dbsc.Core.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.dll" />
           </Component>
+          <Component Id="dbsc.Core.Sql.dll" Guid="{D751151D-C902-4A14-964B-3CD4E6E12BB2}">
+            <File Id="dbsc.Core.Sql.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.Sql.dll" />
+          </Component>
           <Component Id="license.rtf" Guid="{7C7FB5BC-CE8A-486E-B7C8-6F1A2902B07F}">
             <File Id="license.rtf" KeyPath="yes" Source="SourceDir\license.rtf" />
           </Component>
@@ -83,6 +86,7 @@ It could be run standalone but the user would get an error message if .NET 4.0 o
       <ComponentRef Id="Dapper.dll"/>
       <ComponentRef Id="dapper_license.txt"/>
       <ComponentRef Id="dbsc.Core.dll"/>
+      <ComponentRef Id="dbsc.Core.Sql.dll"/>
       <ComponentRef Id="license.rtf"/>
       <ComponentRef Id="license.txt"/>
       <ComponentRef Id="msdbsc.exe"/>

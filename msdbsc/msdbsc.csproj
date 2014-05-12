@@ -56,13 +56,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MsDbscApp.cs" />
+    <Compile Include="MsDbscCommandLineArgs.cs" />
     <Compile Include="MsDbscDbConnection.cs" />
     <Compile Include="MsDbscEngine.cs" />
     <Compile Include="MsImportOperation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlServerCheckoutSettings.cs" />
+    <Compile Include="SqlServerConnectionSettings.cs" />
+    <Compile Include="SqlServerUpdateSettings.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\dbsc.Core.Sql\dbsc.Core.Sql.csproj">
+      <Project>{d618dbb1-f4ec-4b6d-8a24-a504c45cc36e}</Project>
+      <Name>dbsc.Core.Sql</Name>
+    </ProjectReference>
     <ProjectReference Include="..\dbsc.Core\dbsc.Core.csproj">
       <Project>{2F0C15B4-429D-4363-8DF9-04F53B6C7D77}</Project>
       <Name>dbsc.Core</Name>

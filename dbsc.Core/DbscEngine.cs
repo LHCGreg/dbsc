@@ -124,7 +124,7 @@ namespace dbsc.Core
                 // Check that source database was checked out with dbsc
                 if (!DatabaseHasMetadataTable(options.ImportOptions.SourceDatabase))
                 {
-                    throw new DbscException(string.Format("Source database {0} was not created with dbsc and cannot be imported from.", options.ImportOptions.SourceDatabase.ToDescriptionString()));
+                    throw new DbscException(string.Format("Source database {0} was not created with dbsc and cannot be imported from or you do not have permission to it.", options.ImportOptions.SourceDatabase.ToDescriptionString()));
                 }
             }
         }

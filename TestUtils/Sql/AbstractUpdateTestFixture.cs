@@ -193,6 +193,11 @@ namespace TestUtils.Sql
             Helper.DropDatabase(dbName);
         }
 
+        protected void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection)
+        {
+            Helper.DropDatabase(dbName, getDbConnection);
+        }
+
         protected void VerifyCreationTemplateRan(string dbName)
         {
             Helper.VerifyCreationTemplateRan(dbName);
@@ -231,6 +236,12 @@ namespace TestUtils.Sql
             List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
             Helper.VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion);
+        }
+
+        protected void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
+            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion, Func<string, IDbConnection> getDbConnection)
+        {
+            Helper.VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion, getDbConnection);
         }
     }
 }

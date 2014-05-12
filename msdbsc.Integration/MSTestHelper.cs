@@ -17,13 +17,14 @@ namespace dbsc.SqlServer.Integration
         public override string AltTestDatabaseName { get { return "msdbsc_test_2"; } }
         public override string SourceDatabaseName { get { return "msdbsc_test_source"; } }
         public override string AltSourceDatabaseName { get { return "msdbsc_test_source_2"; } }
+        public string IntegratedSecurityTargetDatabaseName { get { return "msdbsc_integrated_security_test"; } }
         public override string Username { get { return "dbsc_test_user"; } }
         public override string Password { get { return "testpw"; } }
         public override string DbscExeName { get { return "msdbsc.exe"; } }
 
-        public override void DropDatabase(string dbName)
+        public override void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection)
         {
-            using (IDbConnection conn = GetDbConnection("master"))
+            using (IDbConnection conn = getDbConnection("master"))
             {
                 string existenceCheckSql = @"SELECT 1 FROM sys.databases WHERE name = @dbName";
                 if (conn.Query(existenceCheckSql, new { dbName = dbName }).Any())
@@ -44,14 +45,21 @@ namespace dbsc.SqlServer.Integration
             }
         }
 
-        public override IDbConnection GetDbConnection(string dbName)
+        private IDbConnection GetDbConnection(string dbName, bool useIntegratedSecurity)
         {
             SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
             builder.DataSource = "localhost";
             builder.InitialCatalog = dbName;
-            builder.IntegratedSecurity = false;
-            builder.UserID = Username;
-            builder.Password = Password;
+            if (useIntegratedSecurity)
+            {
+                builder.IntegratedSecurity = true;
+            }
+            else
+            {
+                builder.IntegratedSecurity = false;
+                builder.UserID = Username;
+                builder.Password = Password;
+            }
 
             // Turn off connection pooling so that connections don't hang around preventing the database from being able to be dropped
             builder.Pooling = false;
@@ -61,6 +69,16 @@ namespace dbsc.SqlServer.Integration
             SqlConnection conn = new SqlConnection(connectionString);
             conn.Open();
             return conn;
+        }
+
+        public override IDbConnection GetDbConnection(string dbName)
+        {
+            return GetDbConnection(dbName, useIntegratedSecurity: false);
+        }
+
+        public IDbConnection GetDbConnectionWithIntegratedSecurity(string dbName)
+        {
+            return GetDbConnection(dbName, useIntegratedSecurity: true);
         }
 
         public override void VerifyPersonNameIndexExists(IDbConnection conn)

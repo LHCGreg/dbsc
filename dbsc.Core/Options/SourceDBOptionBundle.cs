@@ -13,59 +13,33 @@ namespace dbsc.Core.Options
         public string SourceUsername { get; private set; }
         public string SourcePassword { get; private set; }
 
-        public bool UseIntegratedSecurity { get { return SourceUsername == null && IntegratedSecuritySupported; } }
-
-        private bool _integratedSecuritySupported = false;
-        /// <summary>
-        /// Set to true if integrated security is supported. This will add to the help messages for username and password
-        /// and not cause validation to fail if username is not specified.
-        /// </summary>
-        public bool IntegratedSecuritySupported { get { return _integratedSecuritySupported; } set { _integratedSecuritySupported = value; } }
-
         private bool _authenticationRequired = true;
         public bool AuthenticationRequired { get { return _authenticationRequired; } set { _authenticationRequired = value; } }
 
-        private const string DefaultUsernameMessageWithoutIntegratedSecuritySupport = "Username to use to log in to the source database.";
-        private const string DefaultPasswordMessageWithoutIntegratedSecuritySupport = "Password to use to log in to the source database. If not specified, you will be prompted for your password.";
+        private const string DefaultUsernameMessage = "Username to use to log in to the source database.";
+        private const string DefaultPasswordMessage = "Password to use to log in to the source database. If not specified, you will be prompted for your password.";
 
-        private const string DefaultUsernameMessageWithIntegratedSecuritySupport = "Username to use to log in to the source database. If not specified, log in with integrated security.";
-        private const string DefaultPasswordMessageWithIntegratedSecuritySupport = "Password to use to log in to the source database. If not specified and username is not specified, log in with integrated security. If not specified and username is specified, you will be prompted for your password.";
+        private string _usernameMessage = DefaultUsernameMessage;
+        public string UsernameMessage { get { return _usernameMessage; } set { _usernameMessage = value; } }
 
-        public string UsernameMessageWithoutIntegratedSecuritySupport { get; set; }
-        public string PasswordMessageWithoutIntegratedSecuritySupport { get; set; }
-        public string UsernameMessageWithIntegratedSecuritySupport { get; set; }
-        public string PasswordMessageWithIntegratedSecuritySupport { get; set; }
+        private string _passwordMessage = DefaultPasswordMessage;
+        public string PasswordMessage { get { return _passwordMessage; } set { _passwordMessage = value; } }
 
-        public SourceDBOptionBundle()
-        {
-            UsernameMessageWithoutIntegratedSecuritySupport = DefaultUsernameMessageWithoutIntegratedSecuritySupport;
-            PasswordMessageWithoutIntegratedSecuritySupport = DefaultPasswordMessageWithoutIntegratedSecuritySupport;
-            UsernameMessageWithIntegratedSecuritySupport = DefaultUsernameMessageWithIntegratedSecuritySupport;
-            PasswordMessageWithIntegratedSecuritySupport = DefaultPasswordMessageWithIntegratedSecuritySupport;
-        }
-
-        public void AddToOptionSet(OptionSet optionSet)
+        public static string GetDefaultSourceDbServerOptionText()
         {
             string programName = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
             string sourceDbServerMessage = string.Format("Database server to import data from. Only specify this option if you wish to import data. Data will be imported when the target database's revision matches the source database's revision. The source database must have been created using {0}.", programName);
+            return sourceDbServerMessage;
+        }
 
-            string usernameMessage;
-            string passwordMessage;
-            if (IntegratedSecuritySupported)
-            {
-                usernameMessage = UsernameMessageWithIntegratedSecuritySupport;
-                passwordMessage = PasswordMessageWithIntegratedSecuritySupport;
-            }
-            else
-            {
-                usernameMessage = UsernameMessageWithoutIntegratedSecuritySupport;
-                passwordMessage = PasswordMessageWithoutIntegratedSecuritySupport;
-            }
+        public static readonly string DefaultSourceDbOptionText = "Database to import data from. If not specified, defaults to the name used in the script file names.";
 
-            optionSet.Add("sourceDbServer=", sourceDbServerMessage, arg => SourceDBServer = arg);
-            optionSet.Add("sourceDb=", "Database to import data from. If not specified, defaults to the name used in the script file names.", arg => SourceDB = arg);
-            optionSet.Add("sourceUsername=", usernameMessage, arg => SourceUsername = arg);
-            optionSet.Add("sourcePassword=", passwordMessage, arg => SourcePassword = arg);
+        public void AddToOptionSet(OptionSet optionSet)
+        {
+            optionSet.Add("sourceDbServer=", GetDefaultSourceDbServerOptionText(), arg => SourceDBServer = arg);
+            optionSet.Add("sourceDb=", DefaultSourceDbOptionText, arg => SourceDB = arg);
+            optionSet.Add("sourceUsername=", UsernameMessage, arg => SourceUsername = arg);
+            optionSet.Add("sourcePassword=", PasswordMessage, arg => SourcePassword = arg);
         }
 
         public void Validate()
@@ -85,7 +59,7 @@ namespace dbsc.Core.Options
                 throw new DbscOptionException("sourceDbServer must be specified if importing data.");
             }
 
-            if (!IntegratedSecuritySupported && SourceUsername == null && AuthenticationRequired)
+            if (SourceUsername == null && AuthenticationRequired && SourceDBServer != null)
             {
                 throw new DbscOptionException("sourceUsername must be specified if importing data.");
             }

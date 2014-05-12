@@ -12,25 +12,23 @@ namespace dbsc.Mongo
     {
         private TargetDBOptionBundle _targetDB = new TargetDBOptionBundle()
         {
-            IntegratedSecuritySupported = false,
             AuthenticationRequired = false,
-            UsernameMessageWithoutIntegratedSecuritySupport = "Username to use to log in to the target database. Only specify if the target MongoDB has authentication enabled.",
-            PasswordMessageWithoutIntegratedSecuritySupport = "Password to use to log in to the target database. If username is specified and no password is specified, you will be prompted for your password. Only specify if the target MongoDB has authentication enabled."
+            UsernameMessage = "Username to use to log in to the target database. Only specify if the target MongoDB has authentication enabled.",
+            PasswordMessage = "Password to use to log in to the target database. If username is specified and no password is specified, you will be prompted for your password. Only specify if the target MongoDB has authentication enabled."
         };
 
         private TargetDBPortOptionBundle _targetDBPort = new TargetDBPortOptionBundle();
 
         private DBCreateTemplateOptionBundle _template = new DBCreateTemplateOptionBundle(defaultTemplate: null)
         {
-            HelpMessage = @"File with a template javascript file to run after creating the database in a checkout. $DatabaseName$ will be replaced with the database name."
+            HelpMessage = "File with a template javascript file to run after creating the database in a checkout. $DatabaseName$ will be replaced with the database name."
         };
 
         private SourceDBOptionBundle _sourceDB = new SourceDBOptionBundle()
         {
-            IntegratedSecuritySupported = false,
             AuthenticationRequired = false,
-            UsernameMessageWithoutIntegratedSecuritySupport = "Username to use to log in to the source database. Only specify if the source MongoDB has authentication enabled.",
-            PasswordMessageWithoutIntegratedSecuritySupport = "Password to use to log in to the source database. If username is specified and no password is specified, you will be prompted for your password. Only specify if the source MongoDB has authentication enabled."
+            UsernameMessage = "Username to use to log in to the source database. Only specify if the source MongoDB has authentication enabled.",
+            PasswordMessage = "Password to use to log in to the source database. If username is specified and no password is specified, you will be prompted for your password. Only specify if the source MongoDB has authentication enabled."
         };
 
         private SourceDBPortOptionBundle _sourceDBPort = new SourceDBPortOptionBundle();
