@@ -71,7 +71,7 @@ namespace dbsc.Postgres
             Connection.Notification += OnNotification; // When is this fired?
             try
             {
-                Connection.Execute(sql);
+                Connection.Execute(sql, commandTimeout: ScriptTimeoutInSeconds);
             }
             finally
             {
