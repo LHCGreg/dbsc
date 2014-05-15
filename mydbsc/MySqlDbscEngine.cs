@@ -2,17 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MySql.Data.MySqlClient;
-using Dapper;
-using dbsc.Core;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using MySql.Data.MySqlClient;
+using Dapper;
+using dbsc.Core;
+using dbsc.Core.Sql;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscEngine : SqlDbscEngine<SqlCheckoutOptions, SqlUpdateOptions, MySqlDbscDbConnection>
+    class MySqlDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutOptions, ImportOptions<DbConnectionInfo>, SqlUpdateOptions, MySqlDbscDbConnection>
     {
         protected override DbConnectionInfo GetSystemDatabaseConnectionInfo(DbConnectionInfo targetDatabase)
         {
@@ -51,31 +52,32 @@ ENGINE=InnoDB";
 
         protected override bool MetadataTableExists(MySqlDbscDbConnection conn)
         {
-            DbConnectionInfo connInfo = conn.TimeoutSettings;
             string sql =
 @"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME = 'dbsc_metadata'
 AND TABLE_SCHEMA = @db";
 
-            Dictionary<string, object> sqlParams = new Dictionary<string, object>() { { "db", connInfo.Database } };
+            Dictionary<string, object> sqlParams = new Dictionary<string, object>() { { "db", conn.ConnectionInfo.Database } };
 
             Table metadataTable = conn.Query<Table>(sql, sqlParams).FirstOrDefault();
             return metadataTable != null;
         }
 
-        protected override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(MySqlDbscDbConnection conn)
+        public override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)
         {
-            DbConnectionInfo connInfo = conn.TimeoutSettings;
-            string sql =
+            using (MySqlDbscDbConnection conn = OpenConnection(connectionInfo))
+            {
+                string sql =
 @"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME <> 'dbsc_metadata'
 AND TABLE_SCHEMA = @db
 AND TABLE_TYPE = 'BASE TABLE'";
 
-            Dictionary<string, object> sqlParams = new Dictionary<string, object>() { { "db", connInfo.Database } };
+                Dictionary<string, object> sqlParams = new Dictionary<string, object>() { { "db", conn.ConnectionInfo.Database } };
 
-            List<string> tables = conn.Query<Table>(sql, sqlParams).Select(table => table.TABLE_NAME).ToList();
-            return tables;
+                List<string> tables = conn.Query<Table>(sql, sqlParams).Select(table => table.TABLE_NAME).ToList();
+                return tables;
+            }
         }
 
         protected override bool CheckoutAndUpdateIsSupported(out string whyNot)
@@ -103,7 +105,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
             return true;
         }
 
-        protected override void ImportData(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public override void ImportData(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
             // MS SQL Server and PostgreSQL have simple methods of streaming bulk data to the DB server. MySQL does not.
             // The best MySQL can do is accept a file with the bulk data in it.
@@ -258,7 +260,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
     }
 }
 
-// Copyright (C) 2013 Greg Najda
+// Copyright (C) 2014 Greg Najda
 //
 // This file is part of mydbsc.
 //
