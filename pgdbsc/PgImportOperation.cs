@@ -12,7 +12,7 @@ namespace dbsc.Postgres
     // Moved this out to a class to break up the three import stages without having to pass state like fkCreationSql around
     class PgImportOperation
     {
-        private SqlUpdateOptions _options;
+        private SqlUpdateSettings _options;
         private ICollection<string> _tablesToImportAlreadyEscaped;
         private ICollection<string> _allTablesExceptMetadataAlreadyEscaped;
 
@@ -24,7 +24,7 @@ namespace dbsc.Postgres
         const int EnableConstraintTimeoutInSeconds = 60 * 60 * 6;
         const int VacuumTimeoutInSeconds = 60 * 60 * 6;
 
-        public PgImportOperation(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public PgImportOperation(SqlUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
             _options = options;
             _tablesToImportAlreadyEscaped = tablesToImportAlreadyEscaped;

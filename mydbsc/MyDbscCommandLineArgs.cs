@@ -8,7 +8,7 @@ using dbsc.Core.Sql;
 
 namespace dbsc.MySql
 {
-    class MyDbscCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<SqlCheckoutOptions, SqlUpdateOptions>
+    class MyDbscCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<SqlCheckoutSettings, SqlUpdateSettings>
     {
         private TargetDBOptionBundle _targetDB = new TargetDBOptionBundle();
         private TargetDBPortOptionBundle _targetDBPort = new TargetDBPortOptionBundle();
@@ -60,11 +60,11 @@ namespace dbsc.MySql
             }
         }
 
-        public SqlCheckoutOptions GetCheckoutSettings()
+        public SqlCheckoutSettings GetCheckoutSettings()
         {
             DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
 
-            SqlCheckoutOptions checkoutSettings = new SqlCheckoutOptions(connectionSettings);
+            SqlCheckoutSettings checkoutSettings = new SqlCheckoutSettings(connectionSettings);
             checkoutSettings.CreationTemplate = _template.Template;
             checkoutSettings.ImportOptions = GetImportSettings();
             checkoutSettings.Directory = this.ScriptDirectory;
@@ -73,10 +73,10 @@ namespace dbsc.MySql
             return checkoutSettings;
         }
 
-        public SqlUpdateOptions GetUpdateSettings()
+        public SqlUpdateSettings GetUpdateSettings()
         {
             DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
-            SqlUpdateOptions updateSettings = new SqlUpdateOptions(connectionSettings);
+            SqlUpdateSettings updateSettings = new SqlUpdateSettings(connectionSettings);
             updateSettings.Directory = this.ScriptDirectory;
             updateSettings.Revision = this.Revison;
             updateSettings.ImportOptions = GetImportSettings();

@@ -1,14 +1,18 @@
-﻿using dbsc.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NUnit.Framework;
+using TestUtils.Sql;
 
-namespace dbsc.Oracle
+namespace oradbsc.Integration
 {
-    class OracleDbConnectionInfo : DbConnectionInfo
+    [TestFixture]
+    class UpdateTestFixture : AbstractUpdateTestFixture<OracleTestHelper>
     {
-        public string ServiceName { get; set; }
+        protected override int? Port { get { return 1521; } }
+        protected override bool ImportSupported { get { return false; } }
+        protected override bool TemplateSupported { get { return false; } }
     }
 }
 

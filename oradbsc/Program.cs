@@ -10,7 +10,7 @@ namespace dbsc.Oracle
     {
         static void Main(string[] args)
         {
-            OracleDbscApp app = new OracleDbscApp();
+            OraDbscApp app = new OraDbscApp();
             app.Run(args);
         }
     }

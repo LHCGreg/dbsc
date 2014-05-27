@@ -2,30 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using dbsc.Core;
-using dbsc.Core.Options;
-using NDesk.Options;
+using dbsc.Core.Sql;
 
 namespace dbsc.Oracle
 {
-    class OracleServiceNameOptionBundle : IOptionBundle
+    class OraDbscApp : DbscApp<OraDbscCommandLineArgs, DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings>
     {
-        public string ServiceName { get; private set; }
-        
-        public void AddToOptionSet(OptionSet optionSet)
-        {
-            optionSet.Add("service|serviceName=", "Oracle service name of the database to connect to", arg => ServiceName = arg);
-        }
-
-        public void Validate()
-        {
-            if (ServiceName == null)
-            {
-                throw new DbscOptionException("Oracle service name must be specified with the -service option.");
-            }
-        }
-
-        public void PostValidate()
+        public OraDbscApp()
+            : base(new OraDbscEngine())
         {
             ;
         }

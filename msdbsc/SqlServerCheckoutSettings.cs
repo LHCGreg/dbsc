@@ -7,7 +7,7 @@ using dbsc.Core.Sql;
 
 namespace dbsc.SqlServer
 {
-    class SqlServerCheckoutSettings : ISqlCheckoutOptions<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings>
+    class SqlServerCheckoutSettings : ISqlCheckoutSettings<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings>
     {
         public string Directory { get; set; }
         public SqlServerConnectionSettings TargetDatabase { get; set; }

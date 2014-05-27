@@ -8,7 +8,7 @@ namespace dbsc.Core.Sql
     /// <summary>
     /// Typical settings needed for checking out a SQL database.
     /// </summary>
-    public class SqlCheckoutOptions : ISqlCheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateOptions>
+    public class SqlCheckoutSettings : ISqlCheckoutSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateSettings>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
@@ -16,24 +16,24 @@ namespace dbsc.Core.Sql
         public string CreationTemplate { get; set; }
         public ImportOptions<DbConnectionInfo> ImportOptions { get; set; }
 
-        public SqlCheckoutOptions(DbConnectionInfo targetDatabase)
+        public SqlCheckoutSettings(DbConnectionInfo targetDatabase)
         {
             TargetDatabase = targetDatabase;
             Directory = Environment.CurrentDirectory;
             CreationTemplate = dbsc.Core.Options.DBCreateTemplateOptionBundle.DefaultSQLTemplate;
         }
 
-        public SqlUpdateOptions UpdateOptions
+        public SqlUpdateSettings UpdateOptions
         {
             get
             {
-                return new SqlUpdateOptions(this);
+                return new SqlUpdateSettings(this);
             }
         }
 
-        public SqlCheckoutOptions Clone()
+        public SqlCheckoutSettings Clone()
         {
-            SqlCheckoutOptions clone = new SqlCheckoutOptions(TargetDatabase.Clone());
+            SqlCheckoutSettings clone = new SqlCheckoutSettings(TargetDatabase.Clone());
             clone.Directory = Directory;
             clone.Revision = Revision;
             clone.CreationTemplate = CreationTemplate;
@@ -46,7 +46,7 @@ namespace dbsc.Core.Sql
             return clone;
         }
 
-        ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateOptions> ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateOptions>.Clone()
+        ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateSettings> ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateSettings>.Clone()
         {
             return Clone();
         }

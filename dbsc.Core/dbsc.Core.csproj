@@ -82,7 +82,7 @@
     <Compile Include="DbConnectionInfo.cs" />
     <Compile Include="DbscEngine.cs" />
     <Compile Include="ICheckoutOptions.cs" />
-    <Compile Include="IUpdateOptions.cs" />
+    <Compile Include="IUpdateSettings.cs" />
     <Compile Include="DbscApp.cs" />
     <Compile Include="DbscException.cs" />
     <Compile Include="DbscOperation.cs" />

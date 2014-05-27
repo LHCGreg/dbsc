@@ -13,7 +13,7 @@ namespace dbsc.Core
     /// <typeparam name="TUpdateOptions"></typeparam>
     public abstract class DbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions>
         where TCheckoutOptions : ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
-        where TUpdateOptions : IUpdateOptions<TConnectionSettings, TImportSettings>
+        where TUpdateOptions : IUpdateSettings<TConnectionSettings, TImportSettings>
         where TConnectionSettings : IConnectionSettings
         where TImportSettings : IImportSettings<TConnectionSettings>
     {

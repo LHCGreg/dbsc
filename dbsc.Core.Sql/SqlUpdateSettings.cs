@@ -8,20 +8,20 @@ namespace dbsc.Core.Sql
     /// <summary>
     /// Typical settings needed for updating a SQL database
     /// </summary>
-    public class SqlUpdateOptions : ISqlUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>>
+    public class SqlUpdateSettings : ISqlUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
         public int? Revision { get; set; }
         public ImportOptions<DbConnectionInfo> ImportOptions { get; set; }
 
-        public SqlUpdateOptions(DbConnectionInfo targetDatabase)
+        public SqlUpdateSettings(DbConnectionInfo targetDatabase)
         {
             Directory = Environment.CurrentDirectory;
             TargetDatabase = targetDatabase;
         }
 
-        public SqlUpdateOptions(SqlCheckoutOptions checkoutOptions)
+        public SqlUpdateSettings(SqlCheckoutSettings checkoutOptions)
         {
             Directory = checkoutOptions.Directory;
             TargetDatabase = checkoutOptions.TargetDatabase.Clone();
@@ -33,9 +33,9 @@ namespace dbsc.Core.Sql
             }
         }
 
-        public SqlUpdateOptions Clone()
+        public SqlUpdateSettings Clone()
         {
-            SqlUpdateOptions clone = new SqlUpdateOptions(TargetDatabase.Clone());
+            SqlUpdateSettings clone = new SqlUpdateSettings(TargetDatabase.Clone());
             clone.Directory = Directory;
             clone.Revision = Revision;
 
@@ -47,7 +47,7 @@ namespace dbsc.Core.Sql
             return clone;
         }
 
-        IUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>> IUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>>.Clone()
+        IUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>> IUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>>.Clone()
         {
             return Clone();
         }

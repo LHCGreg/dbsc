@@ -42,8 +42,8 @@ namespace dbsc.Postgres
 
         public void AddToOptionSet(OptionSet optionSet)
         {
-            optionSet.Add("targetDb=", TargetDBOptionBundle.DefaultTargetDbOptionText, arg => TargetDB = arg);
-            optionSet.Add("targetDbServer=", TargetDBOptionBundle.DefaultTargetDbServerOptionText, arg => TargetDBServer = arg);
+            optionSet.Add("targetDb=", TargetDBOptionBundle.DefaultTargetDBOptionText, arg => TargetDB = arg);
+            optionSet.Add("targetDbServer=", TargetDBOptionBundle.DefaultTargetDBServerOptionText, arg => TargetDBServer = arg);
             optionSet.Add("u|username=", "Username to use to log in to the target database. REQUIRED.", arg => Username = arg);
             optionSet.Add("p|password=", "Password to use to log in to the target database. If not specified, you will be prompted for your password unless the -SSPI flag is specified.", arg => Password = arg);
             optionSet.Add("SSPI|integratedSecurity", "Use SSPI (Windows login) authentication.", argExistence => UseIntegratedSecurity = (argExistence != null));

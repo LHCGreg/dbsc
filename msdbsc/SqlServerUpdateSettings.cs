@@ -7,7 +7,7 @@ using dbsc.Core.Sql;
 
 namespace dbsc.SqlServer
 {
-    class SqlServerUpdateSettings : ISqlUpdateOptions<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>>
+    class SqlServerUpdateSettings : ISqlUpdateSettings<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>>
     {
         public string Directory { get; set; }
         public SqlServerConnectionSettings TargetDatabase { get; set; }
@@ -46,7 +46,7 @@ namespace dbsc.SqlServer
             return clone;
         }
 
-        IUpdateOptions<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>>  IUpdateOptions<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>>.Clone()
+        IUpdateSettings<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>>  IUpdateSettings<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>>.Clone()
         {
             return Clone();
         }

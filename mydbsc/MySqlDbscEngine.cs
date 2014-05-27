@@ -13,8 +13,10 @@ using dbsc.Core.Sql;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutOptions, ImportOptions<DbConnectionInfo>, SqlUpdateOptions, MySqlDbscDbConnection>
+    class MySqlDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings, MySqlDbscDbConnection>
     {
+        protected override char QueryParamChar { get { return '@'; } }
+        
         protected override DbConnectionInfo GetSystemDatabaseConnectionInfo(DbConnectionInfo targetDatabase)
         {
             DbConnectionInfo noDatabase = targetDatabase.Clone();
@@ -105,7 +107,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
             return true;
         }
 
-        public override void ImportData(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public override void ImportData(SqlUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
             // MS SQL Server and PostgreSQL have simple methods of streaming bulk data to the DB server. MySQL does not.
             // The best MySQL can do is accept a file with the bulk data in it.

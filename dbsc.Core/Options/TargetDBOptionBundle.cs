@@ -28,13 +28,19 @@ namespace dbsc.Core.Options
         private string _passwordMesage = DefaultPasswordMessage;
         public string PasswordMessage { get { return _passwordMesage; } set { _passwordMesage = value; } }
 
-        public static readonly string DefaultTargetDbOptionText = "Target database name to create or update. Defaults to the master database name detected from script names.";
-        public static readonly string DefaultTargetDbServerOptionText = "Server of the target database. Defaults to localhost.";
+        public static readonly string DefaultTargetDBOptionText = "Target database name to create or update. Defaults to the master database name detected from script names.";
+        public static readonly string DefaultTargetDBServerOptionText = "Server of the target database. Defaults to localhost.";
+
+        private string _targetDBMessage = DefaultTargetDBOptionText;
+        public string TargetDBMessage { get { return _targetDBMessage; } set { _targetDBMessage = value; } }
+
+        private string _targetDBServerMessage = DefaultTargetDBServerOptionText;
+        public string TargetDBServerMessage { get { return _targetDBServerMessage; } set { _targetDBServerMessage = value; } }
         
         public void AddToOptionSet(OptionSet optionSet)
         {        
-            optionSet.Add("targetDb=", DefaultTargetDbOptionText, arg => TargetDB = arg);
-            optionSet.Add("targetDbServer=", DefaultTargetDbServerOptionText, arg => TargetDBServer = arg);
+            optionSet.Add("targetDb=", TargetDBMessage, arg => TargetDB = arg);
+            optionSet.Add("targetDbServer=", TargetDBServerMessage, arg => TargetDBServer = arg);
             optionSet.Add("u|username=", UsernameMessage, arg => Username = arg);
             optionSet.Add("p|password=", PasswordMessage, arg => Password = arg);
         }

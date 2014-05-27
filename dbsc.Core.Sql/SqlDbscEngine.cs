@@ -20,8 +20,8 @@ namespace dbsc.Core.Sql
     public abstract class SqlDbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions, TConnection>
         : DbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions>
         , IDbscEngineWithTableImport<TConnectionSettings, TImportSettings, TUpdateOptions>
-        where TCheckoutOptions : ISqlCheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
-        where TUpdateOptions : ISqlUpdateOptions<TConnectionSettings, TImportSettings>
+        where TCheckoutOptions : ISqlCheckoutSettings<TConnectionSettings, TImportSettings, TUpdateOptions>
+        where TUpdateOptions : ISqlUpdateSettings<TConnectionSettings, TImportSettings>
         where TConnectionSettings : IConnectionSettings
         where TImportSettings : IImportSettingsWithTableList<TConnectionSettings>
         where TConnection : IDbscDbConnection
@@ -73,6 +73,11 @@ namespace dbsc.Core.Sql
         protected virtual string MetadataTableName { get { return "dbsc_metadata"; } }
         protected virtual string MetadataPropertyNameColumn { get { return "property_name"; } }
         protected virtual string MetadataPropertyValueColumn { get { return "property_value"; } }
+        
+        /// <summary>
+        /// Character used before parameters in queries. @ for most databases.
+        /// </summary>
+        protected abstract char QueryParamChar { get; }
 
         protected override bool DatabaseHasMetadataTable(TConnectionSettings connectionInfo)
         {
@@ -115,7 +120,7 @@ namespace dbsc.Core.Sql
             }
         }
 
-        private string GetCurrentTimestampString()
+        protected string GetCurrentTimestampString()
         {
             return GetTimestampString(DateTime.UtcNow);
         }
@@ -142,7 +147,7 @@ VALUES
                 {
                     sqlBuilder.Append(",");
                 }
-                sqlBuilder.AppendFormat("(@name{0}, @value{0})\n", propertyNum);
+                sqlBuilder.AppendFormat("({0}name{1}, {0}value{1})\n", QueryParamChar, propertyNum);
                 sqlParams["name" + propertyNum.ToString(CultureInfo.InvariantCulture)] = propertyName;
                 sqlParams["value" + propertyNum.ToString(CultureInfo.InvariantCulture)] = properties[propertyName];
                 propertyNum++;
@@ -155,8 +160,8 @@ VALUES
         protected virtual void UpdateMetadataProperty(TConnection conn, string propertyName, string propertyValue)
         {
             string sql = string.Format(@"UPDATE {0}
-SET {1} = @value
-WHERE {2} = @name", MetadataTableName, MetadataPropertyValueColumn, MetadataPropertyNameColumn);
+SET {2} = {1}value
+WHERE {3} = {1}name", MetadataTableName, QueryParamChar, MetadataPropertyValueColumn, MetadataPropertyNameColumn);
 
             Dictionary<string, object> sqlParams = new Dictionary<string, object>();
             sqlParams["value"] = propertyValue;
@@ -168,7 +173,7 @@ WHERE {2} = @name", MetadataTableName, MetadataPropertyValueColumn, MetadataProp
         protected virtual string GetMetadataProperty(TConnection conn, string propertyName)
         {
             string sql = string.Format(@"SELECT {0} FROM {1}
-WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataPropertyNameColumn);
+WHERE {2} = {3}name", MetadataPropertyValueColumn, MetadataTableName, MetadataPropertyNameColumn, QueryParamChar);
             Dictionary<string, object> sqlParams = new Dictionary<string, object>() { { "name", propertyName } };
 
             string propertyValue = conn.Query<string>(sql, sqlParams).FirstOrDefault();

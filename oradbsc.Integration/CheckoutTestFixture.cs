@@ -1,24 +1,19 @@
-﻿using dbsc.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NUnit.Framework;
+using TestUtils.Sql;
 
-namespace dbsc.Oracle
+namespace oradbsc.Integration
 {
-    class OracleDbscApp : DbscApp<SqlCommandLineArgs, SqlCheckoutOptions, SqlUpdateOptions>
+    [TestFixture]
+    class CheckoutTestFixture : AbstractCheckoutTestFixture<OracleTestHelper>
     {
-        public OracleDbscApp()
-            : base(
-            engine: new OracleDbscEngine(),
-            parseArgsFunc: args => { SqlCommandLineArgs commandLine = new SqlCommandLineArgs(); commandLine.Parse(args); return commandLine; },
-            getCheckoutOptionsFunc: commandLine => commandLine.GetCheckoutOptions(),
-            getUpdateOptionsFunc: commandLine => commandLine.GetUpdateOptions()
-            )
-        {
-            ;
-        }
+        protected override int? Port { get { return 1521; } }
+        protected override bool ImportSupported { get { return false; } }
+        protected override bool TemplateSupported { get { return false; } }
     }
 }
 

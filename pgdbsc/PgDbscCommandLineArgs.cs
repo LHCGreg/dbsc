@@ -8,7 +8,7 @@ using dbsc.Core.Sql;
 
 namespace dbsc.Postgres
 {
-    class PgDbscCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<SqlCheckoutOptions, SqlUpdateOptions>
+    class PgDbscCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<SqlCheckoutSettings, SqlUpdateSettings>
     {
         // Postgres handles integrated security (SSPI) weirdly.
         // You still have to specify what user you're logging in as.
@@ -74,11 +74,11 @@ namespace dbsc.Postgres
             }
         }
 
-        public SqlCheckoutOptions GetCheckoutSettings()
+        public SqlCheckoutSettings GetCheckoutSettings()
         {
             DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
 
-            SqlCheckoutOptions checkoutSettings = new SqlCheckoutOptions(connectionSettings);
+            SqlCheckoutSettings checkoutSettings = new SqlCheckoutSettings(connectionSettings);
             checkoutSettings.CreationTemplate = _template.Template;
             checkoutSettings.ImportOptions = GetImportSettings();
             checkoutSettings.Directory = this.ScriptDirectory;
@@ -87,10 +87,10 @@ namespace dbsc.Postgres
             return checkoutSettings;
         }
 
-        public SqlUpdateOptions GetUpdateSettings()
+        public SqlUpdateSettings GetUpdateSettings()
         {
             DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
-            SqlUpdateOptions updateSettings = new SqlUpdateOptions(connectionSettings);
+            SqlUpdateSettings updateSettings = new SqlUpdateSettings(connectionSettings);
             updateSettings.Directory = this.ScriptDirectory;
             updateSettings.Revision = this.Revison;
             updateSettings.ImportOptions = GetImportSettings();

@@ -20,7 +20,7 @@ namespace dbsc.Core
         where TConnectionSettings : IConnectionSettings
         where TCheckoutSettings : ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateSettings>
         where TImportSettings : IImportSettings<TConnectionSettings>
-        where TUpdateSettings : IUpdateOptions<TConnectionSettings, TImportSettings>
+        where TUpdateSettings : IUpdateSettings<TConnectionSettings, TImportSettings>
     {
         private DbscEngine<TConnectionSettings, TCheckoutSettings, TImportSettings, TUpdateSettings> _engine;
         

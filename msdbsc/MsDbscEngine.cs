@@ -13,6 +13,8 @@ namespace dbsc.SqlServer
 {
     class MsDbscEngine : SqlDbscEngine<SqlServerConnectionSettings, SqlServerCheckoutSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings, MsDbscDbConnection>
     {
+        protected override char QueryParamChar { get { return '@'; } }
+        
         protected override SqlServerConnectionSettings GetSystemDatabaseConnectionInfo(SqlServerConnectionSettings targetDatabase)
         {
             SqlServerConnectionSettings systemInfo = targetDatabase.Clone();

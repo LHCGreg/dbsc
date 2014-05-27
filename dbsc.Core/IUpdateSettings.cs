@@ -10,23 +10,23 @@ namespace dbsc.Core
     /// </summary>
     /// <typeparam name="TConnectionSettings"></typeparam>
     /// <typeparam name="TImportSettings"></typeparam>
-    public interface IUpdateOptions<TConnectionSettings, TImportSettings>
+    public interface IUpdateSettings<TConnectionSettings, TImportSettings>
     {
         string Directory { get; set; }
         TConnectionSettings TargetDatabase { get; set; }
         int? Revision { get; set; }
         TImportSettings ImportOptions { get; set; }
 
-        IUpdateOptions<TConnectionSettings, TImportSettings> Clone();
+        IUpdateSettings<TConnectionSettings, TImportSettings> Clone();
     }
 
-    public static class UpdateOptionsExtensions
+    public static class UpdateSettingsExtensions
     {
         public static TUpdateOptions
             CloneUpdateOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TImportSettings, TUpdateOptions>
             (this TUpdateOptions options, string dbNameFromScripts)
             where TConnectionSettings : IConnectionSettings
-            where TUpdateOptions : IUpdateOptions<TConnectionSettings, TImportSettings>
+            where TUpdateOptions : IUpdateSettings<TConnectionSettings, TImportSettings>
             where TImportSettings : IImportSettings<TConnectionSettings>
         {
             TUpdateOptions clone = (TUpdateOptions)options.Clone();

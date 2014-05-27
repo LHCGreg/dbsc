@@ -6,7 +6,7 @@ using dbsc.Core;
 
 namespace dbsc.Mongo
 {
-    class MongoUpdateOptions : IUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>>
+    class MongoUpdateOptions : IUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
@@ -46,7 +46,7 @@ namespace dbsc.Mongo
             return clone;
         }
 
-        IUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>> IUpdateOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>>.Clone()
+        IUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>> IUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>>.Clone()
         {
             return Clone();
         }

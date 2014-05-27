@@ -7,12 +7,14 @@ using dbsc.Core.Sql;
 
 namespace dbsc.Postgres
 {
-    class PgDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutOptions, ImportOptions<DbConnectionInfo>, SqlUpdateOptions, PgDbscDbConnection>
+    class PgDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings, PgDbscDbConnection>
     {
         public PgDbscEngine()
         {
             ;
         }
+
+        protected override char QueryParamChar { get { return '@'; } }
 
         protected override DbConnectionInfo GetSystemDatabaseConnectionInfo(DbConnectionInfo targetDatabase)
         {
@@ -84,7 +86,7 @@ AND table_name = 'dbsc_metadata'";
             return true;
         }
 
-        public override void ImportData(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public override void ImportData(SqlUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
             PgImportOperation import = new PgImportOperation(options, tablesToImportAlreadyEscaped, allTablesExceptMetadataAlreadyEscaped);
             import.Run();

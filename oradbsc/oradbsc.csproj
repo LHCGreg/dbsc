@@ -55,6 +55,9 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dapper">
+      <HintPath>..\packages\Dapper.1.13\lib\net40\Dapper.dll</HintPath>
+    </Reference>
     <Reference Include="NDesk.Options">
       <HintPath>..\packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
     </Reference>
@@ -67,14 +70,10 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="OracleCheckoutOptions.cs" />
-    <Compile Include="OracleDbConnectionInfo.cs" />
-    <Compile Include="OracleDbscApp.cs" />
-    <Compile Include="OracleDbscDbConnection.cs" />
-    <Compile Include="OracleDbscEngine.cs" />
-    <Compile Include="OracleImportOptions.cs" />
-    <Compile Include="OracleServiceNameOptionBundle.cs" />
-    <Compile Include="OracleUpdateOptions.cs" />
+    <Compile Include="OraDbscApp.cs" />
+    <Compile Include="OraDbscDbConnection.cs" />
+    <Compile Include="OraDbscEngine.cs" />
+    <Compile Include="OraDbscCommandLineArgs.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -85,14 +84,34 @@
     <None Include="..\common_csproj.targets">
       <Link>common_csproj.targets</Link>
     </None>
-    <None Include="App.config" />
+    <None Include="license.rtf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="oradbsc.targets" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\licenses\Dapper\dapper_license.txt">
+      <Link>dapper_license.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\licenses\NDesk.Options\ndesk_options_license.txt">
+      <Link>ndesk_options_license.txt</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="license.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="notice.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="version.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\dbsc.Core.Sql\dbsc.Core.Sql.csproj">
+      <Project>{d618dbb1-f4ec-4b6d-8a24-a504c45cc36e}</Project>
+      <Name>dbsc.Core.Sql</Name>
+    </ProjectReference>
     <ProjectReference Include="..\dbsc.Core\dbsc.Core.csproj">
       <Project>{2f0c15b4-429d-4363-8df9-04f53b6c7d77}</Project>
       <Name>dbsc.Core</Name>

@@ -10,10 +10,10 @@ namespace dbsc.Core.Sql
     /// </summary>
     /// <typeparam name="TConnectionSettings"></typeparam>
     /// <typeparam name="TImportSettings"></typeparam>
-    /// <typeparam name="TUpdateOptions"></typeparam>
-    public interface ISqlCheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
-        : ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
-        where TUpdateOptions : ISqlUpdateOptions<TConnectionSettings, TImportSettings>
+    /// <typeparam name="TUpdateSettings"></typeparam>
+    public interface ISqlCheckoutSettings<TConnectionSettings, TImportSettings, TUpdateSettings>
+        : ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateSettings>
+        where TUpdateSettings : ISqlUpdateSettings<TConnectionSettings, TImportSettings>
     {
         string CreationTemplate { get; set; }
     }

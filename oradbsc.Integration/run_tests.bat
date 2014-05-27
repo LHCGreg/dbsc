@@ -1,0 +1,2 @@
+msbuild /t:Build /p:Configuration=Debug;Platform=AnyCPU oradbsc.Integration.csproj
+nunit-console "bin/Debug_AnyCPU/oradbsc.Integration.dll" -nologo -noxml "-out=bin/Debug_AnyCPU/test_stdout.txt" "-err=bin/Debug_AnyCPU/test_stderr.txt"

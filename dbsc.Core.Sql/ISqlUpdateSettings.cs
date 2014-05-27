@@ -3,29 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace dbsc.Oracle
+namespace dbsc.Core.Sql
 {
-    class OracleImportOptions
+    public interface ISqlUpdateSettings<TConnectionSettings, TImportSettings> : IUpdateSettings<TConnectionSettings, TImportSettings>
     {
-        public OracleDbConnectionInfo SourceDatabase { get; set; }
-        public IList<string> TablesToImport { get; set; }
-
-        public OracleImportOptions(OracleDbConnectionInfo sourceDatabase)
-        {
-            SourceDatabase = sourceDatabase;
-        }
-
-        public OracleImportOptions Clone()
-        {
-            OracleImportOptions clone = new OracleImportOptions(SourceDatabase.Clone());
-
-            if (TablesToImport != null)
-            {
-                clone.TablesToImport = new List<string>(TablesToImport);
-            }
-
-            return clone;
-        }
     }
 }
 

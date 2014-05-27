@@ -21,7 +21,7 @@ namespace dbsc.Core
     /// <typeparam name="TUpdateOptions"></typeparam>
     public interface ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
         : ICheckoutOptions<TConnectionSettings, TImportSettings>
-        where TUpdateOptions : IUpdateOptions<TConnectionSettings, TImportSettings>
+        where TUpdateOptions : IUpdateSettings<TConnectionSettings, TImportSettings>
     {
         TUpdateOptions UpdateOptions { get; }
         ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions> Clone();
@@ -32,7 +32,7 @@ namespace dbsc.Core
         public static TCheckoutOptions CloneCheckoutOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions>
             (this TCheckoutOptions options, string dbNameFromScripts)
             where TCheckoutOptions : ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
-            where TUpdateOptions : IUpdateOptions<TConnectionSettings, TImportSettings>
+            where TUpdateOptions : IUpdateSettings<TConnectionSettings, TImportSettings>
             where TConnectionSettings : IConnectionSettings
             where TImportSettings : IImportSettings<TConnectionSettings>
         {

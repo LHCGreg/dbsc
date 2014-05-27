@@ -8,7 +8,7 @@ namespace dbsc.Core
 {
     public interface IDbscEngineWithTableImport<TConnectionSettings, TImportSettings, TUpdateSettings>
         where TImportSettings : IImportSettingsWithTableList<TConnectionSettings>
-        where TUpdateSettings : IUpdateOptions<TConnectionSettings, TImportSettings>
+        where TUpdateSettings : IUpdateSettings<TConnectionSettings, TImportSettings>
     {
         ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(TConnectionSettings connectionSettings);
         void ImportData(TUpdateSettings updateSettings, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadata);
@@ -19,7 +19,7 @@ namespace dbsc.Core
         public static void ImportData<TConnectionSettings, TImportSettings, TUpdateSettings>
             (this IDbscEngineWithTableImport<TConnectionSettings, TImportSettings, TUpdateSettings> engine, TUpdateSettings updateSettings)
             where TImportSettings : IImportSettingsWithTableList<TConnectionSettings>
-            where TUpdateSettings : IUpdateOptions<TConnectionSettings, TImportSettings>
+            where TUpdateSettings : IUpdateSettings<TConnectionSettings, TImportSettings>
         {
             Console.WriteLine("Beginning import...");
             Stopwatch timer = Stopwatch.StartNew();
