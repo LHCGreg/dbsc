@@ -121,6 +121,8 @@
     </Content>
     <Content Include="deb\description.txt" />
     <Content Include="deb\description_readme.txt" />
+    <Content Include="rpm\description.txt" />
+    <Content Include="rpm\description_readme.txt" />
     <Content Include="Installer\bundle.wxs">
       <SubType>Designer</SubType>
     </Content>
