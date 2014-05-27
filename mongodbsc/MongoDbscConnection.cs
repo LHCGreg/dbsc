@@ -97,9 +97,6 @@ namespace dbsc.Mongo
         public void DropCollection(string collectionName)
         {
             m_database.DropCollection(collectionName);
-            CommandDocument cloneCommand = new CommandDocument();
-            cloneCommand["cloneCollection"] = "";
-            cloneCommand["from"] = "";
         }
 
         public void Upsert<T>(T document, string collectionName)
@@ -298,7 +295,7 @@ namespace dbsc.Mongo
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

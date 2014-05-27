@@ -2,24 +2,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Data;
 using System.Data.SqlClient;
 using Microsoft.SqlServer.Management.Smo;
 using Microsoft.SqlServer.Management.Common;
-using dbsc.Core;
 using Dapper;
-using System.Data;
+using dbsc.Core;
+using dbsc.Core.Sql;
 
 namespace dbsc.SqlServer
 {
     class MsDbscDbConnection : BaseDbscDbConnection<SqlConnection, SqlTransaction>
     {
-        public MsDbscDbConnection(DbConnectionInfo connectionInfo)
-            : base(OpenConnection(connectionInfo), connectionInfo)
+        public int ScriptTimeoutInSeconds { get; private set; }
+        public int ImportTableTimeoutInSeconds { get; private set; }
+        
+        public MsDbscDbConnection(SqlServerConnectionSettings connectionInfo)
+            : base(OpenConnection(connectionInfo))
         {
-            ;
+            ScriptTimeoutInSeconds = connectionInfo.ScriptTimeoutInSeconds;
+            CommandTimeoutInSeconds = connectionInfo.CommandTimeoutInSeconds;
+            ImportTableTimeoutInSeconds = connectionInfo.ImportTableTimeoutInSeconds;
         }
 
-        private static SqlConnection OpenConnection(DbConnectionInfo connectionInfo)
+        private static SqlConnection OpenConnection(SqlServerConnectionSettings connectionInfo)
         {
             string connectionString = GetConnectionString(connectionInfo);
             SqlConnection conn = new SqlConnection(connectionString);
@@ -27,7 +33,7 @@ namespace dbsc.SqlServer
             return conn;
         }
 
-        private static string GetConnectionString(DbConnectionInfo connectionInfo)
+        private static string GetConnectionString(SqlServerConnectionSettings connectionInfo)
         {
             SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
             builder.ApplicationName = "msdbsc";
@@ -39,7 +45,7 @@ namespace dbsc.SqlServer
             // The driver resets the connection settings when taking a connection from the pool.
             //builder.Pooling = false;
 
-            if (connectionInfo.Username == null)
+            if (connectionInfo.UseIntegratedSecurity)
             {
                 builder.IntegratedSecurity = true;
             }
@@ -60,7 +66,7 @@ namespace dbsc.SqlServer
             ServerConnection serverConnection = new ServerConnection(Connection);
             Server server = new Server(serverConnection);
             server.ConnectionContext.ServerMessage += OnServerMessage;
-            server.ConnectionContext.StatementTimeout = ConnectionInfo.ScriptTimeoutInSeconds;
+            server.ConnectionContext.StatementTimeout = ScriptTimeoutInSeconds;
             try
             {
                 server.ConnectionContext.ExecuteNonQuery(sql);
@@ -98,7 +104,7 @@ namespace dbsc.SqlServer
         public void ImportTable(MsDbscDbConnection sourceConn, string table, SqlTransaction sourceDbTransaction = null)
         {
             SqlBulkCopy bulkCopy = new SqlBulkCopy(Connection, SqlBulkCopyOptions.KeepIdentity | SqlBulkCopyOptions.KeepNulls | SqlBulkCopyOptions.TableLock, externalTransaction: null);
-            bulkCopy.BulkCopyTimeout = ConnectionInfo.ImportTableTimeoutInSeconds;
+            bulkCopy.BulkCopyTimeout = ImportTableTimeoutInSeconds;
             bulkCopy.DestinationTableName = table;
 
             string importSql = string.Format("SELECT * FROM {0}", table);
@@ -111,7 +117,7 @@ namespace dbsc.SqlServer
             {
                 importQuery = new SqlCommand(importSql, sourceConn.Connection);
             }
-            importQuery.CommandTimeout = ConnectionInfo.ImportTableTimeoutInSeconds;
+            importQuery.CommandTimeout = ImportTableTimeoutInSeconds;
 
             using (importQuery)
             {
@@ -132,16 +138,11 @@ namespace dbsc.SqlServer
         {
             return QuoteSqlServerIdentifier(schema) + "." + QuoteSqlServerIdentifier(identifier);
         }
-
-        public override void Dispose()
-        {
-            Connection.Dispose();
-        }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

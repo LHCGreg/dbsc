@@ -11,11 +11,40 @@ namespace dbsc.SqlServer.Integration
     public class UpdateTestFixture : AbstractUpdateTestFixture<MSTestHelper>
     {
         protected override int? Port { get { return null; } }
+
+        [Test]
+        public void TestIntegratedSecurity()
+        {
+            DropDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName);
+            CheckoutZeroWithIntegratedSecurity();
+            RunSuccessfulCommand(string.Format("update -targetDb {0} -sourceDbServer localhost -sourceDb {1}",
+                Helper.IntegratedSecurityTargetDatabaseName, SourceDatabaseName));
+            VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+        }
+
+        private void CheckoutZeroWithIntegratedSecurity()
+        {
+            RunSuccessfulCommand(string.Format("checkout -r 0 -targetDb {0}", Helper.IntegratedSecurityTargetDatabaseName));
+            VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedRevision0People, null,
+                ExpectedRevision0IsolationTestValues, expectedVersion: 0);
+        }
+
+        private void VerifyDatabaseWithIntegratedSecurity(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
+            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
+        {
+            VerifyDatabase(dbName, expectedPeople, getExpectedBooks,
+                expectedIsolationTestValues, expectedVersion, databaseName => Helper.GetDbConnectionWithIntegratedSecurity(databaseName));
+        }
+
+        private void DropDatabaseWithIntegratedSecurity(string dbName)
+        {
+            DropDatabase(dbName, databaseName => Helper.GetDbConnectionWithIntegratedSecurity(databaseName));
+        }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

@@ -5,19 +5,26 @@ using System.Text;
 using System.Data;
 using Dapper;
 
-namespace dbsc.Core
+namespace dbsc.Core.Sql
 {
+    /// <summary>
+    /// A SQL connection that can run queries, commands, and scripts.
+    /// </summary>
+    /// <typeparam name="TConnection"></typeparam>
+    /// <typeparam name="TTransaction"></typeparam>
     public abstract class BaseDbscDbConnection<TConnection, TTransaction> : IDbscDbConnection
         where TConnection : IDbConnection
         where TTransaction : class, IDbTransaction
     {
-        protected TConnection Connection { get; set; }
-        public DbConnectionInfo ConnectionInfo { get; private set; }
+        protected TConnection Connection { get; private set; }
+        public int CommandTimeoutInSeconds { get; set; }
 
-        protected BaseDbscDbConnection(TConnection connection, DbConnectionInfo connectionInfo)
+        private const int DefaultCommandTimeoutInSeconds = 15;
+
+        protected BaseDbscDbConnection(TConnection connection)
         {
             Connection = connection;
-            ConnectionInfo = connectionInfo;
+            CommandTimeoutInSeconds = DefaultCommandTimeoutInSeconds;
         }
 
         public abstract void ExecuteSqlScript(string sql);
@@ -35,7 +42,7 @@ namespace dbsc.Core
                 dapperParams = new DynamicParameters(sqlParams);
             }
 
-            int realTimeoutInSeconds = timeoutInSeconds ?? ConnectionInfo.CommandTimeoutInSeconds;
+            int realTimeoutInSeconds = timeoutInSeconds ?? CommandTimeoutInSeconds;
 
             Connection.Execute(sql, param: dapperParams, transaction: transaction, commandTimeout: realTimeoutInSeconds);
         }
@@ -53,12 +60,15 @@ namespace dbsc.Core
                 dapperParams = new DynamicParameters(sqlParams);
             }
 
-            int realTimeoutInSeconds = timeoutInSeconds ?? ConnectionInfo.CommandTimeoutInSeconds;
+            int realTimeoutInSeconds = timeoutInSeconds ?? CommandTimeoutInSeconds;
 
             return Connection.Query<T>(sql, param: dapperParams, transaction: transaction, commandTimeout: realTimeoutInSeconds);
         }
 
-        public abstract void Dispose();
+        public virtual void Dispose()
+        {
+            Connection.Dispose();
+        }
     }
 }
 

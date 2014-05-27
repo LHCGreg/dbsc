@@ -5,15 +5,21 @@ using System.Text;
 using Npgsql;
 using Dapper;
 using dbsc.Core;
+using dbsc.Core.Sql;
 
 namespace dbsc.Postgres
 {
     class PgDbscDbConnection : BaseDbscDbConnection<NpgsqlConnection, NpgsqlTransaction>
     {
+        public int ScriptTimeoutInSeconds { get; private set; }
+        public int ImportTableTimeoutInSeconds { get; private set; }
+        
         public PgDbscDbConnection(DbConnectionInfo connectionInfo)
-            : base(OpenConnection(connectionInfo), connectionInfo)
+            : base(OpenConnection(connectionInfo))
         {
-            ;
+            ScriptTimeoutInSeconds = connectionInfo.ScriptTimeoutInSeconds;
+            CommandTimeoutInSeconds = connectionInfo.CommandTimeoutInSeconds;
+            ImportTableTimeoutInSeconds = connectionInfo.ImportTableTimeoutInSeconds;
         }
 
         private static NpgsqlConnection OpenConnection(DbConnectionInfo connectionInfo)
@@ -44,13 +50,14 @@ namespace dbsc.Postgres
             // Do not set this to true! Imports get weird threading issues if you do - probably a bug in Npgsql
             builder.SyncNotification = false;
 
-            if (connectionInfo.Username == null)
+            builder.UserName = connectionInfo.Username;
+
+            if (connectionInfo.UseIntegratedSecurity)
             {
                 builder.IntegratedSecurity = true;
             }
             else
             {
-                builder.UserName = connectionInfo.Username;
                 builder.Password = connectionInfo.Password;
             }
 
@@ -64,7 +71,7 @@ namespace dbsc.Postgres
             Connection.Notification += OnNotification; // When is this fired?
             try
             {
-                Connection.Execute(sql);
+                Connection.Execute(sql, commandTimeout: ScriptTimeoutInSeconds);
             }
             finally
             {
@@ -118,10 +125,9 @@ namespace dbsc.Postgres
         /// <param name="targetDbTransaction">Required.</param>
         public void ImportTable(PgDbscDbConnection sourceConn, string table, NpgsqlTransaction targetDbTransaction, NpgsqlTransaction sourceDbTransaction)
         {
-            // Import table
             string copyOutSql = string.Format("COPY {0} TO STDOUT WITH (FORMAT 'text', ENCODING 'utf-8')", table);
             NpgsqlCommand copyOutCommand = new NpgsqlCommand(copyOutSql, sourceConn.Connection, sourceDbTransaction);
-            copyOutCommand.CommandTimeout = ConnectionInfo.ImportTableTimeoutInSeconds;
+            copyOutCommand.CommandTimeout = ImportTableTimeoutInSeconds;
             NpgsqlCopyOut source = new NpgsqlCopyOut(copyOutCommand, sourceConn.Connection);
             source.Start();
 
@@ -129,7 +135,7 @@ namespace dbsc.Postgres
             targetCmd.CommandText = string.Format("COPY {0} FROM STDIN WITH (FORMAT 'text', ENCODING 'utf-8')", table);
             targetCmd.Connection = this.Connection;
             targetCmd.Transaction = targetDbTransaction;
-            targetCmd.CommandTimeout = ConnectionInfo.ImportTableTimeoutInSeconds;
+            targetCmd.CommandTimeout = ImportTableTimeoutInSeconds;
 
             NpgsqlCopyIn target = new NpgsqlCopyIn(targetCmd, this.Connection);
             target.Start();
@@ -139,16 +145,11 @@ namespace dbsc.Postgres
             target.End();
             source.End();
         }
-
-        public override void Dispose()
-        {
-            Connection.Dispose();
-        }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

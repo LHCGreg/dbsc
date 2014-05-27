@@ -6,7 +6,7 @@ using dbsc.Core;
 
 namespace dbsc.Mongo
 {
-    class MongoCheckoutOptions : ICheckoutOptions<MongoUpdateOptions>
+    class MongoCheckoutOptions : ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, MongoUpdateOptions>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
@@ -17,7 +17,7 @@ namespace dbsc.Mongo
         /// </summary>
         public string CreationTemplate { get; set; }
 
-        public ImportOptions ImportOptions { get; set; }
+        public ImportOptions<DbConnectionInfo> ImportOptions { get; set; }
 
         public MongoUpdateOptions UpdateOptions { get { return new MongoUpdateOptions(this); } }
 
@@ -45,7 +45,7 @@ namespace dbsc.Mongo
             return clone;
         }
 
-        ICheckoutOptions<MongoUpdateOptions> ICheckoutOptions<MongoUpdateOptions>.Clone()
+        ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, MongoUpdateOptions> ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, MongoUpdateOptions>.Clone()
         {
             return Clone();
         }
@@ -53,7 +53,7 @@ namespace dbsc.Mongo
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

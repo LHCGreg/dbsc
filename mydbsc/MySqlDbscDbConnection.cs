@@ -5,15 +5,23 @@ using System.Text;
 using MySql.Data.MySqlClient;
 using Dapper;
 using dbsc.Core;
+using dbsc.Core.Sql;
 
 namespace dbsc.MySql
 {
     class MySqlDbscDbConnection : BaseDbscDbConnection<MySqlConnection, MySqlTransaction>
     {
+        public int ScriptTimeoutInSeconds { get; private set; }
+        public int ImportTableTimeoutInSeconds { get; private set; }
+        public DbConnectionInfo ConnectionInfo { get; private set; }
+        
         public MySqlDbscDbConnection(DbConnectionInfo connectionInfo)
-            : base(OpenConnection(connectionInfo), connectionInfo)
+            : base(OpenConnection(connectionInfo))
         {
-            ;
+            ScriptTimeoutInSeconds = connectionInfo.ScriptTimeoutInSeconds;
+            CommandTimeoutInSeconds = connectionInfo.CommandTimeoutInSeconds;
+            ImportTableTimeoutInSeconds = connectionInfo.ImportTableTimeoutInSeconds;
+            ConnectionInfo = connectionInfo;
         }
 
         private static MySqlConnection OpenConnection(DbConnectionInfo connectionInfo)
@@ -34,15 +42,8 @@ namespace dbsc.MySql
             builder.Pooling = false;
             builder.AllowUserVariables = true;
 
-            if (connectionInfo.Username == null)
-            {
-                builder.IntegratedSecurity = true;
-            }
-            else
-            {
-                builder.UserID = connectionInfo.Username;
-                builder.Password = connectionInfo.Password;
-            }
+            builder.UserID = connectionInfo.Username;
+            builder.Password = connectionInfo.Password;
 
             builder.Server = connectionInfo.Server;
             if (connectionInfo.Port != null)
@@ -59,7 +60,7 @@ namespace dbsc.MySql
             Connection.InfoMessage += OnInfoMessage;
             try
             {
-                Connection.Execute(sql);
+                Connection.Execute(sql, commandTimeout: ScriptTimeoutInSeconds);
             }
             finally
             {
@@ -74,15 +75,10 @@ namespace dbsc.MySql
                 Console.WriteLine("{0}: {1}", message.Level, message.Message);
             }
         }
-
-        public override void Dispose()
-        {
-            Connection.Dispose();
-        }
     }
 }
 
-// Copyright (C) 2013 Greg Najda
+// Copyright (C) 2014 Greg Najda
 //
 // This file is part of mydbsc.
 //

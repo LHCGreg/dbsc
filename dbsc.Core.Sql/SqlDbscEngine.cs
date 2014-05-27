@@ -4,27 +4,82 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Globalization;
+using System.Diagnostics;
 
-namespace dbsc.Core
+namespace dbsc.Core.Sql
 {
-    public abstract class SqlDbscEngine<TCheckoutOptions, TUpdateOptions, TConnection> : DbscEngine<TCheckoutOptions, TUpdateOptions>
-        where TCheckoutOptions : ISqlCheckoutOptions<TUpdateOptions>
-        where TUpdateOptions : ISqlUpdateOptions
+    /// <summary>
+    /// Implements common behavior for SQL databases by filling in some of the required behavior of a DbscEngine.
+    /// Some holes are left for the implementation for a specific database to fill in in the form of abstract methods.
+    /// </summary>
+    /// <typeparam name="TConnectionSettings"></typeparam>
+    /// <typeparam name="TCheckoutOptions"></typeparam>
+    /// <typeparam name="TImportSettings"></typeparam>
+    /// <typeparam name="TUpdateOptions"></typeparam>
+    /// <typeparam name="TConnection"></typeparam>
+    public abstract class SqlDbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions, TConnection>
+        : DbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions>
+        , IDbscEngineWithTableImport<TConnectionSettings, TImportSettings, TUpdateOptions>
+        where TCheckoutOptions : ISqlCheckoutSettings<TConnectionSettings, TImportSettings, TUpdateOptions>
+        where TUpdateOptions : ISqlUpdateSettings<TConnectionSettings, TImportSettings>
+        where TConnectionSettings : IConnectionSettings
+        where TImportSettings : IImportSettingsWithTableList<TConnectionSettings>
         where TConnection : IDbscDbConnection
     {
-        protected abstract TConnection OpenConnection(DbConnectionInfo connectionInfo);
+        /// <summary>
+        /// Opens a database connection.
+        /// </summary>
+        /// <param name="connectionInfo"></param>
+        /// <returns></returns>
+        protected abstract TConnection OpenConnection(TConnectionSettings connectionInfo);
+
+        /// <summary>
+        /// Returns true if the dbsc metadata table exists.
+        /// </summary>
+        /// <param name="conn"></param>
+        /// <returns></returns>
         protected abstract bool MetadataTableExists(TConnection conn);
-        protected abstract DbConnectionInfo GetSystemDatabaseConnectionInfo(DbConnectionInfo database);
+
+        /// <summary>
+        /// Returns connection settings for the database to connect to before the database we're creating exists.
+        /// </summary>
+        /// <param name="database"></param>
+        /// <returns></returns>
+        protected abstract TConnectionSettings GetSystemDatabaseConnectionInfo(TConnectionSettings database);
+
+        /// <summary>
+        /// SQL for creating the dbsc metadata table.
+        /// </summary>
         protected abstract string CreateMetadataTableSql { get; }
-        protected abstract ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(TConnection connectionInfo);
+
+        /// <summary>
+        /// Imports data from another database into the database being updated.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="tablesToImportAlreadyEscaped">The tables to import data for, already escaped (eg [dbo].[MyTable] in SQL Server).</param>
+        /// <param name="allTablesExceptMetadataAlreadyEscaped">All tables in the target tables other than the dbsc metadata table, already escaped (eg [dbo].[MyTable] in SQL Server).</param>
+        public abstract void ImportData(TUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped);
+
+        /// <summary>
+        /// Returns the names of all tables, already escaped (eg [dbo].[MyTable] in SQL Server), except for the dbsc
+        /// metadata table.
+        /// </summary>
+        /// <param name="connectionInfo"></param>
+        /// <returns></returns>
+        public abstract ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(TConnectionSettings connectionInfo);
 
         protected override string ScriptExtensionWithoutDot { get { return "sql"; } }
 
         protected virtual string MetadataTableName { get { return "dbsc_metadata"; } }
         protected virtual string MetadataPropertyNameColumn { get { return "property_name"; } }
         protected virtual string MetadataPropertyValueColumn { get { return "property_value"; } }
+        
+        /// <summary>
+        /// Character used before parameters in queries. @ for most databases.
+        /// </summary>
+        protected abstract char QueryParamChar { get; }
 
-        protected override bool DatabaseHasMetadataTable(DbConnectionInfo connectionInfo)
+        protected override bool DatabaseHasMetadataTable(TConnectionSettings connectionInfo)
         {
             using (TConnection conn = OpenConnection(connectionInfo))
             {
@@ -34,13 +89,13 @@ namespace dbsc.Core
 
         protected override void CreateDatabase(TCheckoutOptions options)
         {
-            DbConnectionInfo masterDatabaseConnectionInfo = GetSystemDatabaseConnectionInfo(options.TargetDatabase);
-            Console.WriteLine("Creating database {0} on {1}.", options.TargetDatabase.Database, options.TargetDatabase.Server);
+            TConnectionSettings masterDatabaseConnectionInfo = GetSystemDatabaseConnectionInfo(options.TargetDatabase);
+            Console.WriteLine("Creating database {0}.", options.TargetDatabase.ToDescriptionString());
             using (TConnection masterDatabaseConnection = OpenConnection(masterDatabaseConnectionInfo))
             {
                 string creationSql = options.CreationTemplate.Replace("$DatabaseName$", options.TargetDatabase.Database);
                 masterDatabaseConnection.ExecuteSqlScript(creationSql);
-                Console.WriteLine("Created database {0} on {1}.", options.TargetDatabase.Database, options.TargetDatabase.Server);
+                Console.WriteLine("Created database {0}.", options.TargetDatabase.ToDescriptionString());
             }
         }
 
@@ -65,7 +120,7 @@ namespace dbsc.Core
             }
         }
 
-        private string GetCurrentTimestampString()
+        protected string GetCurrentTimestampString()
         {
             return GetTimestampString(DateTime.UtcNow);
         }
@@ -92,9 +147,9 @@ VALUES
                 {
                     sqlBuilder.Append(",");
                 }
-                sqlBuilder.AppendFormat("(@name{0}, @value{0})\n", propertyNum);
-                sqlParams["name" + propertyNum.ToString()] = propertyName;
-                sqlParams["value" + propertyNum.ToString()] = properties[propertyName];
+                sqlBuilder.AppendFormat("({0}name{1}, {0}value{1})\n", QueryParamChar, propertyNum);
+                sqlParams["name" + propertyNum.ToString(CultureInfo.InvariantCulture)] = propertyName;
+                sqlParams["value" + propertyNum.ToString(CultureInfo.InvariantCulture)] = properties[propertyName];
                 propertyNum++;
             }
 
@@ -105,8 +160,8 @@ VALUES
         protected virtual void UpdateMetadataProperty(TConnection conn, string propertyName, string propertyValue)
         {
             string sql = string.Format(@"UPDATE {0}
-SET {1} = @value
-WHERE {2} = @name", MetadataTableName, MetadataPropertyValueColumn, MetadataPropertyNameColumn);
+SET {2} = {1}value
+WHERE {3} = {1}name", MetadataTableName, QueryParamChar, MetadataPropertyValueColumn, MetadataPropertyNameColumn);
 
             Dictionary<string, object> sqlParams = new Dictionary<string, object>();
             sqlParams["value"] = propertyValue;
@@ -118,7 +173,7 @@ WHERE {2} = @name", MetadataTableName, MetadataPropertyValueColumn, MetadataProp
         protected virtual string GetMetadataProperty(TConnection conn, string propertyName)
         {
             string sql = string.Format(@"SELECT {0} FROM {1}
-WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataPropertyNameColumn);
+WHERE {2} = {3}name", MetadataPropertyValueColumn, MetadataTableName, MetadataPropertyNameColumn, QueryParamChar);
             Dictionary<string, object> sqlParams = new Dictionary<string, object>() { { "name", propertyName } };
 
             string propertyValue = conn.Query<string>(sql, sqlParams).FirstOrDefault();
@@ -133,7 +188,7 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
             }
         }
 
-        protected override int GetRevision(DbConnectionInfo connectionInfo)
+        protected override int GetRevision(TConnectionSettings connectionInfo)
         {
             using (TConnection conn = OpenConnection(connectionInfo))
             {
@@ -141,14 +196,14 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 int revision;
                 if (!int.TryParse(revisionString, out revision))
                 {
-                    throw new DbscException(string.Format("{0} metadata property on database {1} on {2} has value \"{3}\" is not an integer.",
-                        RevisionPropertyName, connectionInfo.Database, connectionInfo.Server, revisionString));
+                    throw new DbscException(string.Format("{0} metadata property on database {1} has value \"{2}\" is not an integer.",
+                        RevisionPropertyName, connectionInfo.ToDescriptionString(), revisionString));
                 }
                 return revision;
             }
         }
 
-        protected override void RunScriptAndUpdateMetadata(TUpdateOptions options, string scriptPath, int newRevision, DateTime utcTimestamp)
+        protected override void RunScriptAndUpdateMetadata(TUpdateOptions options, string scriptPath, int newRevision)
         {
             string scriptText = File.ReadAllText(scriptPath);
             using (TConnection conn = OpenConnection(options.TargetDatabase))
@@ -158,23 +213,20 @@ WHERE {2} = @name", MetadataPropertyValueColumn, MetadataTableName, MetadataProp
                 string newRevisionString = newRevision.ToString(CultureInfo.InvariantCulture);
                 UpdateMetadataProperty(conn, RevisionPropertyName, newRevisionString);
 
-                string utcTimestampString = GetTimestampString(utcTimestamp);
+                string utcTimestampString = GetCurrentTimestampString();
                 UpdateMetadataProperty(conn, LastUpdatedPropertyName, utcTimestampString);
             }
         }
 
-        protected override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)
+        protected override void ImportData(TUpdateOptions options)
         {
-            using (TConnection conn = OpenConnection(connectionInfo))
-            {
-                return GetTableNamesExceptMetadataAlreadyEscaped(conn);
-            }
+            DbscEngineWithTableImportExtensions.ImportData(this, options);
         }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

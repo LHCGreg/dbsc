@@ -5,19 +5,23 @@ using System.Text;
 
 namespace dbsc.Core
 {
-    public class ImportOptions
+    /// <summary>
+    /// Typical settings needed for importing data.
+    /// </summary>
+    public class ImportOptions<TConnectionSettings> : IImportSettingsWithTableList<TConnectionSettings>, ICloneable
+        where TConnectionSettings : ICloneable
     {
-        public DbConnectionInfo SourceDatabase { get; set; }
+        public TConnectionSettings SourceDatabase { get; set; }
         public IList<string> TablesToImport { get; set; }
 
-        public ImportOptions(DbConnectionInfo sourceDatabase)
+        public ImportOptions(TConnectionSettings sourceDatabase)
         {
             SourceDatabase = sourceDatabase;
         }
 
-        public ImportOptions Clone()
+        public ImportOptions<TConnectionSettings> Clone()
         {
-            ImportOptions clone = new ImportOptions(SourceDatabase.Clone());
+            ImportOptions<TConnectionSettings> clone = new ImportOptions<TConnectionSettings>((TConnectionSettings) SourceDatabase.Clone());
 
             if (TablesToImport != null)
             {
@@ -26,11 +30,16 @@ namespace dbsc.Core
 
             return clone;
         }
+
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

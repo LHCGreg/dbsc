@@ -5,12 +5,17 @@ using System.Text;
 
 namespace dbsc.Core
 {
-    public class DbConnectionInfo
+    /// <summary>
+    /// Typical settings needed for opening a database connection.
+    /// </summary>
+    public class DbConnectionInfo : IConnectionSettings, ICloneable
     {
         public string Server { get; set; }
         public string Database { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+
+        public bool UseIntegratedSecurity { get { return Password == null; } }
 
         /// <summary>
         /// If null, use the normal port for the database.
@@ -36,6 +41,11 @@ namespace dbsc.Core
             ImportTableTimeoutInSeconds = 60 * 60 * 24 * 7;
         }
 
+        public string ToDescriptionString()
+        {
+            return Database + " on " + Server;
+        }
+
         public virtual DbConnectionInfo Clone()
         {
             DbConnectionInfo clone = new DbConnectionInfo(server: Server, database: Database, port: Port, username: Username, password: Password);
@@ -45,11 +55,16 @@ namespace dbsc.Core
             ImportTableTimeoutInSeconds = this.ImportTableTimeoutInSeconds;
             return clone;
         }
+
+        object ICloneable.Clone()
+        {
+            return Clone();
+        }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

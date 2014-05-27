@@ -6,27 +6,89 @@ using System.Diagnostics;
 
 namespace dbsc.Core
 {
-    public abstract class DbscEngine<TCheckoutOptions, TUpdateOptions>
-        where TCheckoutOptions : ICheckoutOptions<TUpdateOptions>
-        where TUpdateOptions : IUpdateOptions
+    /// <summary>
+    /// Base class containing generic, DB-agnostic code for checking out and updating databases.
+    /// </summary>
+    /// <typeparam name="TCheckoutOptions"></typeparam>
+    /// <typeparam name="TUpdateOptions"></typeparam>
+    public abstract class DbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions>
+        where TCheckoutOptions : ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
+        where TUpdateOptions : IUpdateSettings<TConnectionSettings, TImportSettings>
+        where TConnectionSettings : IConnectionSettings
+        where TImportSettings : IImportSettings<TConnectionSettings>
     {
+        /// <summary>
+        /// Extension of script files without the period. For example, "sql" for SQL scripts, "js" for javascript files.
+        /// </summary>
         protected abstract string ScriptExtensionWithoutDot { get; }
+
+        /// <summary>
+        /// Returns true if checking out and updating are supported, otherwise returns false and sets <paramref name="whyNot"/>
+        /// to a message explaining why not. This will normally be true but might be false if a required program is not
+        /// installed, for example.
+        /// </summary>
+        /// <param name="whyNot"></param>
+        /// <returns></returns>
         protected abstract bool CheckoutAndUpdateIsSupported(out string whyNot);
+
+        /// <summary>
+        /// Returns true if importing data from another database is supported, otherwise returns false and sets
+        /// <paramref name="whyNot"/> to a message explaining why not. This might be false if a required program is not
+        /// installed or if a dbsc flavor has not implemented importing or if importing does not make sense for the database type.
+        /// </summary>
+        /// <param name="whyNot"></param>
+        /// <returns></returns>
         protected abstract bool ImportIsSupported(out string whyNot);
-        protected abstract bool DatabaseHasMetadataTable(DbConnectionInfo connectionInfo);
+
+        /// <summary>
+        /// Returns true if the database given by <paramref name="connectionInfo"/> has a dbsc metadata table.
+        /// </summary>
+        /// <param name="connectionInfo"></param>
+        /// <returns></returns>
+        protected abstract bool DatabaseHasMetadataTable(TConnectionSettings connectionInfo);
+
+        /// <summary>
+        /// Creates the database given by <paramref name="options"/>.
+        /// </summary>
+        /// <param name="options"></param>
         protected abstract void CreateDatabase(TCheckoutOptions options);
-        protected abstract void InitializeDatabase(TCheckoutOptions options, string masterDatabaseName);
-        protected abstract int GetRevision(DbConnectionInfo connectionInfo);
-        protected abstract void RunScriptAndUpdateMetadata(TUpdateOptions options, string scriptPath, int newRevision, DateTime utcTimestamp);
-        protected abstract void ImportData(TUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped);
-        protected abstract ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo);
         
+        /// <summary>
+        /// Initializes the dbsc metadata table on the database.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="masterDatabaseName">The name of the database as it appears in script file names, not necessarily the
+        /// name of the created database.</param>
+        protected abstract void InitializeDatabase(TCheckoutOptions options, string masterDatabaseName);
+        
+        /// <summary>
+        /// Gets the revision that the database is on.
+        /// </summary>
+        /// <param name="connectionInfo"></param>
+        /// <returns></returns>
+        protected abstract int GetRevision(TConnectionSettings connectionInfo);
+        
+        /// <summary>
+        /// Runs the script at <paramref name="scriptPath"/> and bumps up the revision number to <paramref name="newRevision"/>.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="scriptPath"></param>
+        /// <param name="newRevision"></param>
+        /// <param name="utcTimestamp"></param>
+        protected abstract void RunScriptAndUpdateMetadata(TUpdateOptions options, string scriptPath, int newRevision);
+
+        protected abstract void ImportData(TUpdateOptions options);
+        
+        /// <summary>
+        /// Runs a database checkout.
+        /// </summary>
+        /// <param name="options"></param>
         public void Checkout(TCheckoutOptions options)
         {
             ScriptStack scriptStack = new ScriptStack(options.Directory, ScriptExtensionWithoutDot);
 
             // Default target database name and source database name to the master database name
-            options = options.CloneCheckoutOptionsWithDatabaseNamesFilledIn<TCheckoutOptions, TUpdateOptions>(scriptStack.MasterDatabaseName);
+            options = options.CloneCheckoutOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions>(scriptStack.MasterDatabaseName);
 
             ValidateUpdateOptionsForCheckoutAndUpdate(options.UpdateOptions, scriptStack);
 
@@ -62,17 +124,21 @@ namespace dbsc.Core
                 // Check that source database was checked out with dbsc
                 if (!DatabaseHasMetadataTable(options.ImportOptions.SourceDatabase))
                 {
-                    throw new DbscException(string.Format("Source database {0} on {1} was not created with dbsc and cannot be imported from.", options.ImportOptions.SourceDatabase.Database, options.ImportOptions.SourceDatabase.Server));
+                    throw new DbscException(string.Format("Source database {0} was not created with dbsc and cannot be imported from or you do not have permission to it.", options.ImportOptions.SourceDatabase.ToDescriptionString()));
                 }
             }
         }
 
+        /// <summary>
+        /// Runs a database update.
+        /// </summary>
+        /// <param name="options"></param>
         public void Update(TUpdateOptions options)
         {
             ScriptStack scriptStack = new ScriptStack(options.Directory, ScriptExtensionWithoutDot);
 
             // Default target database name and source database name to the master database name
-            options = options.CloneUpdateOptionsWithDatabaseNamesFilledIn(scriptStack.MasterDatabaseName);
+            options = options.CloneUpdateOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TImportSettings, TUpdateOptions>(scriptStack.MasterDatabaseName);
 
             ValidateUpdateOptionsForCheckoutAndUpdate(options, scriptStack);
             ValidateUpdateOptionsForUpdate(options);
@@ -84,7 +150,7 @@ namespace dbsc.Core
         {
             if (!DatabaseHasMetadataTable(options.TargetDatabase))
             {
-                throw new DbscException(string.Format("Target database {0} on {1} was not created with dbsc and cannot be updated.", options.TargetDatabase.Database, options.TargetDatabase.Server));
+                throw new DbscException(string.Format("Target database {0} was not created with dbsc and cannot be updated.", options.TargetDatabase.ToDescriptionString()));
             }
         }
 
@@ -119,7 +185,7 @@ namespace dbsc.Core
             {
                 string upgradeScriptPath = scriptStack.ScriptsByRevision[revisionNumber];
                 Console.WriteLine("Updating to r{0}", revisionNumber);
-                RunScriptAndUpdateMetadata(options, upgradeScriptPath, revisionNumber, DateTime.UtcNow);
+                RunScriptAndUpdateMetadata(options, upgradeScriptPath, revisionNumber);
                 currentVersion = revisionNumber;
 
                 // check for import
@@ -137,34 +203,11 @@ namespace dbsc.Core
 
             Console.WriteLine("At revision {0}", currentVersion);
         }
-
-        private void ImportData(TUpdateOptions options)
-        {
-            Console.WriteLine("Beginning import...");
-            Stopwatch timer = Stopwatch.StartNew();
-
-            ICollection<string> tablesExceptMetadata = GetTableNamesExceptMetadataAlreadyEscaped(options.TargetDatabase);
-
-            ICollection<string> tablesToImport;
-            if (options.ImportOptions.TablesToImport != null)
-            {
-                tablesToImport = options.ImportOptions.TablesToImport;
-            }
-            else
-            {
-                tablesToImport = tablesExceptMetadata;
-            }
-
-            ImportData(options, tablesToImport, tablesExceptMetadata);
-
-            timer.Stop();
-            Console.WriteLine("Import complete! Took {0}", timer.Elapsed);
-        }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

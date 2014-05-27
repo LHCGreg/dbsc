@@ -2,16 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using NUnit.Framework;
+using TestUtils.Sql;
 
-namespace dbsc.Core
+namespace oradbsc.Integration
 {
-    public interface ISqlUpdateOptions : IUpdateOptions
+    [TestFixture]
+    class CheckoutTestFixture : AbstractCheckoutTestFixture<OracleTestHelper>
     {
+        protected override int? Port { get { return 1521; } }
+        protected override bool ImportSupported { get { return false; } }
+        protected override bool TemplateSupported { get { return false; } }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

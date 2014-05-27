@@ -10,13 +10,13 @@ namespace dbsc.Core
     {
         public static string QuoteCommandLineArg(this string arg)
         {
-            if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
+            if (Utils.RunningOnWindows())
             {
-                return QuoteCommandLineArgUnix(arg);
+                return QuoteCommandLineArgWindows(arg);
             }
             else
             {
-                return QuoteCommandLineArgWindows(arg);
+                return QuoteCommandLineArgUnix(arg);
             }
         }
 
@@ -57,7 +57,7 @@ namespace dbsc.Core
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

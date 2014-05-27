@@ -2,37 +2,37 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using dbsc.Core;
 using System.Diagnostics;
 using System.Data.SqlClient;
+using dbsc.Core;
 
 namespace dbsc.SqlServer
 {
     class MsImportOperation
     {
-        private SqlUpdateOptions m_options;
-        private ICollection<string> m_tablesToImportAlreadyEscaped;
-        private ICollection<string> m_allTablesExceptMetadataAlreadyEscaped;
+        private SqlServerUpdateSettings _settings;
+        private ICollection<string> _tablesToImportAlreadyEscaped;
+        private ICollection<string> _allTablesExceptMetadataAlreadyEscaped;
 
-        private bool m_recoveryModelWasFullBeforeImport;
-        private List<Index> m_nonClusteredIndexes;
+        private bool _recoveryModelWasFullBeforeImport;
+        private List<Index> _nonClusteredIndexes;
 
         const int truncateTimeoutInSeconds = 60 * 60;
         const int enableIndexTimeoutInSeconds = 60 * 60 * 6;
         const int enableConstraintsTimeoutInSeconds = 60 * 60 * 6;
 
-        public MsImportOperation(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public MsImportOperation(SqlServerUpdateSettings settings, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
-            m_options = options;
-            m_tablesToImportAlreadyEscaped = tablesToImportAlreadyEscaped;
-            m_allTablesExceptMetadataAlreadyEscaped = allTablesExceptMetadataAlreadyEscaped;
+            _settings = settings;
+            _tablesToImportAlreadyEscaped = tablesToImportAlreadyEscaped;
+            _allTablesExceptMetadataAlreadyEscaped = allTablesExceptMetadataAlreadyEscaped;
         }
 
         public void Run()
         {
-            using (MsDbscDbConnection targetConn = new MsDbscDbConnection(m_options.TargetDatabase))
+            using (MsDbscDbConnection targetConn = new MsDbscDbConnection(_settings.TargetDatabase))
             {
-                using (MsDbscDbConnection sourceConn = new MsDbscDbConnection(m_options.ImportOptions.SourceDatabase))
+                using (MsDbscDbConnection sourceConn = new MsDbscDbConnection(_settings.ImportOptions.SourceDatabase))
                 {
                     PrepareTargetForImport(targetConn);
                     DoImport(targetConn, sourceConn);
@@ -64,7 +64,7 @@ namespace dbsc.SqlServer
             // Disable constraints
             Utils.DoTimedOperation("Removing constraints", () =>
             {
-                foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
+                foreach (string table in _allTablesExceptMetadataAlreadyEscaped)
                 {
                     string disableConstraintsSql = string.Format("ALTER TABLE {0} NOCHECK CONSTRAINT ALL", table);
                     targetConn.ExecuteSql(disableConstraintsSql);
@@ -72,7 +72,7 @@ namespace dbsc.SqlServer
             });
 
             // Disable indexes
-            m_nonClusteredIndexes = new List<Index>();
+            _nonClusteredIndexes = new List<Index>();
             Utils.DoTimedOperation("Disabling non-clustered indexes", () =>
             {
                 string indexQuerySql =
@@ -83,8 +83,8 @@ JOIN INFORMATION_SCHEMA.TABLES AS Tab ON Obj.name = Tab.TABLE_NAME AND Sch.name 
 WHERE Ind.type <> 1 -- No clustered indexes
 AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are heaps and have an index with a null name";
 
-                m_nonClusteredIndexes = targetConn.Query<Index>(indexQuerySql).ToList();
-                foreach (Index index in m_nonClusteredIndexes)
+                _nonClusteredIndexes = targetConn.Query<Index>(indexQuerySql).ToList();
+                foreach (Index index in _nonClusteredIndexes)
                 {
                     string disableIndexSql = string.Format("ALTER INDEX {0} ON {1} DISABLE",
                         MsDbscDbConnection.QuoteSqlServerIdentifier(index.IndexName), MsDbscDbConnection.QuoteSqlServerIdentifier(index.TableSchema, index.TableName));
@@ -93,7 +93,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             });
 
             string clearMessage;
-            if (m_tablesToImportAlreadyEscaped.Count == m_allTablesExceptMetadataAlreadyEscaped.Count)
+            if (_tablesToImportAlreadyEscaped.Count == _allTablesExceptMetadataAlreadyEscaped.Count)
             {
                 clearMessage = "Clearing all tables";
             }
@@ -104,7 +104,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
 
             Utils.DoTimedOperation(clearMessage, () =>
             {
-                foreach (string table in m_tablesToImportAlreadyEscaped)
+                foreach (string table in _tablesToImportAlreadyEscaped)
                 {
                     //string truncateSql = string.Format("TRUNCATE TABLE {0}", table);
                     // Can't use TRUNCATE if there's a foreign key to the table, even if the FK constraint is disabled.
@@ -116,17 +116,17 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
 
             // If recovery model is full, switch to bulk-logged recovery model for import and switch back after import
             string recoveryModelQuerySql = "SELECT recovery_model AS RecoveryModelId FROM sys.databases WHERE name = @dbName";
-            var recoveryModelQueryParams = new Dictionary<string, object>() { { "dbName", m_options.TargetDatabase.Database } };
+            var recoveryModelQueryParams = new Dictionary<string, object>() { { "dbName", _settings.TargetDatabase.Database } };
             RecoveryModel recoveryModel = targetConn.Query<RecoveryModel>(recoveryModelQuerySql, recoveryModelQueryParams).First();
             int recoveryModelId = recoveryModel.RecoveryModelId;
 
             // 1 = FULL, 2 = BULK_LOGGED, 3 = SIMPLE
-            m_recoveryModelWasFullBeforeImport = recoveryModelId == 1;
-            if (m_recoveryModelWasFullBeforeImport)
+            _recoveryModelWasFullBeforeImport = recoveryModelId == 1;
+            if (_recoveryModelWasFullBeforeImport)
             {
                 Console.WriteLine("Setting recovery model to BULK_LOGGED...");
                 string setRecoveryToBulkLoggedSql = string.Format("ALTER DATABASE {0} SET RECOVERY BULK_LOGGED",
-                    MsDbscDbConnection.QuoteSqlServerIdentifier(m_options.TargetDatabase.Database));
+                    MsDbscDbConnection.QuoteSqlServerIdentifier(_settings.TargetDatabase.Database));
                 targetConn.ExecuteSql(setRecoveryToBulkLoggedSql);
             }
         }
@@ -134,7 +134,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
         private void DoImport(MsDbscDbConnection targetConn, MsDbscDbConnection sourceConn)
         {
             string sourceDbInfoSql = "SELECT snapshot_isolation_state FROM sys.databases WHERE name = @dbName";
-            var sourceDbInfoParams = new Dictionary<string, object>() { { "dbName", m_options.ImportOptions.SourceDatabase.Database } };
+            var sourceDbInfoParams = new Dictionary<string, object>() { { "dbName", _settings.ImportOptions.SourceDatabase.Database } };
             SourceDbInfo sourceDbInfo = sourceConn.Query<SourceDbInfo>(sourceDbInfoSql, sourceDbInfoParams).FirstOrDefault();
             if (sourceDbInfo == null)
             {
@@ -154,7 +154,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             // using (null) is ok
             using (sourceDbTransaction)
             {
-                foreach (string table in m_tablesToImportAlreadyEscaped)
+                foreach (string table in _tablesToImportAlreadyEscaped)
                 {
                     Utils.DoTimedOperation(string.Format("Importing {0}", table), () =>
                     {
@@ -175,18 +175,18 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
         private void DoPostImport(MsDbscDbConnection targetConn)
         {
             // If recovery model was full before import and set to bulk-logged for the import, set it back to full
-            if (m_recoveryModelWasFullBeforeImport)
+            if (_recoveryModelWasFullBeforeImport)
             {
                 Console.WriteLine("Setting recovery model back to FULL...");
                 string setRecoveryToFullSql = string.Format("ALTER DATABASE {0} SET RECOVERY FULL",
-                    MsDbscDbConnection.QuoteSqlServerIdentifier(m_options.TargetDatabase.Database));
+                    MsDbscDbConnection.QuoteSqlServerIdentifier(_settings.TargetDatabase.Database));
                 targetConn.ExecuteSql(setRecoveryToFullSql);
             }
 
             // Enable indexes that were disabled
             Utils.DoTimedOperation("Enabling and rebuilding non-clustered indexes", () =>
             {
-                foreach (Index index in m_nonClusteredIndexes)
+                foreach (Index index in _nonClusteredIndexes)
                 {
                     string enableIndexSql = string.Format("ALTER INDEX {0} ON {1} REBUILD",
                         MsDbscDbConnection.QuoteSqlServerIdentifier(index.IndexName), MsDbscDbConnection.QuoteSqlServerIdentifier(index.TableSchema, index.TableName));
@@ -197,7 +197,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             // Enable constraints
             Utils.DoTimedOperation("Enabling constraints", () =>
             {
-                foreach (string table in m_allTablesExceptMetadataAlreadyEscaped)
+                foreach (string table in _allTablesExceptMetadataAlreadyEscaped)
                 {
                     string enableConstraintsSql = string.Format("ALTER TABLE {0} WITH CHECK CHECK CONSTRAINT ALL", table);
                     targetConn.ExecuteSql(enableConstraintsSql, timeoutInSeconds: enableConstraintsTimeoutInSeconds);
@@ -208,7 +208,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

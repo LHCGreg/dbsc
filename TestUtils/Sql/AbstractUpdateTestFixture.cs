@@ -14,6 +14,32 @@ namespace TestUtils.Sql
         protected THelper Helper { get; private set; }
 
         protected abstract int? Port { get; }
+        protected virtual bool ImportSupported { get { return true; } }
+        protected virtual bool TemplateSupported { get { return true; } }
+
+        public void IgnoreIfImportNotSupported()
+        {
+            if (!ImportSupported)
+            {
+                Assert.Ignore("Import not supported.");
+            }
+        }
+
+        public void IgnoreIfTemplateNotSupported()
+        {
+            if (!TemplateSupported)
+            {
+                Assert.Ignore("Creation template not supported.");
+            }
+        }
+
+        public void IgnoreIfPortNotSupported()
+        {
+            if (Port == null)
+            {
+                Assert.Ignore("Port not relevant for this DB engine.");
+            }
+        }
 
         public AbstractUpdateTestFixture()
         {
@@ -83,6 +109,8 @@ namespace TestUtils.Sql
         [Test]
         public void BasicImportTest()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             CheckoutZero();
             RunSuccessfulCommand(string.Format("update -u {0} -p {1} -targetDb {2} -sourceDbServer localhost -sourceDb {3} -sourceUsername {4} -sourcePassword {5}",
@@ -93,6 +121,8 @@ namespace TestUtils.Sql
         [Test]
         public void ImportOnlyTwoCollectionsTest()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             CheckoutZero();
             RunSuccessfulCommand(string.Format("update -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4} -importTableList tables_to_import.txt",
@@ -103,6 +133,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestTargetDb()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             DropDatabase(AltTestDatabaseName);
 
@@ -140,6 +172,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestPartialUpdateWithImport()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             CheckoutZero();
             RunSuccessfulCommand(string.Format("update -u {0} -p {1} -r 2 -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4}",
@@ -150,6 +184,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestPartialUpdateShortOfImport()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             CheckoutZero();
             RunSuccessfulCommand(string.Format("update -u {0} -p {1} -r 1 -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4}",
@@ -160,6 +196,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestImportWhenAtSourceRevision()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1}", Username, Password));
             RunSuccessfulCommand(string.Format("update -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4}",
@@ -170,6 +208,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestUpdateContinuesAfterImport()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             CheckoutZero();
             RunSuccessfulCommand(string.Format("update -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4}",
@@ -191,6 +231,11 @@ namespace TestUtils.Sql
         protected void DropDatabase(string dbName)
         {
             Helper.DropDatabase(dbName);
+        }
+
+        protected void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection)
+        {
+            Helper.DropDatabase(dbName, getDbConnection);
         }
 
         protected void VerifyCreationTemplateRan(string dbName)
@@ -231,6 +276,12 @@ namespace TestUtils.Sql
             List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
             Helper.VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion);
+        }
+
+        protected void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
+            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion, Func<string, IDbConnection> getDbConnection)
+        {
+            Helper.VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion, getDbConnection);
         }
     }
 }

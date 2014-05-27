@@ -6,15 +6,11 @@ using dbsc.Core;
 
 namespace dbsc.Mongo
 {
-    class MongoDbscApp : DbscApp<MongoCommandLineArgs, MongoCheckoutOptions, MongoUpdateOptions>
+    class MongoDbscApp
+        : DbscApp<MongoCommandLineArgs, DbConnectionInfo, MongoCheckoutOptions, ImportOptions<DbConnectionInfo>, MongoUpdateOptions>
     {
         public MongoDbscApp()
-            : base(
-            engine: new MongoDbscEngine(),
-            parseArgsFunc: args => { MongoCommandLineArgs commandLine = new MongoCommandLineArgs(); commandLine.Parse(args); return commandLine; },
-            getCheckoutOptionsFunc: commandLine => commandLine.GetCheckoutOptions(),
-            getUpdateOptionsFunc: commandLine => commandLine.GetUpdateOptions()
-            )
+            : base(new MongoDbscEngine())
         {
             ;
         }
@@ -22,7 +18,7 @@ namespace dbsc.Mongo
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

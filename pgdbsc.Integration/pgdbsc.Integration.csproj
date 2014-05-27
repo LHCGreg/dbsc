@@ -83,6 +83,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\dbsc.Core\dbsc.Core.csproj">
+      <Project>{2f0c15b4-429d-4363-8df9-04f53b6c7d77}</Project>
+      <Name>dbsc.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\pgdbsc\pgdbsc.csproj">
       <Project>{e448fb3a-8ad0-42d8-9470-a831a34dd194}</Project>
       <Name>pgdbsc</Name>
@@ -123,12 +127,5 @@
     <Content Include="setup\setup_source_database_2.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
 </Project>

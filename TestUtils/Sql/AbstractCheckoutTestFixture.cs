@@ -15,10 +15,36 @@ namespace TestUtils.Sql
         protected THelper Helper { get; private set; }
 
         protected abstract int? Port { get; }
+        protected virtual bool ImportSupported { get { return true; } }
+        protected virtual bool TemplateSupported { get { return true; } }
 
         public AbstractCheckoutTestFixture()
         {
             Helper = new THelper();
+        }
+
+        public void IgnoreIfImportNotSupported()
+        {
+            if (!ImportSupported)
+            {
+                Assert.Ignore("Import not supported.");
+            }
+        }
+
+        public void IgnoreIfTemplateNotSupported()
+        {
+            if (!TemplateSupported)
+            {
+                Assert.Ignore("Creation template not supported.");
+            }
+        }
+
+        public void IgnoreIfPortNotSupported()
+        {
+            if (Port == null)
+            {
+                Assert.Ignore("Port not relevant for this DB engine.");
+            }
         }
         
         [Test]
@@ -32,6 +58,8 @@ namespace TestUtils.Sql
         [Test]
         public void BasicImportTest()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -targetDb {2} -sourceDbServer localhost -sourceDb {3} -sourceUsername {4} -sourcePassword {5}",
                 Username, Password, TestDatabaseName, SourceDatabaseName, Username, Password));
@@ -41,6 +69,8 @@ namespace TestUtils.Sql
         [Test]
         public void ImportOnlyTwoCollectionsTest()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4} -importTableList tables_to_import.txt",
                 Username, Password, SourceDatabaseName, Username, Password));
@@ -50,6 +80,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestTargetDb()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             DropDatabase(AltTestDatabaseName);
 
@@ -83,10 +115,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestNonexistantTargetPort()
         {
-            if (Port == null)
-            {
-                Assert.Pass("Port not relevant for this DB engine.");
-            }
+            IgnoreIfPortNotSupported();
+
             DropDatabase(TestDatabaseName);
             RunUnsuccessfulCommand(string.Format("checkout -u {0} -p {1} -port 9999",
                 Username, Password));
@@ -95,6 +125,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestNonExistantSourcePort()
         {
+            IgnoreIfImportNotSupported();
+            
             DropDatabase(TestDatabaseName);
             RunUnsuccessfulCommand(string.Format("checkout -u {0} -p {1} -sourceDbServer localhost -sourcePort 9999",
                 Username, Password));
@@ -103,6 +135,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestCreationTemplate()
         {
+            IgnoreIfTemplateNotSupported();
+
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -dbCreateTemplate creation_template.sql",
                 Username, Password));
@@ -130,6 +164,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestPartialCheckoutWithImport()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -r 2 -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4}",
                 Username, Password, SourceDatabaseName, Username, Password));
@@ -139,6 +175,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestPartialCheckoutShortOfImport()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -r 1 -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4}",
                 Username, Password, SourceDatabaseName, Username, Password));
@@ -155,6 +193,8 @@ namespace TestUtils.Sql
         [Test]
         public void TestCheckoutContinuesAfterImport()
         {
+            IgnoreIfImportNotSupported();
+
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4}",
                 Username, Password, AltSourceDatabaseName, Username, Password));
@@ -175,6 +215,11 @@ namespace TestUtils.Sql
         protected void DropDatabase(string dbName)
         {
             Helper.DropDatabase(dbName);
+        }
+
+        protected void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection)
+        {
+            Helper.DropDatabase(dbName, getDbConnection);
         }
 
         protected void VerifyCreationTemplateRan(string dbName)
@@ -215,6 +260,12 @@ namespace TestUtils.Sql
             List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
             Helper.VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion);
+        }
+
+        protected void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
+            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion, Func<string, IDbConnection> getDbConnection)
+        {
+            Helper.VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion, getDbConnection);
         }
     }
 }

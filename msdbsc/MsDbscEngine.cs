@@ -3,23 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Data.SqlClient;
-using Dapper;
-using dbsc.Core;
 using System.Diagnostics;
 using System.Data;
+using Dapper;
+using dbsc.Core;
+using dbsc.Core.Sql;
 
 namespace dbsc.SqlServer
 {
-    class MsDbscEngine : SqlDbscEngine<SqlCheckoutOptions, SqlUpdateOptions, MsDbscDbConnection>
+    class MsDbscEngine : SqlDbscEngine<SqlServerConnectionSettings, SqlServerCheckoutSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings, MsDbscDbConnection>
     {
-        protected override DbConnectionInfo GetSystemDatabaseConnectionInfo(DbConnectionInfo targetDatabase)
+        protected override char QueryParamChar { get { return '@'; } }
+        
+        protected override SqlServerConnectionSettings GetSystemDatabaseConnectionInfo(SqlServerConnectionSettings targetDatabase)
         {
-            DbConnectionInfo systemInfo = targetDatabase.Clone();
+            SqlServerConnectionSettings systemInfo = targetDatabase.Clone();
             systemInfo.Database = "master";
             return systemInfo;
         }
 
-        protected override MsDbscDbConnection OpenConnection(DbConnectionInfo connectionInfo)
+        protected override MsDbscDbConnection OpenConnection(SqlServerConnectionSettings connectionInfo)
         {
             return new MsDbscDbConnection(connectionInfo);
         }
@@ -63,16 +66,19 @@ AND TABLE_NAME = 'dbsc_metadata'";
             public string TableName { get; set; }
         }
 
-        protected override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(MsDbscDbConnection conn)
+        public override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(SqlServerConnectionSettings connectionSettings)
         {
-            string sql = @"SELECT TABLE_SCHEMA AS TableSchema, TABLE_NAME AS TableName FROM INFORMATION_SCHEMA.TABLES
+            using (MsDbscDbConnection conn = OpenConnection(connectionSettings))
+            {
+                string sql = @"SELECT TABLE_SCHEMA AS TableSchema, TABLE_NAME AS TableName FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_TYPE = 'BASE TABLE'
 AND TABLE_NAME <> 'dbsc_metadata'";
-            List<string> tables = conn.Query<Table>(sql).Select(t => MsDbscDbConnection.QuoteSqlServerIdentifier(t.TableSchema, t.TableName)).ToList();
-            return tables;
+                List<string> tables = conn.Query<Table>(sql).Select(t => MsDbscDbConnection.QuoteSqlServerIdentifier(t.TableSchema, t.TableName)).ToList();
+                return tables;
+            }
         }
 
-        protected override void ImportData(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public override void ImportData(SqlServerUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
             MsImportOperation import = new MsImportOperation(options, tablesToImportAlreadyEscaped, allTablesExceptMetadataAlreadyEscaped);
             import.Run();
@@ -81,7 +87,7 @@ AND TABLE_NAME <> 'dbsc_metadata'";
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

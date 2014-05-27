@@ -2,27 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using dbsc.Core;
 using MySql.Data.MySqlClient;
+using dbsc.Core;
+using dbsc.Core.Sql;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscApp : DbscApp<SqlCommandLineArgs, SqlCheckoutOptions, SqlUpdateOptions>
+    class MySqlDbscApp : DbscApp<MyDbscCommandLineArgs, DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings>
     {
         public MySqlDbscApp()
-            : base(
-            engine: new MySqlDbscEngine(),
-            parseArgsFunc: args => { SqlCommandLineArgs commandLine = new SqlCommandLineArgs(); commandLine.Parse(args); return commandLine; },
-            getCheckoutOptionsFunc: commandLine => commandLine.GetCheckoutOptions(),
-            getUpdateOptionsFunc: commandLine => commandLine.GetUpdateOptions()
-            )
+            : base(engine: new MySqlDbscEngine())
         {
             ;
         }
     }
 }
 
-// Copyright (C) 2013 Greg Najda
+// Copyright (C) 2014 Greg Najda
 //
 // This file is part of mydbsc.
 //

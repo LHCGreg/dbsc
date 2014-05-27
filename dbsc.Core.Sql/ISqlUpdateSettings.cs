@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace dbsc.Core
+namespace dbsc.Core.Sql
 {
-    public interface ISqlCheckoutOptions<TUpdateOptions> : ICheckoutOptions<TUpdateOptions>
-        where TUpdateOptions : ISqlUpdateOptions
+    public interface ISqlUpdateSettings<TConnectionSettings, TImportSettings> : IUpdateSettings<TConnectionSettings, TImportSettings>
     {
-        string CreationTemplate { get; set; }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

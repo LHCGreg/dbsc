@@ -2,32 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using dbsc.Core;
-using Npgsql;
 using System.Diagnostics;
+using Npgsql;
+using dbsc.Core;
+using dbsc.Core.Sql;
 
 namespace dbsc.Postgres
 {
     // Moved this out to a class to break up the three import stages without having to pass state like fkCreationSql around
     class PgImportOperation
     {
-        private SqlUpdateOptions m_options;
-        private ICollection<string> m_tablesToImportAlreadyEscaped;
-        private ICollection<string> m_allTablesExceptMetadataAlreadyEscaped;
+        private SqlUpdateSettings _options;
+        private ICollection<string> _tablesToImportAlreadyEscaped;
+        private ICollection<string> _allTablesExceptMetadataAlreadyEscaped;
 
-        private List<string> m_fkCreationSql;
-        private List<string> m_pkCreationSql;
-        private List<string> m_indexCreationSql;
+        private List<string> _fkCreationSql;
+        private List<string> _pkCreationSql;
+        private List<string> _indexCreationSql;
 
-        const int enableIndexTimeoutInSeconds = 60 * 60 * 6;
-        const int enableConstraintTimeoutInSeconds = 60 * 60 * 6;
-        const int vacuumTimeoutInSeconds = 60 * 60 * 6;
+        const int EnableIndexTimeoutInSeconds = 60 * 60 * 6;
+        const int EnableConstraintTimeoutInSeconds = 60 * 60 * 6;
+        const int VacuumTimeoutInSeconds = 60 * 60 * 6;
 
-        public PgImportOperation(SqlUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public PgImportOperation(SqlUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
         {
-            m_options = options;
-            m_tablesToImportAlreadyEscaped = tablesToImportAlreadyEscaped;
-            m_allTablesExceptMetadataAlreadyEscaped = allTablesExceptMetadataAlreadyEscaped;
+            _options = options;
+            _tablesToImportAlreadyEscaped = tablesToImportAlreadyEscaped;
+            _allTablesExceptMetadataAlreadyEscaped = allTablesExceptMetadataAlreadyEscaped;
         }
 
         private class ConstraintInfo
@@ -48,11 +49,11 @@ namespace dbsc.Postgres
 
         public void Run()
         {
-            using (PgDbscDbConnection targetConn = new PgDbscDbConnection(m_options.TargetDatabase))
+            using (PgDbscDbConnection targetConn = new PgDbscDbConnection(_options.TargetDatabase))
             {
                 using (NpgsqlTransaction targetTransaction = targetConn.BeginTransaction())
                 {
-                    using (PgDbscDbConnection sourceConn = new PgDbscDbConnection(m_options.ImportOptions.SourceDatabase))
+                    using (PgDbscDbConnection sourceConn = new PgDbscDbConnection(_options.ImportOptions.SourceDatabase))
                     {
                         PrepareTargetForImport(targetConn, targetTransaction);
                         DoImport(targetConn, targetTransaction, sourceConn);
@@ -68,7 +69,7 @@ namespace dbsc.Postgres
 
                 Utils.DoTimedOperation("Vacuuming", () =>
                 {
-                    targetConn.ExecuteSql("VACUUM ANALYZE", timeoutInSeconds: vacuumTimeoutInSeconds);
+                    targetConn.ExecuteSql("VACUUM ANALYZE", timeoutInSeconds: VacuumTimeoutInSeconds);
                 });
             }
         }
@@ -77,8 +78,8 @@ namespace dbsc.Postgres
         {
             // Disable foreign key constraints and primary key constraints temporarily by removing them, then recreating them after the import
 
-            m_fkCreationSql = new List<string>();
-            m_pkCreationSql = new List<string>();
+            _fkCreationSql = new List<string>();
+            _pkCreationSql = new List<string>();
 
             Utils.DoTimedOperation("Removing foreign key and primary key constraints", () =>
             {
@@ -100,14 +101,14 @@ AND pg_namespace.nspname NOT LIKE 'pg_%' AND pg_namespace.nspname <> 'informatio
                     targetConn.ExecuteSql(dropSql, targetTransaction);
                     string createSql = string.Format("ALTER TABLE {0} ADD {1}", qualifiedTableName, key.def);
                     if (key.contype == 'f')
-                        m_fkCreationSql.Add(createSql);
+                        _fkCreationSql.Add(createSql);
                     else
-                        m_pkCreationSql.Add(createSql);
+                        _pkCreationSql.Add(createSql);
                 }
             });
 
             // Remove indexes, then recreate them when done importing
-            m_indexCreationSql = new List<string>();
+            _indexCreationSql = new List<string>();
             Utils.DoTimedOperation("Removing indexes", () =>
             {
                 string indexSql = @"
@@ -126,12 +127,12 @@ AND tab.relname <> 'dbsc_metadata'";
                     string qualifiedIndexName = PgDbscDbConnection.QuotePgIdentifier(index.index_schema, index.index_name);
                     string dropSql = string.Format("DROP INDEX {0}", qualifiedIndexName);
                     targetConn.ExecuteSql(dropSql, targetTransaction);
-                    m_indexCreationSql.Add(index.def);
+                    _indexCreationSql.Add(index.def);
                 }
             });
 
             string clearMessage;
-            if (m_tablesToImportAlreadyEscaped.Count == m_allTablesExceptMetadataAlreadyEscaped.Count)
+            if (_tablesToImportAlreadyEscaped.Count == _allTablesExceptMetadataAlreadyEscaped.Count)
             {
                 clearMessage = "Clearing all tables";
             }
@@ -142,7 +143,7 @@ AND tab.relname <> 'dbsc_metadata'";
 
             Utils.DoTimedOperation(clearMessage, () =>
             {
-                foreach (string table in m_tablesToImportAlreadyEscaped)
+                foreach (string table in _tablesToImportAlreadyEscaped)
                 {
                     string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
                     targetConn.ExecuteSql(clearTableSql, targetTransaction);
@@ -154,7 +155,7 @@ AND tab.relname <> 'dbsc_metadata'";
         {
             using (NpgsqlTransaction sourceTransaction = sourceConn.BeginTransaction())
             {
-                foreach (string table in m_tablesToImportAlreadyEscaped)
+                foreach (string table in _tablesToImportAlreadyEscaped)
                 {
                     Utils.DoTimedOperation(string.Format("Importing {0}", table), () =>
                     {
@@ -174,9 +175,9 @@ AND tab.relname <> 'dbsc_metadata'";
             // Add the indexes back
             Utils.DoTimedOperation("Adding indexes back", () =>
             {
-                foreach (string sql in m_indexCreationSql)
+                foreach (string sql in _indexCreationSql)
                 {
-                    targetConn.ExecuteSql(sql, targetTransaction, timeoutInSeconds: enableIndexTimeoutInSeconds);
+                    targetConn.ExecuteSql(sql, targetTransaction, timeoutInSeconds: EnableIndexTimeoutInSeconds);
                 }
             });
 
@@ -184,13 +185,13 @@ AND tab.relname <> 'dbsc_metadata'";
             Utils.DoTimedOperation("Adding foreign key and primary key constraints back", () =>
             {
                 // Create primary keys before foreign keys because the foreign keys depend on the primary keys.
-                foreach (string sql in m_pkCreationSql)
+                foreach (string sql in _pkCreationSql)
                 {
-                    targetConn.ExecuteSql(sql, targetTransaction, timeoutInSeconds: enableConstraintTimeoutInSeconds);
+                    targetConn.ExecuteSql(sql, targetTransaction, timeoutInSeconds: EnableConstraintTimeoutInSeconds);
                 }
-                foreach (string sql in m_fkCreationSql)
+                foreach (string sql in _fkCreationSql)
                 {
-                    targetConn.ExecuteSql(sql, targetTransaction, timeoutInSeconds: enableConstraintTimeoutInSeconds);
+                    targetConn.ExecuteSql(sql, targetTransaction, timeoutInSeconds: EnableConstraintTimeoutInSeconds);
                 }
             });
         }
@@ -198,7 +199,7 @@ AND tab.relname <> 'dbsc_metadata'";
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

@@ -21,7 +21,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\Debug_AnyCPU\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -29,14 +29,14 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Release_AnyCUP\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\Debug_x86\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -45,7 +45,7 @@
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Release_x86\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -56,10 +56,6 @@
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dapper, Version=1.12.1.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Dapper.1.13\lib\net40\Dapper.dll</HintPath>
-    </Reference>
     <Reference Include="NDesk.Options, Version=0.2.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
@@ -67,41 +63,39 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaseCommandLineArgs.cs" />
-    <Compile Include="BaseDbscDbConnection.cs" />
-    <Compile Include="SqlCheckoutOptions.cs" />
+    <Compile Include="IConnectionSettings.cs" />
+    <Compile Include="IDbscEngineWithTableImport.cs" />
+    <Compile Include="IImportSettings.cs" />
+    <Compile Include="IImportSettingsWithTableList.cs" />
+    <Compile Include="Options\BaseCommandLineArgs.cs" />
+    <Compile Include="Options\BasicOptionBundle.cs" />
+    <Compile Include="DbscOptionException.cs" />
+    <Compile Include="Options\DBCreateTemplateOptionBundle.cs" />
+    <Compile Include="Options\ICommandLineArgs.cs" />
+    <Compile Include="Options\ImportTableListFileOptionBundle.cs" />
+    <Compile Include="Options\IOptionBundle.cs" />
+    <Compile Include="Options\SourceDBOptionBundle.cs" />
+    <Compile Include="Options\SourceDBPortOptionBundle.cs" />
+    <Compile Include="Options\TargetDBPortOptionBundle.cs" />
     <Compile Include="DbConnectionInfo.cs" />
     <Compile Include="DbscEngine.cs" />
     <Compile Include="ICheckoutOptions.cs" />
-    <Compile Include="ISqlCheckoutOptions.cs" />
-    <Compile Include="ISqlUpdateOptions.cs" />
-    <Compile Include="IUpdateOptions.cs" />
+    <Compile Include="IUpdateSettings.cs" />
     <Compile Include="DbscApp.cs" />
     <Compile Include="DbscException.cs" />
     <Compile Include="DbscOperation.cs" />
-    <Compile Include="SqlCommandLineArgs.cs" />
-    <Compile Include="SqlDbscEngine.cs" />
-    <Compile Include="IDbscDbConnection.cs" />
     <Compile Include="ImportOptions.cs" />
     <Compile Include="ScriptStack.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlUpdateOptions.cs" />
     <Compile Include="StringExtensions.cs" />
+    <Compile Include="Options\TargetDBOptionBundle.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" />
 </Project>

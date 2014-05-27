@@ -21,9 +21,9 @@ namespace dbsc.MySql.Integration
         public override string Password { get { return "testpw"; } }
         public override string DbscExeName { get { return "mydbsc.exe"; } }
 
-        public override void DropDatabase(string dbName)
+        public override void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection)
         {
-            using (IDbConnection conn = GetDbConnection(null))
+            using (IDbConnection conn = getDbConnection(null))
             {
                 string sql = string.Format("DROP DATABASE IF EXISTS {0}", dbName);
                 conn.Execute(sql);

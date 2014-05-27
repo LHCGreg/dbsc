@@ -11,6 +11,27 @@ namespace dbsc.SqlServer.Integration
     public class CheckoutTestFixture : AbstractCheckoutTestFixture<MSTestHelper>
     {
         protected override int? Port { get { return null; } }
+
+        [Test]
+        public void TestIntegratedSecurity()
+        {
+            DropDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName);
+            RunSuccessfulCommand(string.Format("checkout -targetDb {0} -sourceDbServer localhost -sourceDb {1}",
+                Helper.IntegratedSecurityTargetDatabaseName, SourceDatabaseName));
+            VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+        }
+
+        private void DropDatabaseWithIntegratedSecurity(string dbName)
+        {
+            DropDatabase(dbName, databaseName => Helper.GetDbConnectionWithIntegratedSecurity(databaseName));
+        }
+
+        private void VerifyDatabaseWithIntegratedSecurity(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
+            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
+        {
+            VerifyDatabase(dbName, expectedPeople, getExpectedBooks,
+                expectedIsolationTestValues, expectedVersion, databaseName => Helper.GetDbConnectionWithIntegratedSecurity(databaseName));
+        }
     }
 }
 

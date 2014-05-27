@@ -5,20 +5,29 @@ using System.Text;
 
 namespace dbsc.Core
 {
-    public interface IUpdateOptions
+    /// <summary>
+    /// Settings used for updating a database. Generic to accomodate different types of SQL databases and even non-SQL databases.
+    /// </summary>
+    /// <typeparam name="TConnectionSettings"></typeparam>
+    /// <typeparam name="TImportSettings"></typeparam>
+    public interface IUpdateSettings<TConnectionSettings, TImportSettings>
     {
         string Directory { get; set; }
-        DbConnectionInfo TargetDatabase { get; set; }
+        TConnectionSettings TargetDatabase { get; set; }
         int? Revision { get; set; }
-        ImportOptions ImportOptions { get; set; }
+        TImportSettings ImportOptions { get; set; }
 
-        IUpdateOptions Clone();
+        IUpdateSettings<TConnectionSettings, TImportSettings> Clone();
     }
 
-    public static class UpdateOptionsExtensions
+    public static class UpdateSettingsExtensions
     {
-        public static TUpdateOptions CloneUpdateOptionsWithDatabaseNamesFilledIn<TUpdateOptions>(this TUpdateOptions options, string dbNameFromScripts)
-            where TUpdateOptions : IUpdateOptions
+        public static TUpdateOptions
+            CloneUpdateOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TImportSettings, TUpdateOptions>
+            (this TUpdateOptions options, string dbNameFromScripts)
+            where TConnectionSettings : IConnectionSettings
+            where TUpdateOptions : IUpdateSettings<TConnectionSettings, TImportSettings>
+            where TImportSettings : IImportSettings<TConnectionSettings>
         {
             TUpdateOptions clone = (TUpdateOptions)options.Clone();
 
@@ -38,7 +47,7 @@ namespace dbsc.Core
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
