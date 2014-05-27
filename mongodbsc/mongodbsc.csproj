@@ -94,7 +94,6 @@
     </None>
     <None Include="mongodbsc.targets" />
     <None Include="packages.config" />
-    <None Include="version.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\dbsc.Core\dbsc.Core.csproj">

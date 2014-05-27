@@ -16,19 +16,12 @@
   </PropertyGroup>
   
   <Target Name="SetVersionProperties">
-    <!-- Read properties from the calling project's version.xml -->
-    <MSBuild.ExtensionPack.Xml.XmlFile TaskAction="ReadElementText" File="version.xml" XPath="/Versions/MajorVersion">
-      <Output TaskParameter="Value" PropertyName="MajorVersion"/>
-    </MSBuild.ExtensionPack.Xml.XmlFile>
-    <MSBuild.ExtensionPack.Xml.XmlFile TaskAction="ReadElementText" File="version.xml" XPath="/Versions/MinorVersion">
-      <Output TaskParameter="Value" PropertyName="MinorVersion"/>
-    </MSBuild.ExtensionPack.Xml.XmlFile>
-    <MSBuild.ExtensionPack.Xml.XmlFile TaskAction="ReadElementText" File="version.xml" XPath="/Versions/FixVersion">
-      <Output TaskParameter="Value" PropertyName="FixVersion"/>
-    </MSBuild.ExtensionPack.Xml.XmlFile>
-    <MSBuild.ExtensionPack.Xml.XmlFile TaskAction="ReadElementText" File="version.xml" XPath="/Versions/BuildVersion">
-      <Output TaskParameter="Value" PropertyName="BuildVersion"/>
-    </MSBuild.ExtensionPack.Xml.XmlFile>
+    <!-- MajorVersion, MinorVersion, FixVersion, and BuildVersion should be set in the project's .targets file. -->
+    
+    <Error Condition="'$(MajorVersion)' == ''" Text="MajorVersion not set." />
+    <Error Condition="'$(MinorVersion)' == ''" Text="MinorVersion not set." />
+    <Error Condition="'$(FixVersion)' == ''" Text="FixVersion not set." />
+    <Error Condition="'$(BuildVersion)' == ''" Text="BuildVersion not set." />
     
     <!-- Don't use a <PropertyGroup> because mono's xbuild doesn't support dynamic properties. -->
     <CreateProperty Value="$(MajorVersion).$(MinorVersion).$(FixVersion).$(BuildVersion)">

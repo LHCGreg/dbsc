@@ -105,7 +105,6 @@
     <Content Include="notice.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="version.xml" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\dbsc.Core.Sql\dbsc.Core.Sql.csproj">

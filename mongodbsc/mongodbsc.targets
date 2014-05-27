@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+    <MajorVersion>2</MajorVersion>
+    <MinorVersion>1</MinorVersion>
+    <FixVersion>0</FixVersion>
+    <BuildVersion>0</BuildVersion>
     <ZipNameWithoutVersion>DBSC for MongoDB</ZipNameWithoutVersion>
     <DebianPackageName>mongodbsc</DebianPackageName>
     <DebianDependencyFpmFlags>-d 'mono-runtime (>= 2.10.8.1)' -d 'libmono-corlib4.0-cil (>= 2.10.8.1)' -d 'libmono-system4.0-cil (>= 2.10.8.1)' -d 'libmono-system-core4.0-cil (>= 2.10.8.1)' -d 'libmono-system-data4.0-cil (>= 2.10.8.1)' -d 'libmono-microsoft-csharp4.0-cil (>= 2.10.8.1)' -d 'libmono-system-xml4.0-cil (>= 2.10.8.1)' -d 'libmono-windowsbase3.0-cil (>= 2.10.8.1)' -d 'libmono-system-drawing4.0-cil (>= 2.10.8.1)' -d 'mongodb-org-shell | mongodb-org-unstable-shell | mongodb-clients'</DebianDependencyFpmFlags>

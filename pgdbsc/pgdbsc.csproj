@@ -147,7 +147,6 @@
     <None Include="pgdbsc.targets">
       <SubType>Designer</SubType>
     </None>
-    <None Include="version.xml" />
   </ItemGroup>
   <ItemGroup>
     <None Include="license.rtf">
