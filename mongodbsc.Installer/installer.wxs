@@ -21,7 +21,7 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
     <MajorUpgrade DowngradeErrorMessage="A later version of DBSC for MongoDB is already installed." />
 
     <PropertyRef Id="NETFRAMEWORK40FULL"/>
-    <Condition Message="DBSC for PostgreSQL requires .NET 4.0 to be installed.">Installed OR NETFRAMEWORK40FULL</Condition>
+    <Condition Message="DBSC for MongoDB requires .NET 4.0 to be installed.">Installed OR NETFRAMEWORK40FULL</Condition>
 
     <!--
     Can generate the xml for the components with:
