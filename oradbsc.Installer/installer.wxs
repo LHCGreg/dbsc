@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- This is the WiX file defining the installer for oradbsc.
+The installer generated is intended to be included in the installation bundle (bundle.wxs).
+It could be run standalone but the user would get an error message if .NET 4.0 is not installed. -->
+
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension">
+  <!-- -ext WiXNetFxExtension -->
+  <!-- -ext WixUIExtension -->
+
+  <Product Name='DBSC for Oracle' Id='{00A7C115-A0D4-4667-90F4-2B509527D26D}' UpgradeCode='{0107A20F-239B-4B96-8F1A-E403E12ED768}'
+      Language='1033' Codepage='1252' Version='$(var.VersionWithoutBuild)' Manufacturer='Greg Najda'>
+    <Package Id='*' Description="DBSC for Oracle $(var.VersionWithoutBuild)" Manufacturer='Greg Najda' Languages='1033'
+             Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>
+    <Media Id='1' Cabinet='oradbsc.cab' EmbedCab='yes' />
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <UIRef Id="WixUI_InstallDir"/>
+    <UIRef Id="WixUI_ErrorProgressText" />
+    <WixVariable Id="WixUILicenseRtf" Value="SourceDir\license.rtf" />
+
+    <MajorUpgrade DowngradeErrorMessage="A later version of DBSC for Oracle is already installed." />
+
+    <PropertyRef Id="NETFRAMEWORK40FULL"/>
+    <Condition Message="DBSC for Oracle requires .NET 4.0 to be installed.">Installed OR NETFRAMEWORK40FULL</Condition>
+
+    <!--
+    Can generate the xml for the components with:
+    heat dir . -gg -nologo -scom -sfrag -srd -sreg -svb6 -suid -o heat.xml
+    From the extraction of a zip release.
+    -->
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='ProgramFilesFolder' Name='PFiles'>
+        <Directory Id='INSTALLDIR' Name='DBSC for Oracle'>
+          <Component Id="Dapper.dll" Guid="{FC660751-04B0-4B55-A369-133298B8E97F}">
+            <File Id="Dapper.dll" KeyPath="yes" Source="SourceDir\Dapper.dll" />
+          </Component>
+          <Component Id="dapper_license.txt" Guid="{2FB12CA2-2276-4BD8-A989-A272F38E15C6}">
+            <File Id="dapper_license.txt" KeyPath="yes" Source="SourceDir\dapper_license.txt" />
+          </Component>
+          <Component Id="dbsc.Core.dll" Guid="{92FDA238-FF89-452F-AEB0-D80660C163FD}">
+            <File Id="dbsc.Core.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.dll" />
+          </Component>
+          <Component Id="dbsc.Core.Sql.dll" Guid="{1613A0D3-0DB2-4A71-BEB5-DC73224B583E}">
+            <File Id="dbsc.Core.Sql.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.Sql.dll" />
+          </Component>
+          <Component Id="license.txt" Guid="{296FAF92-145F-4315-9EA4-6CCF4B45A4F0}">
+            <File Id="license.txt" KeyPath="yes" Source="SourceDir\license.txt" />
+          </Component>
+          <Component Id="license.rtf" Guid="{9FE884FD-BBF7-4D2A-A2D3-3385E2D8AE4E}">
+            <File Id="license.rtf" KeyPath="yes" Source="SourceDir\license.rtf" />
+          </Component>
+          <Component Id="NDesk.Options.dll" Guid="{1EE4FE4D-EF07-45D1-B71B-B12FC87561B9}">
+            <File Id="NDesk.Options.dll" KeyPath="yes" Source="SourceDir\NDesk.Options.dll" />
+          </Component>
+          <Component Id="ndesk_options_license.txt" Guid="{9A01B2AA-1AE1-4943-AA5D-B4B09539D822}">
+            <File Id="ndesk_options_license.txt" KeyPath="yes" Source="SourceDir\ndesk_options_license.txt" />
+          </Component>
+          <Component Id="notice.txt" Guid="{B652D99D-85A3-49D2-A4C3-B5366B9A79A6}">
+            <File Id="notice.txt" KeyPath="yes" Source="SourceDir\notice.txt" />
+          </Component>
+          <Component Id="Oracle.ManagedDataAccess.dll" Guid="{F1738126-03EA-4630-8382-4698CDBC222C}">
+            <File Id="Oracle.ManagedDataAccess.dll" KeyPath="yes" Source="SourceDir\Oracle.ManagedDataAccess.dll" />
+          </Component>
+          <Component Id="oradbsc.exe" Guid="{C88369CD-F25A-433B-AE2D-9C63FAB49EA4}">
+            <File Id="oradbsc.exe" KeyPath="yes" Source="SourceDir\oradbsc.exe" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id='AddToPath' Guid='{8D388890-85ED-4918-BFD6-2EDE473CB71A}' KeyPath='yes'>
+        <Environment Id='PATH' Name='PATH' Value='[INSTALLDIR]' System='yes' Permanent='no' Action='set' Part='last' />
+      </Component>
+    </DirectoryRef>
+
+    <Feature Id="oradbsc" Title="oradbsc" Description="DBSC for Oracle" Display="expand"
+             ConfigurableDirectory="INSTALLDIR" Level="1" Absent="disallow" InstallDefault="local" AllowAdvertise="no">
+      <ComponentRef Id="AddToPath"/>
+      <ComponentRef Id="Dapper.dll"/>
+      <ComponentRef Id="dapper_license.txt"/>
+      <ComponentRef Id="dbsc.Core.dll"/>
+      <ComponentRef Id="dbsc.Core.Sql.dll"/>
+      <ComponentRef Id="license.txt"/>
+      <ComponentRef Id="license.rtf"/>
+      <ComponentRef Id="NDesk.Options.dll"/>
+      <ComponentRef Id="ndesk_options_license.txt"/>
+      <ComponentRef Id="notice.txt"/>
+      <ComponentRef Id="Oracle.ManagedDataAccess.dll"/>
+      <ComponentRef Id="oradbsc.exe"/>
+    </Feature>
+  </Product>
+</Wix>

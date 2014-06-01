@@ -99,6 +99,19 @@
       <Link>ndesk_options_license.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\oradbsc.Installer\bundle.wxs">
+      <Link>Installer\bundle.wxs</Link>
+    </Content>
+    <Content Include="..\oradbsc.Installer\installer.wxs">
+      <Link>Installer\installer.wxs</Link>
+    </Content>
+    <Content Include="..\oradbsc.Installer\oradbsc.Bundle.wixproj">
+      <Link>Installer\oradbsc.Bundle.wixproj</Link>
+    </Content>
+    <Content Include="..\oradbsc.Installer\oradbsc.Installer.wixproj">
+      <Link>Installer\oradbsc.Installer.wixproj</Link>
+    </Content>
+    <Content Include="Installer\installer_readme.txt" />
     <Content Include="license.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

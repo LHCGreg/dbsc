@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- This is the WiX file defining the installer bundle that installs .NET 4.0 and oradbsc. -->
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
+     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
+  <!-- -ext WiXNetFxExtension -->
+  <!-- -ext WixBalExtension -->
+  <Bundle Manufacturer="Greg Najda" Name="DBSC for Oracle $(var.VersionWithoutBuild)" UpgradeCode="{AA7124FF-DBFD-4F0E-A9AC-9EEA54024BC2}" Version="$(var.VersionWithoutBuild)">
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
+      <bal:WixStandardBootstrapperApplication SuppressOptionsUI="yes" LicenseUrl="" />
+      <!-- license is already in the main msi-->
+    </BootstrapperApplicationRef>
+    <Chain>
+      <PackageGroupRef Id="NetFx40Web"/>
+      <MsiPackage Id="oradbscPackage" EnableFeatureSelection="yes" SourceFile="installer.msi" DisplayInternalUI="yes" />
+    </Chain>
+  </Bundle>
+</Wix>

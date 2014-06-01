@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProductVersion>3.0</ProductVersion>
+    <ProjectGuid>{5CC284A7-8217-4C60-867E-39A20D6B0B5A}</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <DefineSolutionProperties>false</DefineSolutionProperties>
+    <Configuration>Release</Configuration>
+    <Platform>AnyCPU</Platform>
+    <ExeProject>oradbsc</ExeProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="bundle.wxs" />
+    <WixExtension Include="WiXNetFxExtension;WixBalExtension" />
+  </ItemGroup>
+  
+  <Import Project="..\common_bundle.targets" />
+  <Import Project="..\oradbsc\oradbsc.targets" />
+  
+  <!--
+  Use BeforeTargets=CheckForInvalidConfigurationAndPlatform instead of using BuildDependsOn because
+  _CheckForInvalidConfigurationAndPlatform runs before anything in BuildDependsOn
+  -->
+  <Target Name="SetProperties" DependsOnTargets="SetVersionProperties" BeforeTargets="_CheckForInvalidConfigurationAndPlatform">
+    <PropertyGroup>
+      <OutputName>DBSC_for_Oracle_$(VersionWithoutBuild)_setup</OutputName>
+      <TargetName>DBSC_for_Oracle_$(VersionWithoutBuild)_setup</TargetName>
+      <TargetPdbName>DBSC_for_Oracle_$(VersionWithoutBuild)_setup.wixpdb</TargetPdbName>
+      <DefineConstants>VersionWithoutBuild=$(VersionWithoutBuild)</DefineConstants>
+    </PropertyGroup>
+  </Target>
+</Project>
