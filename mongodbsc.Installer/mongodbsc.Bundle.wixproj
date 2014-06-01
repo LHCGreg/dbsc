@@ -16,7 +16,7 @@
   </ItemGroup>
   
   <Import Project="..\common_bundle.targets" />
-  <Import Project="..\pgdbsc\pgdbsc.targets" />
+  <Import Project="..\mongodbsc\mongodbsc.targets" />
   
   <!--
   Use BeforeTargets=CheckForInvalidConfigurationAndPlatform instead of using BuildDependsOn because
