@@ -2,8 +2,6 @@ BUILD DEPENDENCIES
 ------------------
 DBSC uses NuGet to fetch most dependencies when building.
 
-If you are on Windows, you must have version 3.7 or higher (but less than 4.0?) of the WiX Toolset (http://wixtoolset.org/) installed, even if you are not building an installer.
-
 
 DEPLOYMENT CONSIDERATIONS
 -------------------------
@@ -11,7 +9,7 @@ Take care when adding references. Non-system references that must be present at 
 
 The Mono Linux packages on Debian are very granular with system libraries so even something innocent like System.Xml.dll must be listed as a package dependency. When adding new non-system dependencies, check what its system dependencies are using a decompiler like JetBrains DotPeek (http://www.jetbrains.com/decompiler/). Recursively check the system dependencies of its non-system dependencies as well. Add system dependencies to .targets file for the project in the DebianDependencyFpmFlags and RpmDependencyFpmFlags properties.
 
-The version number to be used for executable projects is stored in version.xml so that it can be read during the build process and used when building the installer, Debian package, Red Hat package, and zip package.
+The version number to be used for executable projects is stored in <project>.targets so that it can be read during the build process and used when building the installer, Debian package, Red Hat package, and zip package.
 
 msdbsc can only be built x86, not AnyCPU or x64 due to dependencies on 32-bit SQL Server native dlls.
 
@@ -27,7 +25,7 @@ The .zip will be placed in ZipReleases/ in the project folder. The .zip will con
 
 BUILDING AN MSI WINDOWS INSTALLER
 ---------------------------------
-See Installer/installer_readme.txt for the project. You must have the WiX binaries on your path.
+See Installer/installer_readme.txt for the project. You must have version 3.7 or higher (but less than 4.0?) of the WiX Toolset (http://wixtoolset.org/) installed and you must have the WiX binaries on your path.
 
 
 RUNNING THE AUTOMATED TESTS
