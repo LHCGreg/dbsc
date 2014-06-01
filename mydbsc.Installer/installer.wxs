@@ -11,6 +11,10 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
     <Media Id='1' Cabinet='mydbsc.cab' EmbedCab='yes' />
 
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+
+    <!-- Disable creation of a system restore point. Creation of a system restore point can cause a ~30 second delay for the UAC dialog even pops up. -->
+    <Property Id="MSIFASTINSTALL" Value="1"/>
+
     <UIRef Id="WixUI_InstallDir"/>
     <UIRef Id="WixUI_ErrorProgressText" />
     <WixVariable Id="WixUILicenseRtf" Value="SourceDir\license.rtf" />
