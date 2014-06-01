@@ -110,10 +110,20 @@
       <Link>ndesk_options_license.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="..\mongodbsc.Installer\bundle.wxs">
+      <Link>Installer\bundle.wxs</Link>
+    </Content>
+    <Content Include="..\mongodbsc.Installer\installer.wxs">
+      <Link>Installer\installer.wxs</Link>
+    </Content>
+    <Content Include="..\mongodbsc.Installer\mongodbsc.Bundle.wixproj">
+      <Link>Installer\mongodbsc.Bundle.wixproj</Link>
+    </Content>
+    <Content Include="..\mongodbsc.Installer\mongodbsc.Installer.wixproj">
+      <Link>Installer\mongodbsc.Installer.wixproj</Link>
+    </Content>
     <Content Include="deb\description.txt" />
     <Content Include="deb\description_readme.txt" />
-    <Content Include="Installer\bundle.wxs" />
-    <Content Include="Installer\installer.wxs" />
     <Content Include="Installer\installer_readme.txt" />
     <Content Include="license.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
