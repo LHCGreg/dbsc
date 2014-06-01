@@ -1,40 +1,43 @@
-<!-- This project is designed to be called from the main .csproj, not built directly. -->
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProductVersion>3.0</ProductVersion>
-    <ProjectGuid>{9A9A6308-15F2-4EB5-82A2-8A63DC100673}</ProjectGuid>
+    <ProjectGuid>{B2632BC6-4E25-4E5A-80E9-7E1202972643}</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>installer</OutputName>
-    <OutputType>Package</OutputType>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <DefineSolutionProperties>false</DefineSolutionProperties>
-    <Pedantic>true</Pedantic>
-    <!-- OutputPath, IntermediateOutputPath, and CompileOutputDir are passed in from the calling project. -->
+    <Configuration>Release</Configuration>
+    <Platform>x86</Platform>
+    <ExeProject>msdbsc</ExeProject>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Installer\installer.wxs" />
-    <WixExtension Include="WiXNetFxExtension;WixUIExtension" />
-    <LinkerBindInputPaths Include="$(CompileOutputDir)" />
+    <Compile Include="bundle.wxs" />
+    <WixExtension Include="WiXNetFxExtension;WixBalExtension;WixUtilExtension" />
   </ItemGroup>
-  <Import Project="$(WixTargetsPath)" />
-  <Import Project="..\common.targets" />
+  
+  <Import Project="..\common_bundle.targets" />
+  <Import Project="..\pgdbsc\pgdbsc.targets" />
+  
   <PropertyGroup>
     <BuildDependsOn>
       CheckRequiredProperties;
       $(BuildDependsOn)
     </BuildDependsOn>
   </PropertyGroup>
-
+  
   <!--
   Use BeforeTargets=CheckForInvalidConfigurationAndPlatform instead of using BuildDependsOn because
   _CheckForInvalidConfigurationAndPlatform runs before anything in BuildDependsOn
   -->
   <Target Name="SetProperties" DependsOnTargets="SetVersionProperties" BeforeTargets="_CheckForInvalidConfigurationAndPlatform">
     <PropertyGroup>
-      <DefineConstants>VersionWithoutBuild=$(VersionWithoutBuild);SMO11x86MSI=$(SMO11x86MSI);SqlClrTypesx86MSI=$(SqlClrTypesx86MSI)</DefineConstants>
+      <OutputName>DBSC_for_SQL_Server_$(VersionWithoutBuild)_setup</OutputName>
+      <TargetName>DBSC_for_SQL_Server_$(VersionWithoutBuild)_setup</TargetName>
+      <TargetPdbName>DBSC_for_SQL_Server_$(VersionWithoutBuild)_setup.wixpdb</TargetPdbName>
+      <DefineConstants>VersionWithoutBuild=$(VersionWithoutBuild);SMO11x86MSI=$(SMO11x86MSI);SqlClrTypesx86MSI=$(SqlClrTypes2012x86MSI)</DefineConstants>
     </PropertyGroup>
   </Target>
-
+  
   <Target Name="CheckRequiredProperties">
     <Error Condition="'$(SMO11x86MSI)' == ''" Text="You must set the SMO11x86MSI property to the path of the x86 SQL Management Objects 11 installer." />
     <Error Condition="'$(SqlClrTypes2012x86MSI)' == ''" Text="You must set the SqlClrTypes2012x86MSI property to the path of the x86 SQL 2012 CLR Types installer." />

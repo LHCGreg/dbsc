@@ -49,12 +49,6 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
           <Component Id="license.txt" Guid="{70D8273B-1C2A-49BB-8F92-3B737EC91F71}">
             <File Id="license.txt" KeyPath="yes" Source="SourceDir\license.txt" />
           </Component>
-          <Component Id="MiscUtil.dll" Guid="{90BB94BD-42EB-403A-8DD2-D0B5894E8468}">
-            <File Id="MiscUtil.dll" KeyPath="yes" Source="SourceDir\MiscUtil.dll" />
-          </Component>
-          <Component Id="misc_util_licence.txt" Guid="{A2D0630B-19EE-4DEA-86CA-CC0167633161}">
-            <File Id="misc_util_licence.txt" KeyPath="yes" Source="SourceDir\misc_util_licence.txt" />
-          </Component>
           <Component Id="Mono.Security.dll" Guid="{8CBECC67-F7AA-48FE-A78D-541FE77A83CB}">
             <File Id="Mono.Security.dll" KeyPath="yes" Source="SourceDir\Mono.Security.dll" />
           </Component>

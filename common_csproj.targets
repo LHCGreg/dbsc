@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Includes MSBuild properties and targets common across all C# projects, excluding installer projects. -->
+  <!-- Includes MSBuild properties and targets common across all C# projects. -->
   <Import Project="$(MSBuildThisFileDirectory)common.targets"/>
 
   <!-- The default clean only removes files from the bin folder that it knows about. Make sure a clean totally cleans the bin folder.-->
@@ -49,32 +49,6 @@
     <CleanDependsOn>
       $(CleanDependsOn);
       CleanDynamicAssemblyInfo
-    </CleanDependsOn>
-  </PropertyGroup>
-
-  <Target Name="BuildInstaller" DependsOnTargets="Build;_BuildInstaller;_BuildBundle">
-
-  </Target>
-  <Target Name="_BuildInstaller">
-    <MSBuild Projects="installer.wixproj"
-             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
-  </Target>
-  <Target Name="_BuildBundle">
-    <MSBuild Projects="bundle.wixproj"
-             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
-  </Target>
-  <Target Name="CleanInstaller">
-    <MSBuild Projects="installer.wixproj" Targets="Clean" Condition="Exists('installer.wixproj')"
-             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
-    <MSBuild Projects="bundle.wixproj" Targets="Clean" Condition="Exists('bundle.wixproj')"
-             Properties="OutputPath=Installer\bin\$(Configuration)_$(Platform)\;CompileOutputDir=$(OutDir);IntermediateOutputPath=$(IntermediateOutputPath)" />
-  </Target>
-
-  <!-- WiX will not be present when building on non-Windows systems so CleanInstaller will not work. -->
-  <PropertyGroup Condition="'$(BuildingOnWindows)' == 'true'">
-    <CleanDependsOn>
-      $(CleanDependsOn);
-      CleanInstaller
     </CleanDependsOn>
   </PropertyGroup>
 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- To be imported in bundle .wixproj projects as the only import other than the project-specific import, after importing this. -->
+  <!-- Configuration, Platform, and ExeProject properties must be set. -->
+  
+  <PropertyGroup>
+    <IntermediateOutputPath>$(MSBuildProjectDirectory)\obj\$(Configuration)_$(Platform)\</IntermediateOutputPath>
+    <OutputPath>$(MSBuildProjectDirectory)\bin\$(Configuration)_$(Platform)\</OutputPath>
+    <Pedantic>true</Pedantic>
+    <OutputType>Bundle</OutputType>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <LinkerBindInputPaths Include="$(OutputPath)" />
+  </ItemGroup>
+  
+  <Import Project="$(WixTargetsPath)" />
+  <Import Project="common.targets" />
+  
+  <PropertyGroup>
+    <BuildDependsOn>
+      BuildInstaller;
+      $(BuildDependsOn)
+    </BuildDependsOn>
+    <CleanDependsOn>
+      CleanInstaller;
+      $(CleanDependsOn)
+    </CleanDependsOn>
+  </PropertyGroup>
+  <Target Name="BuildInstaller">
+    <MSBuild Projects="$(MSBuildProjectDirectory)\$(ExeProject).Installer.wixproj" Targets="Build" />
+  </Target>
+  <Target Name="CleanInstaller">
+    <MSBuild Projects="$(MSBuildProjectDirectory)\$(ExeProject).Installer.wixproj" Targets="Clean" />
+  </Target>
+</Project>

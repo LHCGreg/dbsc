@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- To be imported in installer .wixproj projects as the only import other than the project-specific import, after importing this. -->
+  <!-- Configuration, Platform, and ExeProject properties must be set. -->
+  
+  <PropertyGroup>
+    <CompileOutputDir>$(MSBuildProjectDirectory)\..\$(ExeProject)\bin\$(Configuration)_$(Platform)\</CompileOutputDir>
+    <IntermediateOutputPath>$(MSBuildProjectDirectory)\obj\$(Configuration)_$(Platform)\</IntermediateOutputPath>
+    <OutputPath>$(MSBuildProjectDirectory)\bin\$(Configuration)_$(Platform)\</OutputPath>
+    <Pedantic>true</Pedantic>
+    <OutputName>installer</OutputName>
+    <OutputType>Package</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <LinkerBindInputPaths Include="$(CompileOutputDir)" />
+  </ItemGroup>
+  
+  <Import Project="$(WixTargetsPath)" />
+  <Import Project="common.targets" />
+  
+  <PropertyGroup>
+    <BuildDependsOn>
+      BuildExe;
+      SetProperties;
+      $(BuildDependsOn)
+    </BuildDependsOn>
+    <CleanDependsOn>
+      CleanExe;
+      $(CleanDependsOn)
+    </CleanDependsOn>
+  </PropertyGroup>
+  <Target Name="BuildExe">
+    <MSBuild Projects="$(MSBuildProjectDirectory)\..\$(ExeProject)\$(ExeProject).csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+  </Target>
+  <Target Name="CleanExe">
+    <MSBuild Projects="$(MSBuildProjectDirectory)\..\$(ExeProject)\$(ExeProject).csproj" Targets="Clean" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+  </Target>
+  <Target Name="SetProperties" DependsOnTargets="SetVersionProperties" BeforeTargets="_CheckForInvalidConfigurationAndPlatform">
+    <PropertyGroup>
+      <DefineConstants>VersionWithoutBuild=$(VersionWithoutBuild)</DefineConstants>
+    </PropertyGroup>
+  </Target>
+</Project>
