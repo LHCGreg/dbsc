@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace dbsc.Core
 {
@@ -127,6 +128,12 @@ namespace dbsc.Core
                     throw new DbscException(string.Format("Source database {0} was not created with dbsc and cannot be imported from or you do not have permission to it.", options.ImportOptions.SourceDatabase.ToDescriptionString()));
                 }
             }
+        }
+
+        public void ShowRevision(TConnectionSettings connectionSettings)
+        {
+            int revision = GetRevision(connectionSettings);
+            Console.WriteLine(revision.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>

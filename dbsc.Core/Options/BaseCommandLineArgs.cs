@@ -82,7 +82,7 @@ namespace dbsc.Core.Options
         public void DisplayHelp(TextWriter writer)
         {
             writer.WriteLine("Usage: {0} <command> [OPTIONS]", GetProgramNameWithoutExtension());
-            writer.WriteLine("Available commands are \"checkout\" and \"update\".");
+            writer.WriteLine("Available commands are \"checkout\", \"update\", and \"revision\".");
             writer.WriteLine();
             writer.WriteLine("Parameters:");
             GetOptionSet().WriteOptionDescriptions(writer);

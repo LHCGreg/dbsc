@@ -8,12 +8,13 @@ namespace dbsc.Core
     public enum DbscOperation
     {
         Checkout,
-        Update
+        Update,
+        Revision,
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
