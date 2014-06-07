@@ -10,11 +10,11 @@ namespace dbsc.Core
     /// <summary>
     /// Base class containing generic, DB-agnostic code for checking out and updating databases.
     /// </summary>
-    /// <typeparam name="TCheckoutOptions"></typeparam>
-    /// <typeparam name="TUpdateOptions"></typeparam>
-    public abstract class DbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions>
-        where TCheckoutOptions : ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateOptions>
-        where TUpdateOptions : IUpdateSettings<TConnectionSettings, TImportSettings>
+    /// <typeparam name="TCheckoutSettings"></typeparam>
+    /// <typeparam name="TUpdateSettings"></typeparam>
+    public abstract class DbscEngine<TConnectionSettings, TCheckoutSettings, TImportSettings, TUpdateSettings>
+        where TCheckoutSettings : ICheckoutOptions<TConnectionSettings, TImportSettings, TUpdateSettings>
+        where TUpdateSettings : IUpdateSettings<TConnectionSettings, TImportSettings>
         where TConnectionSettings : IConnectionSettings
         where TImportSettings : IImportSettings<TConnectionSettings>
     {
@@ -52,7 +52,7 @@ namespace dbsc.Core
         /// Creates the database given by <paramref name="options"/>.
         /// </summary>
         /// <param name="options"></param>
-        protected abstract void CreateDatabase(TCheckoutOptions options);
+        protected abstract void CreateDatabase(TCheckoutSettings options);
         
         /// <summary>
         /// Initializes the dbsc metadata table on the database.
@@ -60,7 +60,7 @@ namespace dbsc.Core
         /// <param name="options"></param>
         /// <param name="masterDatabaseName">The name of the database as it appears in script file names, not necessarily the
         /// name of the created database.</param>
-        protected abstract void InitializeDatabase(TCheckoutOptions options, string masterDatabaseName);
+        protected abstract void InitializeDatabase(TCheckoutSettings options, string masterDatabaseName);
         
         /// <summary>
         /// Gets the revision that the database is on.
@@ -76,20 +76,20 @@ namespace dbsc.Core
         /// <param name="scriptPath"></param>
         /// <param name="newRevision"></param>
         /// <param name="utcTimestamp"></param>
-        protected abstract void RunScriptAndUpdateMetadata(TUpdateOptions options, string scriptPath, int newRevision);
+        protected abstract void RunScriptAndUpdateMetadata(TUpdateSettings options, string scriptPath, int newRevision);
 
-        protected abstract void ImportData(TUpdateOptions options);
+        protected abstract void ImportData(TUpdateSettings options);
         
         /// <summary>
         /// Runs a database checkout.
         /// </summary>
         /// <param name="options"></param>
-        public void Checkout(TCheckoutOptions options)
+        public void Checkout(TCheckoutSettings options)
         {
             ScriptStack scriptStack = new ScriptStack(options.Directory, ScriptExtensionWithoutDot);
 
             // Default target database name and source database name to the master database name
-            options = options.CloneCheckoutOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions>(scriptStack.MasterDatabaseName);
+            options = options.CloneCheckoutOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TCheckoutSettings, TImportSettings, TUpdateSettings>(scriptStack.MasterDatabaseName);
 
             ValidateUpdateOptionsForCheckoutAndUpdate(options.UpdateOptions, scriptStack);
 
@@ -99,7 +99,7 @@ namespace dbsc.Core
             UpdateDatabase(scriptStack, options.UpdateOptions);
         }
 
-        private void ValidateUpdateOptionsForCheckoutAndUpdate(TUpdateOptions options, ScriptStack scriptStack)
+        private void ValidateUpdateOptionsForCheckoutAndUpdate(TUpdateSettings options, ScriptStack scriptStack)
         {
             // If revision was specified, verify that there is a script for tha revision
             if (options.Revision != null && !scriptStack.ScriptsByRevision.ContainsKey(options.Revision.Value))
@@ -130,9 +130,15 @@ namespace dbsc.Core
             }
         }
 
-        public void ShowRevision(TConnectionSettings connectionSettings)
+        public void ShowRevision(TCheckoutSettings settings)
         {
-            int revision = GetRevision(connectionSettings);
+            if (settings.TargetDatabase.Database == null)
+            {
+                ScriptStack scriptStack = new ScriptStack(settings.Directory, ScriptExtensionWithoutDot);
+                // Default target database name and source database name to the master database name
+                settings = settings.CloneCheckoutOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TCheckoutSettings, TImportSettings, TUpdateSettings>(scriptStack.MasterDatabaseName);
+            }
+            int revision = GetRevision(settings.TargetDatabase);
             Console.WriteLine(revision.ToString(CultureInfo.InvariantCulture));
         }
 
@@ -140,12 +146,12 @@ namespace dbsc.Core
         /// Runs a database update.
         /// </summary>
         /// <param name="options"></param>
-        public void Update(TUpdateOptions options)
+        public void Update(TUpdateSettings options)
         {
             ScriptStack scriptStack = new ScriptStack(options.Directory, ScriptExtensionWithoutDot);
 
             // Default target database name and source database name to the master database name
-            options = options.CloneUpdateOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TImportSettings, TUpdateOptions>(scriptStack.MasterDatabaseName);
+            options = options.CloneUpdateOptionsWithDatabaseNamesFilledIn<TConnectionSettings, TImportSettings, TUpdateSettings>(scriptStack.MasterDatabaseName);
 
             ValidateUpdateOptionsForCheckoutAndUpdate(options, scriptStack);
             ValidateUpdateOptionsForUpdate(options);
@@ -153,7 +159,7 @@ namespace dbsc.Core
             UpdateDatabase(scriptStack, options);
         }
 
-        private void ValidateUpdateOptionsForUpdate(TUpdateOptions options)
+        private void ValidateUpdateOptionsForUpdate(TUpdateSettings options)
         {
             if (!DatabaseHasMetadataTable(options.TargetDatabase))
             {
@@ -161,7 +167,7 @@ namespace dbsc.Core
             }
         }
 
-        private void UpdateDatabase(ScriptStack scriptStack, TUpdateOptions options)
+        private void UpdateDatabase(ScriptStack scriptStack, TUpdateSettings options)
         {
             int versionBeforeUpdate = GetRevision(options.TargetDatabase);
             int currentVersion = versionBeforeUpdate;

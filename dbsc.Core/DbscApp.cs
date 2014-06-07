@@ -48,7 +48,7 @@ namespace dbsc.Core
                 else if (commandLine.Operation == DbscOperation.Revision)
                 {
                     TCheckoutSettings options = commandLine.GetCheckoutSettings();
-                    _engine.ShowRevision(options.TargetDatabase);
+                    _engine.ShowRevision(options);
                 }
                 else
                 {
