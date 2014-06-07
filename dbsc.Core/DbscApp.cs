@@ -45,6 +45,11 @@ namespace dbsc.Core
                     TUpdateSettings options = commandLine.GetUpdateSettings();
                     _engine.Update(options);
                 }
+                else if (commandLine.Operation == DbscOperation.Revision)
+                {
+                    TCheckoutSettings options = commandLine.GetCheckoutSettings();
+                    _engine.ShowRevision(options);
+                }
                 else
                 {
                     throw new DbscException(string.Format("Oops, missed an operation: {0}", commandLine.Operation));

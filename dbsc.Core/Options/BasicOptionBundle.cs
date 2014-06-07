@@ -58,6 +58,10 @@ namespace dbsc.Core.Options
             {
                 Operation = DbscOperation.Update;
             }
+            else if (arg.Equals("revision", StringComparison.OrdinalIgnoreCase))
+            {
+                Operation = DbscOperation.Revision;
+            }
             else
             {
                 throw new DbscOptionException(string.Format("{0} is not a supported operation. Use \"checkout\" or \"update\".", arg));

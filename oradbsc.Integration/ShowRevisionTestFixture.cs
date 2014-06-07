@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NUnit.Framework;
+using TestUtils.Sql;
 
-namespace dbsc.Core
+namespace oradbsc.Integration
 {
-    public enum DbscOperation
+    [TestFixture]
+    class ShowRevisionTestFixture : AbstractShowRevisionTestFixture<OracleTestHelper>
     {
-        Checkout,
-        Update,
-        Revision,
+        protected override int? Port { get { return 1521; } }
     }
 }
 

@@ -23,6 +23,7 @@ namespace TestUtils.Sql
 
         public string DbscExePath { get; private set; }
         public string ScriptsDir { get; private set; }
+        public string ScriptsForOtherDBDir { get { return Path.Combine(ScriptsDir, "..", "scripts_for_other_db"); } }
 
         public abstract void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection);
         public abstract void VerifyCreationTemplateRan(string dbName);
@@ -121,12 +122,22 @@ namespace TestUtils.Sql
 
         public void RunSuccessfulCommand(string arguments)
         {
-            ProcessUtils.RunSuccesfulCommand(DbscExePath, arguments, ScriptsDir);
+            ProcessUtils.RunSuccessfulCommand(DbscExePath, arguments, ScriptsDir);
+        }
+
+        public void RunSuccessfulCommand(string arguments, out string stdout, out string stderr)
+        {
+            ProcessUtils.RunSuccessfulCommand(DbscExePath, arguments, ScriptsDir, out stdout, out stderr);
         }
 
         public void RunUnsuccessfulCommand(string arguments)
         {
-            ProcessUtils.RunUnsuccesfulCommand(DbscExePath, arguments, ScriptsDir);
+            ProcessUtils.RunUnsuccessfulCommand(DbscExePath, arguments, ScriptsDir);
+        }
+
+        public void RunUnsuccessfulCommand(string arguments, out string stdout, out string stderr)
+        {
+            ProcessUtils.RunUnsuccessfulCommand(DbscExePath, arguments, ScriptsDir, out stdout, out stderr);
         }
 
         public void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,

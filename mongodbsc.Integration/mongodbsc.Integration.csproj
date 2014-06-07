@@ -74,6 +74,7 @@
     <Compile Include="Person.cs" />
     <Compile Include="PersonPreferences.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ShowRevisionTestFixture.cs" />
     <Compile Include="UpdateTestFixture.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -105,11 +106,18 @@
     <Content Include="scripts\tables_to_import.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="scripts_for_other_db\fake.0000.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="setup\setup_source_database.js" />
     <Content Include="setup\setup_auth_source_database.js" />
     <Content Include="setup\setup_source_database_2.js" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\dbsc.Core\dbsc.Core.csproj">
+      <Project>{2f0c15b4-429d-4363-8df9-04f53b6c7d77}</Project>
+      <Name>dbsc.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\mongodbsc\mongodbsc.csproj">
       <Project>{c156c2f1-c76e-4bf8-9351-d0ca2276c6ac}</Project>
       <Name>mongodbsc</Name>
