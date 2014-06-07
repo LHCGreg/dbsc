@@ -9,44 +9,9 @@ using TestUtils.Sql;
 namespace TestUtils.Sql
 {
     [TestFixture]
-    public abstract class AbstractCheckoutTestFixture<THelper>
+    public abstract class AbstractCheckoutTestFixture<THelper> : SqlBaseTestFixture<THelper>
         where THelper : SqlTestHelper, new()
-    {
-        protected THelper Helper { get; private set; }
-
-        protected abstract int? Port { get; }
-        protected virtual bool ImportSupported { get { return true; } }
-        protected virtual bool TemplateSupported { get { return true; } }
-
-        public AbstractCheckoutTestFixture()
-        {
-            Helper = new THelper();
-        }
-
-        public void IgnoreIfImportNotSupported()
-        {
-            if (!ImportSupported)
-            {
-                Assert.Ignore("Import not supported.");
-            }
-        }
-
-        public void IgnoreIfTemplateNotSupported()
-        {
-            if (!TemplateSupported)
-            {
-                Assert.Ignore("Creation template not supported.");
-            }
-        }
-
-        public void IgnoreIfPortNotSupported()
-        {
-            if (Port == null)
-            {
-                Assert.Ignore("Port not relevant for this DB engine.");
-            }
-        }
-        
+    {        
         [Test]
         public void BasicTest()
         {
@@ -200,78 +165,11 @@ namespace TestUtils.Sql
                 Username, Password, AltSourceDatabaseName, Username, Password));
             VerifyDatabase(TestDatabaseName, ExpectedAltSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
-
-        protected string TestDatabaseName { get { return Helper.TestDatabaseName; } }
-        protected string AltTestDatabaseName { get { return Helper.AltTestDatabaseName; } }
-        protected string SourceDatabaseName { get { return Helper.SourceDatabaseName; } }
-        protected string AltSourceDatabaseName { get { return Helper.AltSourceDatabaseName; } }
-        protected string Username { get { return Helper.Username; } }
-        protected string Password { get { return Helper.Password; } }
-        protected string DbscExeName { get { return Helper.DbscExeName; } }
-
-        protected string DbscExePath { get { return Helper.DbscExePath; } }
-        protected string ScriptsDir { get { return Helper.ScriptsDir; } }
-
-        protected void DropDatabase(string dbName)
-        {
-            Helper.DropDatabase(dbName);
-        }
-
-        protected void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection)
-        {
-            Helper.DropDatabase(dbName, getDbConnection);
-        }
-
-        protected void VerifyCreationTemplateRan(string dbName)
-        {
-            Helper.VerifyCreationTemplateRan(dbName);
-        }
-
-        protected IDbConnection GetDbConnection(string dbName)
-        {
-            return Helper.GetDbConnection(dbName);
-        }
-
-        protected void VerifyPersonNameIndexExists(IDbConnection conn)
-        {
-            Helper.VerifyPersonNameIndexExists(conn);
-        }
-
-        protected List<Person> ExpectedPeople { get { return Helper.ExpectedPeople; } }
-        protected List<Person> ExpectedSourcePeople { get { return Helper.ExpectedSourcePeople; } }
-        protected List<Person> ExpectedAltSourcePeople { get { return Helper.ExpectedAltSourcePeople; } }
-        protected List<Person> ExpectedRevision0People { get { return Helper.ExpectedRevision0People; } }
-        protected List<Person> ExpectedRevision1People { get { return Helper.ExpectedRevision1People; } }
-        protected Func<List<Person>, List<Book>> GetExpectedBooksFunc { get { return Helper.GetExpectedBooksFunc; } }
-        protected List<script_isolation_test> ExpectedIsolationTestValues { get { return Helper.ExpectedIsolationTestValues; } }
-        protected List<script_isolation_test> ExpectedRevision0IsolationTestValues { get { return Helper.ExpectedRevision0IsolationTestValues; } }
-
-        protected void RunSuccessfulCommand(string arguments)
-        {
-            Helper.RunSuccessfulCommand(arguments);
-        }
-
-        protected void RunUnsuccessfulCommand(string arguments)
-        {
-            Helper.RunUnsuccessfulCommand(arguments);
-        }
-
-        protected void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
-            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
-        {
-            Helper.VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion);
-        }
-
-        protected void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
-            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion, Func<string, IDbConnection> getDbConnection)
-        {
-            Helper.VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion, getDbConnection);
-        }
     }
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

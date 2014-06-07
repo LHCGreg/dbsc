@@ -22,6 +22,7 @@ namespace dbsc.Mongo.Integration
 
         protected string MongodbscPath { get; private set; }
         protected string ScriptsDir { get; private set; }
+        protected string ScriptsForOtherDBDir { get { return Path.Combine(ScriptsDir, "..", "scripts_for_other_db"); } }
 
         [TestFixtureSetUp]
         public void SetDirectories()
@@ -156,12 +157,22 @@ namespace dbsc.Mongo.Integration
 
         protected void RunSuccessfulCommand(string arguments)
         {
-            ProcessUtils.RunSuccesfulCommand(MongodbscPath, arguments, ScriptsDir);
+            ProcessUtils.RunSuccessfulCommand(MongodbscPath, arguments, ScriptsDir);
+        }
+
+        protected void RunSuccessfulCommand(string arguments, out string stdout, out string stderr)
+        {
+            ProcessUtils.RunSuccessfulCommand(MongodbscPath, arguments, ScriptsDir, out stdout, out stderr);
         }
 
         protected void RunUnsuccessfulCommand(string arguments)
         {
-            ProcessUtils.RunUnsuccesfulCommand(MongodbscPath, arguments, ScriptsDir);
+            ProcessUtils.RunUnsuccessfulCommand(MongodbscPath, arguments, ScriptsDir);
+        }
+
+        protected void RunUnsuccessfulCommand(string arguments, out string stdout, out string stderr)
+        {
+            ProcessUtils.RunUnsuccessfulCommand(MongodbscPath, arguments, ScriptsDir, out stdout, out stderr);
         }
 
         protected void VerifyDatabaseOnAuthMongo(string databaseName, List<Book> expectedBooks, List<Person> expectedPeople, List<Number> expectedNumbers, int expectedVersion)

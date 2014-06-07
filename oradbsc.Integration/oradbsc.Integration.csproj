@@ -52,6 +52,7 @@
     <Compile Include="CheckoutTestFixture.cs" />
     <Compile Include="OracleTestHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ShowRevisionTestFixture.cs" />
     <Compile Include="UpdateTestFixture.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -86,6 +87,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="scripts\XE.0002.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="scripts_for_other_db\fake.0000.init.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
