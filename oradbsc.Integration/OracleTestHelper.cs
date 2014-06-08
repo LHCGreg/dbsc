@@ -15,7 +15,7 @@ namespace oradbsc.Integration
         public override string TestDatabaseName { get { return "XE"; } }
         public override string Username { get { return "dbsc_test_user"; } }
         public override string Password { get { return "testpw"; } }
-        public override string DbscExeName { get { return "oradbsc"; } }
+        public override string DbscExeName { get { return "oradbsc.exe"; } }
 
         // Oracle is weird. We can't really drop the database, so just drop the test tables.
         public override void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection)
