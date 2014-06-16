@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Oracle.ManagedDataAccess.Client;
 using Dapper;
 using dbsc.Core;
 using dbsc.Core.Sql;
 using System.Diagnostics;
+#if ORACLE_SYSTEM
+using System.Data.OracleClient;
+#else
+using Oracle.ManagedDataAccess.Client;
+#endif
 
 namespace dbsc.Oracle
 {
@@ -42,10 +46,19 @@ namespace dbsc.Oracle
         private static string GetConnectionString(DbConnectionInfo connectionSettings)
         {
             OracleConnectionStringBuilder builder = new OracleConnectionStringBuilder();
-            builder.ConnectionTimeout = connectionSettings.ConnectTimeoutInSeconds;
-            // Normally dbsc shouldn't get pooled connections to avoid keeping settings set in scripts
-            // from one connection to the next, but sqlplus will be running the scripts so it's ok.
+
+            // Pooling seems to cause errors in mono
+#if ORACLE_SYSTEM
+            builder.Pooling = false;
+#else
             builder.Pooling = true;
+#endif
+
+            // System.Data.OracleClient does not have these properties
+#if ORACLE_ODP
+            builder.ValidateConnection = true;
+            builder.ConnectionTimeout = connectionSettings.ConnectTimeoutInSeconds;
+#endif
             
             builder.UserID = connectionSettings.Username;
             builder.Password = connectionSettings.Password;
@@ -53,7 +66,6 @@ namespace dbsc.Oracle
             int port = GetPort(connectionSettings);
 
             builder.DataSource = GetDataSourceString(connectionSettings.Server, port, connectionSettings.Database);
-            builder.ValidateConnection = true;
 
             string connectionString = builder.ToString();
             return connectionString;

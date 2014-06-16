@@ -5,8 +5,13 @@ using System.Linq;
 using System.Text;
 using Dapper;
 using NUnit.Framework;
-using Oracle.ManagedDataAccess.Client;
 using TestUtils.Sql;
+
+#if ORACLE_SYSTEM
+using System.Data.OracleClient;
+#else
+using Oracle.ManagedDataAccess.Client;
+#endif
 
 namespace oradbsc.Integration
 {
@@ -50,7 +55,19 @@ namespace oradbsc.Integration
             builder.DataSource = dbsc.Oracle.OraDbscDbConnection.GetDataSourceString("localhost", 1521, dbName);
             builder.Password = Password;
             builder.UserID = Username;
+
+            // Pooling seems to cause errors in mono
+#if ORACLE_SYSTEM
+            builder.Pooling = false;
+#else
+            builder.Pooling = true;
+#endif
+
+            // System.Data.OracleClient does not have this property
+#if ORACLE_ODP
             builder.ValidateConnection = true;
+#endif
+
             string connectionString = builder.ToString();
 
             OracleConnection conn = new OracleConnection(connectionString);

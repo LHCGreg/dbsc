@@ -13,6 +13,16 @@ The version number to be used for executable projects is stored in <project>.tar
 
 msdbsc can only be built x86, not AnyCPU or x64 due to dependencies on 32-bit SQL Server native dlls.
 
+oradbsc uses Oracle.ManagedDataAccess in the DebugDotNet and ReleaseDotNet configurations and System.Data.OracleClient in the DebugMono and ReleaseMono configuration. DebugDotNet/ReleaseDotNet/DebugMono/ReleaseMono are only used for oradbsc. All other programs use Debug/Release. Oracle.ManagedDataAccess does not support Mono. It requires System.Data.Entity to be installed, which Mono does not have. System.Data.OracleClient is not used on .NET because there is a short character limit for the data source part of connection strings which Oracle's ridiculous connection strings of (DESCRIPTION = (ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST = {localhost})(PORT = {1521})))(CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = {XE}))) exceed. System.Data.OracleClient on Mono requires the Oracle native client libraries to be installed. This may require registering on Oracle's website, downloading the libraries, installing them to /usr/lib, and creating *.so symlinks to the *.so.X.Y files. You may need to increase the number of connections the Oracle server allows to prevent getting errors:
+
+sqlplus sys@localhost AS SYSDBA
+alter system set processes=300 scope=spfile;
+alter system set sessions=300 scope=spfile;
+
+and then restart the Oracle service.
+
+oradbsc requires sqlplus to be installed.
+
 
 BUILDING A ZIP PACKAGE
 ----------------------
