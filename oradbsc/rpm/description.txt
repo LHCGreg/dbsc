@@ -1,0 +1,7 @@
+Tool for version controlling Oracle databases
+oradbsc (DataBase Source Control for Oracle) is a tool for initializing
+and updating Oracle databases. oradbsc uses numbered scripts written
+in SQL that can be stored in source control. You can use oradbsc to
+initialize a database by running the scripts in order. You can also
+update a database to a newer revision after adding scripts. oradbsc
+stores the current revision of the database in a metadata table.
