@@ -1,3 +1,4 @@
+#!/bin/sh
 xbuild /t:Build "/p:Configuration=Debug;Platform=AnyCPU" mongodbsc.Integration/mongodbsc.Integration.csproj
 xbuild /t:Build "/p:Configuration=Debug;Platform=AnyCPU" pgdbsc.Integration/pgdbsc.Integration.csproj
 xbuild /t:Build "/p:Configuration=Debug;Platform=AnyCPU" mydbsc.Integration/mydbsc.Integration.csproj
