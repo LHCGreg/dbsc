@@ -7,7 +7,7 @@ using dbsc.Core;
 namespace dbsc.Mongo
 {
     class MongoDbscApp
-        : DbscApp<MongoCommandLineArgs, DbConnectionInfo, MongoCheckoutOptions, ImportOptions<DbConnectionInfo>, MongoUpdateOptions>
+        : DbscApp<MongoCommandLineArgs, DbConnectionInfo, MongoCheckoutOptions, ImportSettingsWithTableList<DbConnectionInfo>, MongoUpdateOptions>
     {
         public MongoDbscApp()
             : base(new MongoDbscEngine())

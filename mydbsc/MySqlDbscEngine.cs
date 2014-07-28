@@ -13,7 +13,7 @@ using dbsc.Core.Sql;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings, MySqlDbscDbConnection>
+    class MySqlDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportSettingsWithTableList<DbConnectionInfo>, SqlUpdateSettings, MySqlDbscDbConnection>
     {
         protected override char QueryParamChar { get { return '@'; } }
         

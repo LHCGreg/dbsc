@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using dbsc.Core;
 using dbsc.Core.Options;
+using dbsc.SqlServer.ImportTableSpecification;
 
 namespace dbsc.SqlServer
 {
@@ -25,14 +26,14 @@ namespace dbsc.SqlServer
             PasswordMessage = "Password to use to log in to the source database. If not specified and username is not specified, log in with integrated security. If not specified and username is specified, you will be prompted for your password."
         };
 
-        private ImportTableListFileOptionBundle _importTableListFile = new ImportTableListFileOptionBundle();
+        private SqlServerImportTableListOptionBundle _importSpecificationOptionBundle = new SqlServerImportTableListOptionBundle();
 
         public MsDbscCommandLineArgs()
         {
             ExtraOptions.Add(_targetDB);
             ExtraOptions.Add(_template);
             ExtraOptions.Add(_sourceDB);
-            ExtraOptions.Add(_importTableListFile);
+            ExtraOptions.Add(_importSpecificationOptionBundle);
         }
 
         private SqlServerConnectionSettings GetTargetConnectionSettings()
@@ -45,7 +46,7 @@ namespace dbsc.SqlServer
             );
         }
 
-        private ImportOptions<SqlServerConnectionSettings> GetImportSettings()
+        private SqlServerImportSettings GetImportSettings()
         {
             if (_sourceDB.SourceDBServer != null)
             {
@@ -56,8 +57,8 @@ namespace dbsc.SqlServer
                     password: _sourceDB.SourcePassword
                 );
 
-                ImportOptions<SqlServerConnectionSettings> importSettings = new ImportOptions<SqlServerConnectionSettings>(sourceConnectionSettings);
-                importSettings.TablesToImport = _importTableListFile.TablesToImport;
+                SqlServerImportSettings importSettings = new SqlServerImportSettings(sourceConnectionSettings, _importSpecificationOptionBundle.ImportTableSpecifications);
+
                 return importSettings;
             }
             else

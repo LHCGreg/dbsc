@@ -8,13 +8,13 @@ namespace dbsc.Core.Sql
     /// <summary>
     /// Typical settings needed for checking out a SQL database.
     /// </summary>
-    public class SqlCheckoutSettings : ISqlCheckoutSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateSettings>
+    public class SqlCheckoutSettings : ISqlCheckoutSettings<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>, SqlUpdateSettings>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
         public int? Revision { get; set; }
         public string CreationTemplate { get; set; }
-        public ImportOptions<DbConnectionInfo> ImportOptions { get; set; }
+        public ImportSettingsWithTableList<DbConnectionInfo> ImportOptions { get; set; }
 
         public SqlCheckoutSettings(DbConnectionInfo targetDatabase)
         {
@@ -46,7 +46,7 @@ namespace dbsc.Core.Sql
             return clone;
         }
 
-        ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateSettings> ICheckoutOptions<DbConnectionInfo, ImportOptions<DbConnectionInfo>, SqlUpdateSettings>.Clone()
+        ICheckoutOptions<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>, SqlUpdateSettings> ICheckoutOptions<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>, SqlUpdateSettings>.Clone()
         {
             return Clone();
         }

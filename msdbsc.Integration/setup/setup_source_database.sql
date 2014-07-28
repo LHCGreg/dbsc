@@ -29,9 +29,7 @@ GO
 INSERT INTO script_isolation_test
 (step, val)
 VALUES
-(0, 'on'),
-(1, 'off'),
-(2, 'on');
+(0, 'imported');
 
 CREATE TABLE book
 (

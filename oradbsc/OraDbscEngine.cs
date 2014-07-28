@@ -8,7 +8,7 @@ using dbsc.Core.Sql;
 
 namespace dbsc.Oracle
 {
-    class OraDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings, OraDbscDbConnection>
+    class OraDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportSettingsWithTableList<DbConnectionInfo>, SqlUpdateSettings, OraDbscDbConnection>
     {
         protected override char QueryParamChar { get { return ':'; } }
 

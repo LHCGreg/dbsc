@@ -6,37 +6,24 @@ using System.Text;
 
 namespace dbsc.Core
 {
-    public interface IDbscEngineWithTableImport<TConnectionSettings, TImportSettings, TUpdateSettings>
-        where TImportSettings : IImportSettingsWithTableList<TConnectionSettings>
+    public interface IDbscEngineWithTableImport<TConnectionSettings, TImportSettings, TUpdateSettings, TTable>
         where TUpdateSettings : IUpdateSettings<TConnectionSettings, TImportSettings>
     {
-        ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(TConnectionSettings connectionSettings);
-        void ImportData(TUpdateSettings updateSettings, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadata);
+        ICollection<TTable> GetTablesToImport(TUpdateSettings updateSettings);
+        void ImportData(TUpdateSettings updateSettings, ICollection<TTable> tablesToImport);
     }
 
     public static class DbscEngineWithTableImportExtensions
     {
-        public static void ImportData<TConnectionSettings, TImportSettings, TUpdateSettings>
-            (this IDbscEngineWithTableImport<TConnectionSettings, TImportSettings, TUpdateSettings> engine, TUpdateSettings updateSettings)
-            where TImportSettings : IImportSettingsWithTableList<TConnectionSettings>
+        public static void ImportData<TConnectionSettings, TImportSettings, TUpdateSettings, TTable>
+            (this IDbscEngineWithTableImport<TConnectionSettings, TImportSettings, TUpdateSettings, TTable> engine, TUpdateSettings updateSettings)
             where TUpdateSettings : IUpdateSettings<TConnectionSettings, TImportSettings>
         {
             Console.WriteLine("Beginning import...");
             Stopwatch timer = Stopwatch.StartNew();
 
-            ICollection<string> tablesExceptMetadata = engine.GetTableNamesExceptMetadataAlreadyEscaped(updateSettings.TargetDatabase);
-
-            ICollection<string> tablesToImport;
-            if (updateSettings.ImportOptions.TablesToImport != null)
-            {
-                tablesToImport = updateSettings.ImportOptions.TablesToImport;
-            }
-            else
-            {
-                tablesToImport = tablesExceptMetadata;
-            }
-
-            engine.ImportData(updateSettings, tablesToImport, tablesExceptMetadata);
+            ICollection<TTable> tablesToImport = engine.GetTablesToImport(updateSettings);
+            engine.ImportData(updateSettings, tablesToImport);
 
             timer.Stop();
             Console.WriteLine("Import complete! Took {0}", timer.Elapsed);

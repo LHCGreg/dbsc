@@ -8,20 +8,20 @@ namespace dbsc.Core
     /// <summary>
     /// Typical settings needed for importing data.
     /// </summary>
-    public class ImportOptions<TConnectionSettings> : IImportSettingsWithTableList<TConnectionSettings>, ICloneable
+    public class ImportSettingsWithTableList<TConnectionSettings> : IImportSettingsWithTableList<TConnectionSettings>, ICloneable
         where TConnectionSettings : ICloneable
     {
         public TConnectionSettings SourceDatabase { get; set; }
         public IList<string> TablesToImport { get; set; }
 
-        public ImportOptions(TConnectionSettings sourceDatabase)
+        public ImportSettingsWithTableList(TConnectionSettings sourceDatabase)
         {
             SourceDatabase = sourceDatabase;
         }
 
-        public ImportOptions<TConnectionSettings> Clone()
+        public ImportSettingsWithTableList<TConnectionSettings> Clone()
         {
-            ImportOptions<TConnectionSettings> clone = new ImportOptions<TConnectionSettings>((TConnectionSettings) SourceDatabase.Clone());
+            ImportSettingsWithTableList<TConnectionSettings> clone = new ImportSettingsWithTableList<TConnectionSettings>((TConnectionSettings) SourceDatabase.Clone());
 
             if (TablesToImport != null)
             {

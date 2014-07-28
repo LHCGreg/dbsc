@@ -12,8 +12,8 @@ using System.IO;
 namespace dbsc.Mongo
 {
     class MongoDbscEngine
-        : DbscEngine<DbConnectionInfo, MongoCheckoutOptions, ImportOptions<DbConnectionInfo>, MongoUpdateOptions>
-        , IDbscEngineWithTableImport<DbConnectionInfo, ImportOptions<DbConnectionInfo>, MongoUpdateOptions>
+        : DbscEngine<DbConnectionInfo, MongoCheckoutOptions, ImportSettingsWithTableList<DbConnectionInfo>, MongoUpdateOptions>
+        , IDbscEngineWithTableImport<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>, MongoUpdateOptions>
     {
         protected override string ScriptExtensionWithoutDot { get { return "js"; } }
 

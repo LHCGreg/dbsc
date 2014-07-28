@@ -7,13 +7,13 @@ using dbsc.Core.Sql;
 
 namespace dbsc.SqlServer
 {
-    class SqlServerCheckoutSettings : ISqlCheckoutSettings<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings>
+    class SqlServerCheckoutSettings : ISqlCheckoutSettings<SqlServerConnectionSettings, SqlServerImportSettings, SqlServerUpdateSettings>
     {
         public string Directory { get; set; }
         public SqlServerConnectionSettings TargetDatabase { get; set; }
         public int? Revision { get; set; }
         public string CreationTemplate { get; set; }
-        public ImportOptions<SqlServerConnectionSettings> ImportOptions { get; set; }
+        public SqlServerImportSettings ImportOptions { get; set; }
 
         public SqlServerCheckoutSettings(SqlServerConnectionSettings targetDatabase)
         {
@@ -40,7 +40,7 @@ namespace dbsc.SqlServer
         }
 
 
-        ICheckoutOptions<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings> ICheckoutOptions<SqlServerConnectionSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings>.Clone()
+        ICheckoutOptions<SqlServerConnectionSettings, SqlServerImportSettings, SqlServerUpdateSettings> ICheckoutOptions<SqlServerConnectionSettings, SqlServerImportSettings, SqlServerUpdateSettings>.Clone()
         {
             return Clone();
         }

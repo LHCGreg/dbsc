@@ -28,7 +28,7 @@ namespace TestUtils.Sql
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -targetDb {2} -sourceDbServer localhost -sourceDb {3} -sourceUsername {4} -sourcePassword {5}",
                 Username, Password, TestDatabaseName, SourceDatabaseName, Username, Password));
-            VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         [Test]
@@ -40,6 +40,39 @@ namespace TestUtils.Sql
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4} -importTableList tables_to_import.txt",
                 Username, Password, SourceDatabaseName, Username, Password));
             VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+        }
+
+        [Test]
+        public void ImportWithCustomSelectTest()
+        {
+            IgnoreIfCustomSelectImportNotSupported();
+
+            DropDatabase(TestDatabaseName);
+            RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4} -importTableList tables_to_import_custom_select.txt",
+                Username, Password, SourceDatabaseName, Username, Password));
+            VerifyDatabase(TestDatabaseName, ExpectedSourcePeopleCustomSelect, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
+        }
+
+        [Test]
+        public void ImportWithOnlyNegationsTest()
+        {
+            IgnoreIfExtendedTableSpecsNotSupported();
+
+            DropDatabase(TestDatabaseName);
+            RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4} -importTableList tables_to_import_only_negations.txt",
+                Username, Password, SourceDatabaseName, Username, Password));
+            VerifyDatabase(TestDatabaseName, ExpectedPeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
+        }
+
+        [Test]
+        public void ImportWithWildcardsAndNegationsTest()
+        {
+            IgnoreIfExtendedTableSpecsNotSupported();
+
+            DropDatabase(TestDatabaseName);
+            RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4} -importTableList tables_to_import_wildcards_and_negations.txt",
+                Username, Password, SourceDatabaseName, Username, Password));
+            VerifyDatabase(TestDatabaseName, ExpectedPeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         [Test]
@@ -66,7 +99,7 @@ namespace TestUtils.Sql
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -targetDbServer localhost -targetDb {2} {3} -sourceDbServer localhost {4} -sourceUsername {5} -sourcePassword {6}",
                 Username, Password, AltTestDatabaseName, portArg, sourcePortArg, Username, Password));
 
-            VerifyDatabase(AltTestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(AltTestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         [Test]
@@ -91,6 +124,7 @@ namespace TestUtils.Sql
         public void TestNonExistantSourcePort()
         {
             IgnoreIfImportNotSupported();
+            IgnoreIfPortNotSupported();
             
             DropDatabase(TestDatabaseName);
             RunUnsuccessfulCommand(string.Format("checkout -u {0} -p {1} -sourceDbServer localhost -sourcePort 9999",
@@ -134,7 +168,7 @@ namespace TestUtils.Sql
             DropDatabase(TestDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -u {0} -p {1} -r 2 -sourceDbServer localhost -sourceDb {2} -sourceUsername {3} -sourcePassword {4}",
                 Username, Password, SourceDatabaseName, Username, Password));
-            VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         [Test]

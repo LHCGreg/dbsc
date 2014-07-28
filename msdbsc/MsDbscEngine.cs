@@ -8,10 +8,11 @@ using System.Data;
 using Dapper;
 using dbsc.Core;
 using dbsc.Core.Sql;
+using dbsc.Core.ImportTableSpecification;
 
 namespace dbsc.SqlServer
 {
-    class MsDbscEngine : SqlDbscEngine<SqlServerConnectionSettings, SqlServerCheckoutSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings, MsDbscDbConnection>
+    class MsDbscEngine : SqlDbscEngine<SqlServerConnectionSettings, SqlServerCheckoutSettings, SqlServerImportSettings, SqlServerUpdateSettings, MsDbscDbConnection, TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>>
     {
         protected override char QueryParamChar { get { return '@'; } }
         
@@ -66,21 +67,73 @@ AND TABLE_NAME = 'dbsc_metadata'";
             public string TableName { get; set; }
         }
 
-        public override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(SqlServerConnectionSettings connectionSettings)
+        private class DefaultSchema
         {
-            using (MsDbscDbConnection conn = OpenConnection(connectionSettings))
-            {
-                string sql = @"SELECT TABLE_SCHEMA AS TableSchema, TABLE_NAME AS TableName FROM INFORMATION_SCHEMA.TABLES
+            public string DefaultSchemaName { get; set; }
+        }
+
+        private ICollection<SqlServerTable> GetTablesExceptMetadata(MsDbscDbConnection conn)
+        {
+            string sql = @"SELECT TABLE_SCHEMA AS TableSchema, TABLE_NAME AS TableName FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_TYPE = 'BASE TABLE'
 AND TABLE_NAME <> 'dbsc_metadata'";
-                List<string> tables = conn.Query<Table>(sql).Select(t => MsDbscDbConnection.QuoteSqlServerIdentifier(t.TableSchema, t.TableName)).ToList();
-                return tables;
+            List<Table> tables = conn.Query<Table>(sql).ToList();
+            return tables.Select(table => new SqlServerTable(table.TableSchema, table.TableName)).ToList();
+        }
+
+        public override ICollection<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> GetTablesToImport(SqlServerUpdateSettings updateSettings)
+        {
+            using (MsDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
+            {
+                ICollection<SqlServerTable> eligibleTables = GetTablesExceptMetadata(conn);
+
+                if(updateSettings.ImportOptions.TablesToImportSpecifications == null)
+                {
+                    List<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> tables = new List<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>>();
+                    foreach (SqlServerTable table in eligibleTables)
+                    {
+                        tables.Add(new TableAndRule<SqlServerTable,TableWithSchemaSpecificationWithCustomSelect>(table,
+                            TableWithSchemaSpecificationWithCustomSelect.Star));
+                    }
+                    return tables;
+                }
+                else
+                {
+                    // Get default schema
+                    string defaultSchemaSql = "SELECT SCHEMA_NAME() AS DefaultSchemaName";
+                    DefaultSchema defaultSchema = conn.Query<DefaultSchema>(defaultSchemaSql).FirstOrDefault();
+                    if(defaultSchema == null)
+                    {
+                        throw new DbscException("Error: No default schema returned from SELECT SCHEMA_NAME()");
+                    }
+
+                    // Set default schema to use when calculating
+                    updateSettings.ImportOptions.TablesToImportSpecifications.DefaultSchema = defaultSchema.DefaultSchemaName;
+                    ICollection<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport = updateSettings.ImportOptions.TablesToImportSpecifications.GetTablesToImport(eligibleTables);
+                    
+                    // Throw an error if the user specifified an import table specification file and there were any lines
+                    // that specified a table directly (no wildcards) and the table does not exist. The user probably made a mistake.
+                    ICollection<TableWithSchemaSpecificationWithCustomSelect> nonMatchingNonWildcardSpecs = updateSettings.ImportOptions.TablesToImportSpecifications.GetNonWildcardTableSpecsThatDontExist(eligibleTables);
+                    if (nonMatchingNonWildcardSpecs.Count > 0)
+                    {
+                        throw new DbscException(string.Format("The following tables were specified to be imported but do not exist: {0}",
+                            string.Join(", ", nonMatchingNonWildcardSpecs.Select(spec => new SqlServerTable(spec.Schema != null ? spec.Schema.Pattern[0].String : defaultSchema.DefaultSchemaName, spec.Table.Pattern[0].String)))));
+                    }
+
+                    return tablesToImport;
+                }
             }
         }
 
-        public override void ImportData(SqlServerUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public override void ImportData(SqlServerUpdateSettings updateSettings, ICollection<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport)
         {
-            MsImportOperation import = new MsImportOperation(options, tablesToImportAlreadyEscaped, allTablesExceptMetadataAlreadyEscaped);
+            ICollection<SqlServerTable> tablesExceptMetadata;
+            using (MsDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
+            {
+                tablesExceptMetadata = GetTablesExceptMetadata(conn);
+            }
+
+            MsImportOperation import = new MsImportOperation(updateSettings, tablesToImport, tablesExceptMetadata);
             import.Run();
         }
     }

@@ -6,7 +6,7 @@ using dbsc.Core;
 
 namespace dbsc.SqlServer
 {
-    class MsDbscApp : DbscApp<MsDbscCommandLineArgs, SqlServerConnectionSettings, SqlServerCheckoutSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings>
+    class MsDbscApp : DbscApp<MsDbscCommandLineArgs, SqlServerConnectionSettings, SqlServerCheckoutSettings, SqlServerImportSettings, SqlServerUpdateSettings>
     {
         public MsDbscApp()
             : base(new MsDbscEngine())
@@ -17,7 +17,7 @@ namespace dbsc.SqlServer
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

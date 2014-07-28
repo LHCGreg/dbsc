@@ -99,23 +99,23 @@ namespace dbsc.SqlServer
         /// 
         /// </summary>
         /// <param name="sourceConn"></param>
-        /// <param name="table">Table name already with brackets and schema-qualified if needed</param>
+        /// <param name="table"></param>
+        /// <param name="importSelect">SQL to use on the source database to get data.</param>
         /// <param name="sourceDbTransaction">Source database transaction to use. If null, don't use a transaction on the source database.</param>
-        public void ImportTable(MsDbscDbConnection sourceConn, string table, SqlTransaction sourceDbTransaction = null)
+        public void ImportTable(MsDbscDbConnection sourceConn, SqlServerTable table, string importSelect, SqlTransaction sourceDbTransaction = null)
         {
             SqlBulkCopy bulkCopy = new SqlBulkCopy(Connection, SqlBulkCopyOptions.KeepIdentity | SqlBulkCopyOptions.KeepNulls | SqlBulkCopyOptions.TableLock, externalTransaction: null);
             bulkCopy.BulkCopyTimeout = ImportTableTimeoutInSeconds;
-            bulkCopy.DestinationTableName = table;
+            bulkCopy.DestinationTableName = table.ToString();
 
-            string importSql = string.Format("SELECT * FROM {0}", table);
             SqlCommand importQuery;
             if (sourceDbTransaction != null)
             {
-                importQuery = new SqlCommand(importSql, sourceConn.Connection, sourceDbTransaction);
+                importQuery = new SqlCommand(importSelect, sourceConn.Connection, sourceDbTransaction);
             }
             else
             {
-                importQuery = new SqlCommand(importSql, sourceConn.Connection);
+                importQuery = new SqlCommand(importSelect, sourceConn.Connection);
             }
             importQuery.CommandTimeout = ImportTableTimeoutInSeconds;
 

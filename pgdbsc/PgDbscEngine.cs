@@ -7,7 +7,7 @@ using dbsc.Core.Sql;
 
 namespace dbsc.Postgres
 {
-    class PgDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings, PgDbscDbConnection>
+    class PgDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportSettingsWithTableList<DbConnectionInfo>, SqlUpdateSettings, PgDbscDbConnection>
     {
         public PgDbscEngine()
         {

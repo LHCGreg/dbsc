@@ -52,7 +52,7 @@ namespace dbsc.Postgres
             );
         }
 
-        private ImportOptions<DbConnectionInfo> GetImportSettings()
+        private ImportSettingsWithTableList<DbConnectionInfo> GetImportSettings()
         {
             if (_sourceDB.SourceDBServer != null)
             {
@@ -64,7 +64,7 @@ namespace dbsc.Postgres
                     password: _sourceDB.SourcePassword // Null password indicates using SSPI
                 );
 
-                ImportOptions<DbConnectionInfo> importSettings = new ImportOptions<DbConnectionInfo>(sourceConnectionSettings);
+                ImportSettingsWithTableList<DbConnectionInfo> importSettings = new ImportSettingsWithTableList<DbConnectionInfo>(sourceConnectionSettings);
                 importSettings.TablesToImport = _importTableListFile.TablesToImport;
                 return importSettings;
             }

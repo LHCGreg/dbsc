@@ -24,9 +24,7 @@ ENGINE=InnoDB;
 INSERT INTO script_isolation_test
 (step, val)
 VALUES
-(0, '1'),
-(1, '5'),
-(2, '1');
+(0, 'imported');
 
 CREATE TABLE book
 (

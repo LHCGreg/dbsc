@@ -58,7 +58,7 @@ namespace dbsc.Mongo
             );
         }
 
-        private ImportOptions<DbConnectionInfo> GetImportSettings()
+        private ImportSettingsWithTableList<DbConnectionInfo> GetImportSettings()
         {
             if (_sourceDB.SourceDBServer != null)
             {
@@ -70,7 +70,7 @@ namespace dbsc.Mongo
                     password: _sourceDB.SourcePassword
                 );
 
-                ImportOptions<DbConnectionInfo> importSettings = new ImportOptions<DbConnectionInfo>(sourceConnectionSettings);
+                ImportSettingsWithTableList<DbConnectionInfo> importSettings = new ImportSettingsWithTableList<DbConnectionInfo>(sourceConnectionSettings);
                 importSettings.TablesToImport = _importTableListFile.TablesToImport;
                 return importSettings;
             }
