@@ -24,7 +24,7 @@ namespace dbsc.Core.ImportTableSpecification
             CustomSelect = null;
         }
 
-        public static TableWithSchemaSpecificationWithCustomSelect Star
+        public static new TableWithSchemaSpecificationWithCustomSelect Star
         {
             get
             {
