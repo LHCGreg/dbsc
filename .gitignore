@@ -9,10 +9,6 @@ AssemblyInfo_*.cs
 
 # Ignore nuget packages (but not repositories.config)
 packages/*/
-# Commit Antlr build support. The .targets is attempted to be imported before package restore can run otherwise.
-!packages/Antlr4.*/
-# ... but don't commit the Antlr runtime, that's just a regular library
-packages/Antlr4.Runtime.*/
 
 # Output files generated when running NUnit tests
 test_stdout.txt

@@ -146,10 +146,15 @@
   <ItemGroup>
     <Compile Include="ErrorListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TableWithSchemaSpecificationWithCustomSelectListLexer.cs" />
+    <Compile Include="TableWithSchemaSpecificationWithCustomSelectListParser.cs" />
     <Compile Include="TableWithSchemaSpecWithCustomSelectListParser.cs" />
     <Compile Include="TableWithSchemaSpecificationWithCustomSelectListVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="dbsc.Core.Antlr.targets">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
     <Antlr4 Include="TableWithSchemaSpecificationWithCustomSelectList.g4">
       <Generator>MSBuild:Compile</Generator>
@@ -163,6 +168,9 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
-  <Import Project="..\packages\Antlr4.4.3.0\build\Antlr4.targets" />
+  
+  <!-- Put this before nuget, so that nuget's prebuild package restore happens before compiling the grammar, so that the
+  ANTLR jar is there for us. -->
+  <Import Project="dbsc.Core.Antlr.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets"/>
 </Project>
