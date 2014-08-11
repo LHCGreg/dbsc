@@ -11,11 +11,4 @@
       Command="java -jar $(AntlrCSharpJarPath) -o . -no-listener -no-visitor -Dlanguage=CSharp_v4_0 -package dbsc.Core.Antlr $(AntlrInput)"
     />
   </Target>
-
-  <PropertyGroup>
-    <BuildDependsOn>
-      CompileGrammar;
-      $(BuildDependsOn)
-    </BuildDependsOn>
-  </PropertyGroup>
 </Project>
