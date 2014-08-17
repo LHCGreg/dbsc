@@ -69,7 +69,7 @@ namespace dbsc.Core.Options
         {
             if (SourceUsername != null && SourcePassword == null)
             {
-                Console.Write("Password for {0} on {1}: ", SourceUsername, SourceDBServer);
+                Console.Write("Password for {0} on source database server {1}: ", SourceUsername, SourceDBServer);
                 SourcePassword = Utils.ReadPassword();
             }
         }

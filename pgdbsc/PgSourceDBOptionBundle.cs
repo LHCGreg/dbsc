@@ -78,7 +78,7 @@ namespace dbsc.Postgres
         {
             if (SourceUsername != null && SourcePassword == null && !UseIntegratedSecurity)
             {
-                Console.Write("Password for {0} on {1}: ", SourceUsername, SourceDBServer);
+                Console.Write("Password for {0} on source database server {1}: ", SourceUsername, SourceDBServer);
                 SourcePassword = Utils.ReadPassword();
             }
         }
