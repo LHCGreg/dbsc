@@ -41,7 +41,7 @@ namespace dbsc.Core.Antlr
         /// <summary>
         /// 
         /// </summary>
-        /// <exception cref="dbsc.Core.ImportTableSpecification"></exception>
+        /// <exception cref="dbsc.Core.TableSpecificationParseException"></exception>
         public void ThrowIfErrors()
         {
             if (Errors.Count > 0)

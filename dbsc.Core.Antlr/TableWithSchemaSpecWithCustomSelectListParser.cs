@@ -24,11 +24,11 @@ namespace dbsc.Core.Antlr
         /// <param name="input"></param>
         /// <param name="inputFileName">Used for error messages</param>
         /// <returns></returns>
-        /// <exception cref="TableSpecificationParseException"></exception>
-        public IList<TableWithSchemaSpecificationWithCustomSelect> Parse(TextReader input, string inputFileName)
+        /// <exception cref="dbsc.Core.TableSpecificationParseException"></exception>
+        public IList<TableWithSchemaSpecificationWithCustomSelect> Parse(TextReader input, IdentifierSyntax flavor, string inputFileName)
         {
             string text = input.ReadToEnd();
-            IList<TableWithSchemaSpecificationWithCustomSelect> specs = Parse(text, inputFileName);
+            IList<TableWithSchemaSpecificationWithCustomSelect> specs = Parse(text, flavor, inputFileName);
             return specs;
         }
 
@@ -38,18 +38,18 @@ namespace dbsc.Core.Antlr
         /// <param name="input"></param>
         /// <param name="inputFileName"></param>
         /// <returns></returns>
-        /// <exception cref="TableSpecificationParseException"></exception>
-        private IList<TableWithSchemaSpecificationWithCustomSelect> Parse(string input, string inputFileName)
+        /// <exception cref="dbsc.Core.TableSpecificationParseException"></exception>
+        private IList<TableWithSchemaSpecificationWithCustomSelect> Parse(string input, IdentifierSyntax flavor, string inputFileName)
         {
             AntlrInputStream inputStream = new AntlrInputStream(input);
 
-            TableWithSchemaSpecificationWithCustomSelectListLexer lexer = new TableWithSchemaSpecificationWithCustomSelectListLexer(inputStream);
+            TableWithSchemaSpecificationWithCustomSelectListLexer lexer = new TableWithSchemaSpecificationWithCustomSelectListLexer(inputStream, flavor);
             ErrorListener errorListener = new ErrorListener(inputFileName);
             lexer.RemoveErrorListeners();
             lexer.AddErrorListener(errorListener);
 
             CommonTokenStream commonTokenStream = new CommonTokenStream(lexer);
-            TableWithSchemaSpecificationWithCustomSelectListParser parser = new TableWithSchemaSpecificationWithCustomSelectListParser(commonTokenStream);
+            TableWithSchemaSpecificationWithCustomSelectListParser parser = new TableWithSchemaSpecificationWithCustomSelectListParser(commonTokenStream, flavor);
             parser.RemoveErrorListeners();
             parser.AddErrorListener(errorListener);
             parser.BuildParseTree = true;

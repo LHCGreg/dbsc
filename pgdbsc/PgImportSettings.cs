@@ -5,29 +5,29 @@ using System.Text;
 using dbsc.Core;
 using dbsc.Core.ImportTableSpecification;
 
-namespace dbsc.SqlServer
+namespace dbsc.Postgres
 {
-    class SqlServerImportSettings : IImportSettings<SqlServerConnectionSettings>, ICloneable
+    class PgImportSettings : IImportSettings<DbConnectionInfo>, ICloneable
     {
-        public SqlServerConnectionSettings SourceDatabase { get; set; }
-        public TableWithSchemaSpecificationWithCustomSelectCollection<SqlServerTable> TablesToImportSpecifications { get; set; }
+        public DbConnectionInfo SourceDatabase { get; set; }
+        public TableWithSchemaSpecificationWithCustomSelectCollection<PgTable> TablesToImportSpecifications { get; set; }
 
-        public SqlServerImportSettings(SqlServerConnectionSettings sourceDatabase, TableWithSchemaSpecificationWithCustomSelectCollection<SqlServerTable> tablesToImportSpecifications)
+        public PgImportSettings(DbConnectionInfo sourceDatabase, TableWithSchemaSpecificationWithCustomSelectCollection<PgTable> tablesToImportSpecifications)
         {
             SourceDatabase = sourceDatabase;
             TablesToImportSpecifications = tablesToImportSpecifications;
         }
 
-        public SqlServerImportSettings Clone()
+        public PgImportSettings Clone()
         {
-            SqlServerConnectionSettings clonedSourceDatabase = SourceDatabase.Clone();
+            DbConnectionInfo clonedSourceDatabase = SourceDatabase.Clone();
 
-            TableWithSchemaSpecificationWithCustomSelectCollection<SqlServerTable> clonedSpecifications = null;
+            TableWithSchemaSpecificationWithCustomSelectCollection<PgTable> clonedSpecifications = null;
             if (TablesToImportSpecifications != null)
             {
                 clonedSpecifications = TablesToImportSpecifications.Clone();
             }
-            SqlServerImportSettings clone = new SqlServerImportSettings(clonedSourceDatabase, clonedSpecifications);
+            PgImportSettings clone = new PgImportSettings(clonedSourceDatabase, clonedSpecifications);
             return clone;
         }
 

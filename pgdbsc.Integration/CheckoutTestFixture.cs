@@ -12,6 +12,8 @@ namespace dbsc.Postgres.Integration
     class CheckoutTestFixture : AbstractCheckoutTestFixture<PgTestHelper>
     {
         protected override int? Port { get { return 5432; } }
+        protected override bool ExtendedTableSpecsSupported { get { return true; } }
+        protected override bool CustomSelectImportSupported { get { return true; } }
 
         [Test]
         public void TestIntegratedSecurity()
@@ -23,7 +25,7 @@ namespace dbsc.Postgres.Integration
             DropDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName);
             RunSuccessfulCommand(string.Format("checkout -targetDb {0} -sourceDbServer localhost -sourceDb {1} -u {2} -SSPI -sourceUsername {2} -sourceSSPI",
                 Helper.IntegratedSecurityTargetDatabaseName, SourceDatabaseName, Helper.IntegratedSecurityPostgresUsername));
-            VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         private void DropDatabaseWithIntegratedSecurity(string dbName)

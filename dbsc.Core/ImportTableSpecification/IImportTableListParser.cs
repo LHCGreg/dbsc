@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using NUnit.Framework;
-using TestUtils.Sql;
 
-namespace dbsc.Postgres.Integration
+namespace dbsc.Core
 {
-    [TestFixture]
-    class ShowRevisionTestFixture : AbstractShowRevisionTestFixture<PgTestHelper>
+    public interface IImportTableListParser<TParseResult>
     {
-        protected override int? Port { get { return 5432; } }
-        protected override bool ExtendedTableSpecsSupported { get { return true; } }
-        protected override bool CustomSelectImportSupported { get { return true; } }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="inputFileName"></param>
+        /// <returns></returns>
+        /// <exception cref="dbsc.Core.TableSpecificationParseException"></exception>
+        TParseResult Parse(TextReader input, string inputFileName);
     }
 }
 

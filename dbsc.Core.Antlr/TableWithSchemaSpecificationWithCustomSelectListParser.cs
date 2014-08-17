@@ -29,11 +29,13 @@ using DFA = Antlr4.Runtime.Dfa.DFA;
 [System.CLSCompliant(false)]
 public partial class TableWithSchemaSpecificationWithCustomSelectListParser : Parser {
 	public const int
-		T__0=1, UNENCLOSED_ID_NAME=2, BRACKET_ENCLOSED_ID=3, WS_NO_NEWLINE=4, 
-		NEWLINE=5, LETTER=6, NUMBER=7, WILDCARD=8, NEGATER=9, CUSTOM_SELECT=10;
+		T__0=1, MS_UNENCLOSED_ID_NAME=2, MS_BRACKET_ENCLOSED_ID=3, PG_UNENCLOSED_ID_NAME=4, 
+		PG_QUOTE_ENCLOSED_ID=5, WS_NO_NEWLINE=6, NEWLINE=7, LETTER=8, NUMBER=9, 
+		WILDCARD=10, NEGATER=11, CUSTOM_SELECT=12;
 	public static readonly string[] tokenNames = {
-		"<INVALID>", "'.'", "UNENCLOSED_ID_NAME", "BRACKET_ENCLOSED_ID", "WS_NO_NEWLINE", 
-		"NEWLINE", "LETTER", "NUMBER", "'*'", "'-'", "CUSTOM_SELECT"
+		"<INVALID>", "'.'", "MS_UNENCLOSED_ID_NAME", "MS_BRACKET_ENCLOSED_ID", 
+		"PG_UNENCLOSED_ID_NAME", "PG_QUOTE_ENCLOSED_ID", "WS_NO_NEWLINE", "NEWLINE", 
+		"LETTER", "NUMBER", "'*'", "'-'", "CUSTOM_SELECT"
 	};
 	public const int
 		RULE_tableSpecificationList = 0, RULE_tableSpecificationLine = 1, RULE_possiblyQualifiedTableLine = 2, 
@@ -51,6 +53,16 @@ public partial class TableWithSchemaSpecificationWithCustomSelectListParser : Pa
 	public override string[] RuleNames { get { return ruleNames; } }
 
 	public override string SerializedAtn { get { return _serializedATN; } }
+
+
+		private IdentifierSyntax _flavor = IdentifierSyntax.SqlServer;
+		public IdentifierSyntax Flavor { get { return _flavor; } set { _flavor = value; } }
+
+		public TableWithSchemaSpecificationWithCustomSelectListParser(ITokenStream input, IdentifierSyntax flavor)
+			: this (input)
+		{
+			Flavor = flavor;
+		}
 
 	public TableWithSchemaSpecificationWithCustomSelectListParser(ITokenStream input)
 		: base(input)
@@ -130,23 +142,19 @@ public partial class TableWithSchemaSpecificationWithCustomSelectListParser : Pa
 		EnterRule(_localctx, 2, RULE_tableSpecificationLine);
 		try {
 			State = 26;
-			switch (_input.La(1)) {
-			case UNENCLOSED_ID_NAME:
-			case BRACKET_ENCLOSED_ID:
-			case NEGATER:
+			switch ( Interpreter.AdaptivePredict(_input,1,_ctx) ) {
+			case 1:
 				EnterOuterAlt(_localctx, 1);
 				{
 				State = 24; possiblyQualifiedTableLine();
 				}
 				break;
-			case Eof:
-			case NEWLINE:
+
+			case 2:
 				EnterOuterAlt(_localctx, 2);
 				{
 				}
 				break;
-			default:
-				throw new NoViableAltException(this);
 			}
 		}
 		catch (RecognitionException re) {
@@ -182,13 +190,13 @@ public partial class TableWithSchemaSpecificationWithCustomSelectListParser : Pa
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 29;
-			_la = _input.La(1);
-			if (_la==NEGATER) {
+			switch ( Interpreter.AdaptivePredict(_input,2,_ctx) ) {
+			case 1:
 				{
 				State = 28; Match(NEGATER);
 				}
+				break;
 			}
-
 			State = 31; possiblyQualifiedTable();
 			State = 33;
 			_la = _input.La(1);
@@ -330,9 +338,10 @@ public partial class TableWithSchemaSpecificationWithCustomSelectListParser : Pa
 	}
 
 	public partial class IdentifierContext : ParserRuleContext {
-		public IToken id;
-		public ITerminalNode BRACKET_ENCLOSED_ID() { return GetToken(TableWithSchemaSpecificationWithCustomSelectListParser.BRACKET_ENCLOSED_ID, 0); }
-		public ITerminalNode UNENCLOSED_ID_NAME() { return GetToken(TableWithSchemaSpecificationWithCustomSelectListParser.UNENCLOSED_ID_NAME, 0); }
+		public ITerminalNode MS_UNENCLOSED_ID_NAME() { return GetToken(TableWithSchemaSpecificationWithCustomSelectListParser.MS_UNENCLOSED_ID_NAME, 0); }
+		public ITerminalNode PG_QUOTE_ENCLOSED_ID() { return GetToken(TableWithSchemaSpecificationWithCustomSelectListParser.PG_QUOTE_ENCLOSED_ID, 0); }
+		public ITerminalNode PG_UNENCLOSED_ID_NAME() { return GetToken(TableWithSchemaSpecificationWithCustomSelectListParser.PG_UNENCLOSED_ID_NAME, 0); }
+		public ITerminalNode MS_BRACKET_ENCLOSED_ID() { return GetToken(TableWithSchemaSpecificationWithCustomSelectListParser.MS_BRACKET_ENCLOSED_ID, 0); }
 		public IdentifierContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
@@ -344,17 +353,44 @@ public partial class TableWithSchemaSpecificationWithCustomSelectListParser : Pa
 	public IdentifierContext identifier() {
 		IdentifierContext _localctx = new IdentifierContext(_ctx, State);
 		EnterRule(_localctx, 12, RULE_identifier);
-		int _la;
 		try {
-			EnterOuterAlt(_localctx, 1);
-			{
-			State = 45;
-			_localctx.id = _input.Lt(1);
-			_la = _input.La(1);
-			if ( !(_la==UNENCLOSED_ID_NAME || _la==BRACKET_ENCLOSED_ID) ) {
-				_localctx.id = _errHandler.RecoverInline(this);
-			}
-			Consume();
+			State = 53;
+			switch ( Interpreter.AdaptivePredict(_input,5,_ctx) ) {
+			case 1:
+				EnterOuterAlt(_localctx, 1);
+				{
+				State = 45;
+				if (!(Flavor == IdentifierSyntax.SqlServer)) throw new FailedPredicateException(this, "Flavor == IdentifierSyntax.SqlServer");
+				State = 46; Match(MS_UNENCLOSED_ID_NAME);
+				}
+				break;
+
+			case 2:
+				EnterOuterAlt(_localctx, 2);
+				{
+				State = 47;
+				if (!(Flavor == IdentifierSyntax.SqlServer)) throw new FailedPredicateException(this, "Flavor == IdentifierSyntax.SqlServer");
+				State = 48; Match(MS_BRACKET_ENCLOSED_ID);
+				}
+				break;
+
+			case 3:
+				EnterOuterAlt(_localctx, 3);
+				{
+				State = 49;
+				if (!(Flavor == IdentifierSyntax.Postgres)) throw new FailedPredicateException(this, "Flavor == IdentifierSyntax.Postgres");
+				State = 50; Match(PG_UNENCLOSED_ID_NAME);
+				}
+				break;
+
+			case 4:
+				EnterOuterAlt(_localctx, 4);
+				{
+				State = 51;
+				if (!(Flavor == IdentifierSyntax.Postgres)) throw new FailedPredicateException(this, "Flavor == IdentifierSyntax.Postgres");
+				State = 52; Match(PG_QUOTE_ENCLOSED_ID);
+				}
+				break;
 			}
 		}
 		catch (RecognitionException re) {
@@ -368,24 +404,47 @@ public partial class TableWithSchemaSpecificationWithCustomSelectListParser : Pa
 		return _localctx;
 	}
 
+	public override bool Sempred(RuleContext _localctx, int ruleIndex, int predIndex) {
+		switch (ruleIndex) {
+		case 6: return identifier_sempred((IdentifierContext)_localctx, predIndex);
+		}
+		return true;
+	}
+	private bool identifier_sempred(IdentifierContext _localctx, int predIndex) {
+		switch (predIndex) {
+		case 0: return Flavor == IdentifierSyntax.SqlServer;
+
+		case 1: return Flavor == IdentifierSyntax.SqlServer;
+
+		case 2: return Flavor == IdentifierSyntax.Postgres;
+
+		case 3: return Flavor == IdentifierSyntax.Postgres;
+		}
+		return true;
+	}
+
 	public static readonly string _serializedATN =
-		"\x3\xAF6F\x8320\x479D\xB75C\x4880\x1605\x191C\xAB37\x3\f\x32\x4\x2\t\x2"+
+		"\x3\xAF6F\x8320\x479D\xB75C\x4880\x1605\x191C\xAB37\x3\xE:\x4\x2\t\x2"+
 		"\x4\x3\t\x3\x4\x4\t\x4\x4\x5\t\x5\x4\x6\t\x6\x4\a\t\a\x4\b\t\b\x3\x2\x3"+
 		"\x2\x3\x2\a\x2\x14\n\x2\f\x2\xE\x2\x17\v\x2\x3\x2\x3\x2\x3\x3\x3\x3\x5"+
 		"\x3\x1D\n\x3\x3\x4\x5\x4 \n\x4\x3\x4\x3\x4\x5\x4$\n\x4\x3\x5\x3\x5\x5"+
-		"\x5(\n\x5\x3\x6\x3\x6\x3\a\x3\a\x3\a\x3\a\x3\b\x3\b\x3\b\x2\x2\x2\t\x2"+
-		"\x2\x4\x2\x6\x2\b\x2\n\x2\f\x2\xE\x2\x2\x3\x3\x2\x4\x5/\x2\x10\x3\x2\x2"+
-		"\x2\x4\x1C\x3\x2\x2\x2\x6\x1F\x3\x2\x2\x2\b\'\x3\x2\x2\x2\n)\x3\x2\x2"+
-		"\x2\f+\x3\x2\x2\x2\xE/\x3\x2\x2\x2\x10\x15\x5\x4\x3\x2\x11\x12\a\a\x2"+
-		"\x2\x12\x14\x5\x4\x3\x2\x13\x11\x3\x2\x2\x2\x14\x17\x3\x2\x2\x2\x15\x13"+
-		"\x3\x2\x2\x2\x15\x16\x3\x2\x2\x2\x16\x18\x3\x2\x2\x2\x17\x15\x3\x2\x2"+
-		"\x2\x18\x19\a\x2\x2\x3\x19\x3\x3\x2\x2\x2\x1A\x1D\x5\x6\x4\x2\x1B\x1D"+
-		"\x3\x2\x2\x2\x1C\x1A\x3\x2\x2\x2\x1C\x1B\x3\x2\x2\x2\x1D\x5\x3\x2\x2\x2"+
-		"\x1E \a\v\x2\x2\x1F\x1E\x3\x2\x2\x2\x1F \x3\x2\x2\x2 !\x3\x2\x2\x2!#\x5"+
-		"\b\x5\x2\"$\a\f\x2\x2#\"\x3\x2\x2\x2#$\x3\x2\x2\x2$\a\x3\x2\x2\x2%(\x5"+
-		"\n\x6\x2&(\x5\f\a\x2\'%\x3\x2\x2\x2\'&\x3\x2\x2\x2(\t\x3\x2\x2\x2)*\x5"+
-		"\xE\b\x2*\v\x3\x2\x2\x2+,\x5\xE\b\x2,-\a\x3\x2\x2-.\x5\xE\b\x2.\r\x3\x2"+
-		"\x2\x2/\x30\t\x2\x2\x2\x30\xF\x3\x2\x2\x2\a\x15\x1C\x1F#\'";
+		"\x5(\n\x5\x3\x6\x3\x6\x3\a\x3\a\x3\a\x3\a\x3\b\x3\b\x3\b\x3\b\x3\b\x3"+
+		"\b\x3\b\x3\b\x5\b\x38\n\b\x3\b\x2\x2\x2\t\x2\x2\x4\x2\x6\x2\b\x2\n\x2"+
+		"\f\x2\xE\x2\x2\x2:\x2\x10\x3\x2\x2\x2\x4\x1C\x3\x2\x2\x2\x6\x1F\x3\x2"+
+		"\x2\x2\b\'\x3\x2\x2\x2\n)\x3\x2\x2\x2\f+\x3\x2\x2\x2\xE\x37\x3\x2\x2\x2"+
+		"\x10\x15\x5\x4\x3\x2\x11\x12\a\t\x2\x2\x12\x14\x5\x4\x3\x2\x13\x11\x3"+
+		"\x2\x2\x2\x14\x17\x3\x2\x2\x2\x15\x13\x3\x2\x2\x2\x15\x16\x3\x2\x2\x2"+
+		"\x16\x18\x3\x2\x2\x2\x17\x15\x3\x2\x2\x2\x18\x19\a\x2\x2\x3\x19\x3\x3"+
+		"\x2\x2\x2\x1A\x1D\x5\x6\x4\x2\x1B\x1D\x3\x2\x2\x2\x1C\x1A\x3\x2\x2\x2"+
+		"\x1C\x1B\x3\x2\x2\x2\x1D\x5\x3\x2\x2\x2\x1E \a\r\x2\x2\x1F\x1E\x3\x2\x2"+
+		"\x2\x1F \x3\x2\x2\x2 !\x3\x2\x2\x2!#\x5\b\x5\x2\"$\a\xE\x2\x2#\"\x3\x2"+
+		"\x2\x2#$\x3\x2\x2\x2$\a\x3\x2\x2\x2%(\x5\n\x6\x2&(\x5\f\a\x2\'%\x3\x2"+
+		"\x2\x2\'&\x3\x2\x2\x2(\t\x3\x2\x2\x2)*\x5\xE\b\x2*\v\x3\x2\x2\x2+,\x5"+
+		"\xE\b\x2,-\a\x3\x2\x2-.\x5\xE\b\x2.\r\x3\x2\x2\x2/\x30\x6\b\x2\x2\x30"+
+		"\x38\a\x4\x2\x2\x31\x32\x6\b\x3\x2\x32\x38\a\x5\x2\x2\x33\x34\x6\b\x4"+
+		"\x2\x34\x38\a\x6\x2\x2\x35\x36\x6\b\x5\x2\x36\x38\a\a\x2\x2\x37/\x3\x2"+
+		"\x2\x2\x37\x31\x3\x2\x2\x2\x37\x33\x3\x2\x2\x2\x37\x35\x3\x2\x2\x2\x38"+
+		"\xF\x3\x2\x2\x2\b\x15\x1C\x1F#\'\x37";
 	public static readonly ATN _ATN =
 		new ATNDeserializer().Deserialize(_serializedATN.ToCharArray());
 }

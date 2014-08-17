@@ -101,14 +101,30 @@ namespace dbsc.Core.Antlr
 
         public TableSpecificationFragment VisitIdentifier(TableWithSchemaSpecificationWithCustomSelectListParser.IdentifierContext context)
         {
-            // identifier : id=(UNENCLOSED_ID_NAME | BRACKET_ENCLOSED_ID);
-            if (context.id.Type == TableWithSchemaSpecificationWithCustomSelectListParser.UNENCLOSED_ID_NAME)
+            //        identifier : 
+            //{Flavor == IdentifierSyntax.SqlServer}? MS_UNENCLOSED_ID_NAME
+            //| {Flavor == IdentifierSyntax.SqlServer}? MS_BRACKET_ENCLOSED_ID
+            //| {Flavor == IdentifierSyntax.Postgres}? PG_UNENCLOSED_ID_NAME
+            //| {Flavor == IdentifierSyntax.Postgres}? PG_QUOTE_ENCLOSED_ID;
+            if (context.MS_UNENCLOSED_ID_NAME() != null)
             {
-                return ParseUnenclosedIdentifier(context.id.Text);
+                return ParseUnenclosedIdentifier(context.MS_UNENCLOSED_ID_NAME().Symbol.Text);
+            }
+            else if (context.MS_BRACKET_ENCLOSED_ID() != null)
+            {
+                return ParseSqlServerBracketEnclosedIdentifier(context.MS_BRACKET_ENCLOSED_ID().Symbol.Text);
+            }
+            else if (context.PG_UNENCLOSED_ID_NAME() != null)
+            {
+                return ParseUnenclosedIdentifier(context.PG_UNENCLOSED_ID_NAME().Symbol.Text);
+            }
+            else if (context.PG_QUOTE_ENCLOSED_ID() != null)
+            {
+                return ParsePgQuoteEnclosedIdentifier(context.PG_QUOTE_ENCLOSED_ID().Symbol.Text);
             }
             else
             {
-                return ParseBracketEnclosedIdentifier(context.id.Text);
+                throw new Exception("Oops, missed an identifier token type.");
             }
         }
 
@@ -141,10 +157,17 @@ namespace dbsc.Core.Antlr
             return new TableSpecificationFragment(pattern, caseSensitive: false);
         }
 
-        private TableSpecificationFragment ParseBracketEnclosedIdentifier(string rawText)
+        private TableSpecificationFragment ParseSqlServerBracketEnclosedIdentifier(string rawText)
         {
             string withoutBrackets = rawText.Substring(1, rawText.Length - 2);
             string unescapedName = withoutBrackets.Replace("]]", "]");
+            return ParseUnenclosedIdentifier(unescapedName);
+        }
+
+        private TableSpecificationFragment ParsePgQuoteEnclosedIdentifier(string rawText)
+        {
+            string withoutQuotes = rawText.Substring(1, rawText.Length - 2);
+            string unescapedName = withoutQuotes.Replace("\"\"", "\"");
             return ParseUnenclosedIdentifier(unescapedName);
         }
     }

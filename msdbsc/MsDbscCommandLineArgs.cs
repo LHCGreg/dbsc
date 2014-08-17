@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using dbsc.Core;
+using dbsc.Core.ImportTableSpecification;
 using dbsc.Core.Options;
-using dbsc.SqlServer.ImportTableSpecification;
 
 namespace dbsc.SqlServer
 {
@@ -26,7 +26,11 @@ namespace dbsc.SqlServer
             PasswordMessage = "Password to use to log in to the source database. If not specified and username is not specified, log in with integrated security. If not specified and username is specified, you will be prompted for your password."
         };
 
-        private SqlServerImportTableListOptionBundle _importSpecificationOptionBundle = new SqlServerImportTableListOptionBundle();
+
+
+        private ImportTableListOptionBundle<TableWithSchemaSpecificationWithCustomSelectCollection<SqlServerTable>> _importSpecificationOptionBundle =
+            new ImportTableListOptionBundle<TableWithSchemaSpecificationWithCustomSelectCollection<SqlServerTable>>(
+                new SqlServerImportTableListParser(), ImportTableListOptionBundle<TableWithSchemaSpecificationWithCustomSelectCollection<SqlServerTable>>.WildcardsNegationsAndCustomSelectDescription);
 
         public MsDbscCommandLineArgs()
         {

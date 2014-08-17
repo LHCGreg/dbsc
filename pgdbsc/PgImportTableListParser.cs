@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using dbsc.Core.ImportTableSpecification;
 using dbsc.Core.Antlr;
+using System.IO;
+using dbsc.Core;
 
-namespace dbsc.SqlServer.ImportTableSpecification
+namespace dbsc.Postgres
 {
-    class SqlServerImportTableListParser
+    class PgImportTableListParser : IImportTableListParser<TableWithSchemaSpecificationWithCustomSelectCollection<PgTable>>
     {
-        public SqlServerImportTableListParser()
+        public PgImportTableListParser()
         {
-
+            ;
         }
 
         /// <summary>
@@ -22,11 +23,11 @@ namespace dbsc.SqlServer.ImportTableSpecification
         /// <param name="inputFileName"></param>
         /// <returns></returns>
         /// <exception cref="dbsc.Core.TableSpecificationParseException"></exception>
-        public TableWithSchemaSpecificationWithCustomSelectCollection<SqlServerTable> Parse(TextReader input, string inputFileName)
+        public TableWithSchemaSpecificationWithCustomSelectCollection<PgTable> Parse(TextReader input, string inputFileName)
         {
             TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-            IList<TableWithSchemaSpecificationWithCustomSelect> result = parser.Parse(input, inputFileName);
-            return new TableWithSchemaSpecificationWithCustomSelectCollection<SqlServerTable>(result, "dbo");
+            IList<TableWithSchemaSpecificationWithCustomSelect> result = parser.Parse(input, IdentifierSyntax.Postgres, inputFileName);
+            return new TableWithSchemaSpecificationWithCustomSelectCollection<PgTable>(result, "public");
         }
     }
 }

@@ -93,15 +93,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
                 }
             });
 
-            string clearMessage;
-            if (_tablesToImport.Count == _allTablesExceptMetadata.Count)
-            {
-                clearMessage = "Clearing all tables";
-            }
-            else
-            {
-                clearMessage = "Clearing tables to import";
-            }
+            string clearMessage = "Clearing tables to import";
 
             Utils.DoTimedOperation(clearMessage, () =>
             {

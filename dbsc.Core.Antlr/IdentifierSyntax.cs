@@ -2,17 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NUnit.Framework;
-using TestUtils.Sql;
 
-namespace dbsc.Postgres.Integration
+namespace dbsc.Core.Antlr
 {
-    [TestFixture]
-    class ShowRevisionTestFixture : AbstractShowRevisionTestFixture<PgTestHelper>
+    public enum IdentifierSyntax
     {
-        protected override int? Port { get { return 5432; } }
-        protected override bool ExtendedTableSpecsSupported { get { return true; } }
-        protected override bool CustomSelectImportSupported { get { return true; } }
+        SqlServer,
+        Postgres
     }
 }
 

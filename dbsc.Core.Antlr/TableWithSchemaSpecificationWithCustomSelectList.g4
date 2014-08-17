@@ -1,15 +1,44 @@
 grammar TableWithSchemaSpecificationWithCustomSelectList;
 
+@parser::members {
+	private IdentifierSyntax _flavor = IdentifierSyntax.SqlServer;
+	public IdentifierSyntax Flavor { get { return _flavor; } set { _flavor = value; } }
+
+	public TableWithSchemaSpecificationWithCustomSelectListParser(ITokenStream input, IdentifierSyntax flavor)
+		: this (input)
+	{
+		Flavor = flavor;
+	}
+}
+
+@lexer::members {
+	private IdentifierSyntax _flavor = IdentifierSyntax.SqlServer;
+	public IdentifierSyntax Flavor { get { return _flavor; } set { _flavor = value; } }
+
+	public TableWithSchemaSpecificationWithCustomSelectListLexer(ICharStream input, IdentifierSyntax flavor)
+		: this (input)
+	{
+		Flavor = flavor;
+	}
+}
+
 tableSpecificationList : tableSpecificationLine (NEWLINE tableSpecificationLine)* EOF ;
 tableSpecificationLine : possiblyQualifiedTableLine | ; // allow blank lines
 possiblyQualifiedTableLine : NEGATER? possiblyQualifiedTable CUSTOM_SELECT? ;
 possiblyQualifiedTable : unqualifiedTable | qualifiedTable;
 unqualifiedTable : identifier;
 qualifiedTable : schema=identifier '.' table=identifier;
-identifier : id=(UNENCLOSED_ID_NAME | BRACKET_ENCLOSED_ID);
+identifier : 
+	{Flavor == IdentifierSyntax.SqlServer}? MS_UNENCLOSED_ID_NAME
+	| {Flavor == IdentifierSyntax.SqlServer}? MS_BRACKET_ENCLOSED_ID
+	| {Flavor == IdentifierSyntax.Postgres}? PG_UNENCLOSED_ID_NAME
+	| {Flavor == IdentifierSyntax.Postgres}? PG_QUOTE_ENCLOSED_ID;
+	// Don't bother trying to handle U& Postgres identifiers
                            
-UNENCLOSED_ID_NAME : (LETTER | '_' | '@' | '#' | WILDCARD) (LETTER | NUMBER | '_' | '@' | '#' | WILDCARD)* ;
-BRACKET_ENCLOSED_ID : '[' (~[\r\n\*\]] | ']]' | WILDCARD)+ ']' ;
+MS_UNENCLOSED_ID_NAME : (LETTER | '_' | '@' | '#' | WILDCARD) (LETTER | NUMBER | '_' | '@' | '#' | WILDCARD)* {Flavor == IdentifierSyntax.SqlServer}?;
+MS_BRACKET_ENCLOSED_ID : '[' (~[\r\n\]] | ']]')+ ']' {Flavor == IdentifierSyntax.SqlServer}?;
+PG_UNENCLOSED_ID_NAME : (LETTER | '_' | WILDCARD) (LETTER | '_' | NUMBER | '$' | WILDCARD)* {Flavor == IdentifierSyntax.Postgres}?;
+PG_QUOTE_ENCLOSED_ID : '"' (~[\r\n"] | '""')+ '"' {Flavor == IdentifierSyntax.Postgres}?;
 WS_NO_NEWLINE : [ \t] -> skip;
 NEWLINE : '\r'? '\n';
 LETTER : [a-zA-Z\u0080-\u00FF] ;

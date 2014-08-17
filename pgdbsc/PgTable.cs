@@ -2,17 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NUnit.Framework;
-using TestUtils.Sql;
+using dbsc.Core;
 
-namespace dbsc.Postgres.Integration
+namespace dbsc.Postgres
 {
-    [TestFixture]
-    class ShowRevisionTestFixture : AbstractShowRevisionTestFixture<PgTestHelper>
+    class PgTable : ITableWithSchema
     {
-        protected override int? Port { get { return 5432; } }
-        protected override bool ExtendedTableSpecsSupported { get { return true; } }
-        protected override bool CustomSelectImportSupported { get { return true; } }
+        public string Schema { get; private set; }
+        public string Table { get; private set; }
+
+        public PgTable(string schema, string table)
+        {
+            Schema = schema;
+            Table = table;
+        }
+
+        /// <summary>
+        /// The table in two-part "schema"."table" format
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return PgDbscDbConnection.QuotePgIdentifier(Schema, Table);
+        }
     }
 }
 

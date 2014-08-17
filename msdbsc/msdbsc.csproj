@@ -67,8 +67,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlServerCheckoutSettings.cs" />
     <Compile Include="SqlServerConnectionSettings.cs" />
-    <Compile Include="ImportTableSpecification\SqlServerImportTableListOptionBundle.cs" />
-    <Compile Include="ImportTableSpecification\SqlServerImportTableListParser.cs" />
+    <Compile Include="SqlServerImportTableListParser.cs" />
     <Compile Include="SqlServerUpdateSettings.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -133,7 +132,9 @@
     <Content Include="readme.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="msdbsc.targets" />
+    <None Include="msdbsc.targets">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
