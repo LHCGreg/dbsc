@@ -146,10 +146,11 @@
   <ItemGroup>
     <Compile Include="ErrorListener.cs" />
     <Compile Include="IdentifierSyntax.cs" />
+    <Compile Include="IdentifierSyntaxChecks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TableWithSchemaSpecificationWithCustomSelectListLexer.cs" />
-    <Compile Include="TableWithSchemaSpecificationWithCustomSelectListParser.cs" />
-    <Compile Include="TableWithSchemaSpecWithCustomSelectListParser.cs" />
+    <Compile Include="TableSpecificationListLexer.cs" />
+    <Compile Include="TableSpecificationListParser.cs" />
+    <Compile Include="TableSpecListParser.cs" />
     <Compile Include="TableWithSchemaSpecificationWithCustomSelectListVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -157,7 +158,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
-    <None Include="TableWithSchemaSpecificationWithCustomSelectList.g4" />
+    <None Include="TableSpecificationList.g4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\dbsc.Core\dbsc.Core.csproj">

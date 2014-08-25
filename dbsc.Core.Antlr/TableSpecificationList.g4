@@ -1,13 +1,17 @@
-grammar TableWithSchemaSpecificationWithCustomSelectList;
+grammar TableSpecificationList;
 
 @parser::members {
 	private IdentifierSyntax _flavor = IdentifierSyntax.SqlServer;
 	public IdentifierSyntax Flavor { get { return _flavor; } set { _flavor = value; } }
 
-	public TableWithSchemaSpecificationWithCustomSelectListParser(ITokenStream input, IdentifierSyntax flavor)
+	private bool _allowCustomSelect = true;
+	public bool AllowCustomSelect { get { return _allowCustomSelect; } set { _allowCustomSelect = value; } }
+
+	public TableSpecificationListParser(ITokenStream input, IdentifierSyntax flavor, bool allowCustomSelect)
 		: this (input)
 	{
 		Flavor = flavor;
+		AllowCustomSelect = allowCustomSelect;
 	}
 }
 
@@ -15,30 +19,43 @@ grammar TableWithSchemaSpecificationWithCustomSelectList;
 	private IdentifierSyntax _flavor = IdentifierSyntax.SqlServer;
 	public IdentifierSyntax Flavor { get { return _flavor; } set { _flavor = value; } }
 
-	public TableWithSchemaSpecificationWithCustomSelectListLexer(ICharStream input, IdentifierSyntax flavor)
+	private bool _allowCustomSelect = true;
+	public bool AllowCustomSelect { get { return _allowCustomSelect; } set { _allowCustomSelect = value; } }
+
+	public TableSpecificationListLexer(ICharStream input, IdentifierSyntax flavor, bool allowCustomSelect)
 		: this (input)
 	{
 		Flavor = flavor;
+		AllowCustomSelect = allowCustomSelect;
 	}
 }
 
 tableSpecificationList : tableSpecificationLine (NEWLINE tableSpecificationLine)* EOF ;
 tableSpecificationLine : possiblyQualifiedTableLine | ; // allow blank lines
 possiblyQualifiedTableLine : NEGATER? possiblyQualifiedTable CUSTOM_SELECT? ;
-possiblyQualifiedTable : unqualifiedTable | qualifiedTable;
+possiblyQualifiedTable :
+unqualifiedTable
+| {Flavor.TwoPartIdentifiersSupported()}? qualifiedTable;
 unqualifiedTable : identifier;
 qualifiedTable : schema=identifier '.' table=identifier;
 identifier : 
 	{Flavor == IdentifierSyntax.SqlServer}? MS_UNENCLOSED_ID_NAME
 	| {Flavor == IdentifierSyntax.SqlServer}? MS_BRACKET_ENCLOSED_ID
 	| {Flavor == IdentifierSyntax.Postgres}? PG_UNENCLOSED_ID_NAME
-	| {Flavor == IdentifierSyntax.Postgres}? PG_QUOTE_ENCLOSED_ID;
+	| {Flavor == IdentifierSyntax.Postgres}? PG_QUOTE_ENCLOSED_ID
 	// Don't bother trying to handle U& Postgres identifiers
+	| {Flavor == IdentifierSyntax.MySql}? MYSQL_UNENCLOSED_ID
+	| {Flavor == IdentifierSyntax.MySql}? MYSQL_BACKTICK_ID
+	| {Flavor == IdentifierSyntax.MySql}? MYSQL_QUOTE_ID;
+	
                            
 MS_UNENCLOSED_ID_NAME : (LETTER | '_' | '@' | '#' | WILDCARD) (LETTER | NUMBER | '_' | '@' | '#' | WILDCARD)* {Flavor == IdentifierSyntax.SqlServer}?;
 MS_BRACKET_ENCLOSED_ID : '[' (~[\r\n\]] | ']]')+ ']' {Flavor == IdentifierSyntax.SqlServer}?;
 PG_UNENCLOSED_ID_NAME : (LETTER | '_' | WILDCARD) (LETTER | '_' | NUMBER | '$' | WILDCARD)* {Flavor == IdentifierSyntax.Postgres}?;
 PG_QUOTE_ENCLOSED_ID : '"' (~[\r\n"] | '""')+ '"' {Flavor == IdentifierSyntax.Postgres}?;
+MYSQL_UNENCLOSED_ID : ([0-9a-zA-Z$_\u0080-\uFFFF] | WILDCARD)+ {Flavor == IdentifierSyntax.MySql}?;
+MYSQL_BACKTICK_ID : '`' (~[\r\n`] | '``')+ '`' {Flavor == IdentifierSyntax.MySql}?;
+MYSQL_QUOTE_ID : '"' (~[\r\n"] | '""')+ '"' {Flavor == IdentifierSyntax.MySql}?;
 WS_NO_NEWLINE : [ \t] -> skip;
 NEWLINE : '\r'? '\n';
 LETTER : [a-zA-Z\u0080-\u00FF] ;

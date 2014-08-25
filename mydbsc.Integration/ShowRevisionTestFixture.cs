@@ -11,6 +11,8 @@ namespace dbsc.MySql.Integration
     class ShowRevisionTestFixture : AbstractShowRevisionTestFixture<MySqlTestHelper>
     {
         protected override int? Port { get { return 3306; } }
+        protected override bool ExtendedTableSpecsSupported { get { return true; } }
+        protected override bool CustomSelectImportSupported { get { return false; } }
     }
 }
 

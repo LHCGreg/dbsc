@@ -42,23 +42,6 @@ namespace dbsc.Postgres
             }
         }
 
-        private class Table
-        {
-            public string table_schema { get; set; }
-            public string table_name { get; set; }
-        }
-
-        private ICollection<PgTable> GetTablesExceptMetadata(PgDbscDbConnection conn)
-        {
-            string sql = @"SELECT table_schema, table_name FROM information_schema.tables
-WHERE table_schema NOT LIKE 'pg_%' AND table_schema <> 'information_schema'
-AND table_type = 'BASE TABLE'
-AND table_name <> 'dbsc_metadata'";
-
-            List<PgTable> tables = conn.Query<Table>(sql).Select(t => new PgTable(t.table_schema, t.table_name)).ToList();
-            return tables;
-        }
-
         protected override bool MetadataTableExists(PgDbscDbConnection conn)
         {
             string sql = @"SELECT count(*) FROM information_schema.tables
@@ -83,35 +66,8 @@ AND table_name = 'dbsc_metadata'";
         {
             using (PgDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
             {
-                ICollection<PgTable> eligibleTables = GetTablesExceptMetadata(conn);
-
-                if (updateSettings.ImportOptions.TablesToImportSpecifications == null)
-                {
-                    List<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>> tables = new List<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>>();
-                    foreach (PgTable table in eligibleTables)
-                    {
-                        tables.Add(new TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>(table,
-                            TableWithSchemaSpecificationWithCustomSelect.Star));
-                    }
-                    return tables;
-                }
-                else
-                {
-                    const string defaultSchema = "public";
-                    updateSettings.ImportOptions.TablesToImportSpecifications.DefaultSchema = defaultSchema;
-                    ICollection<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport = updateSettings.ImportOptions.TablesToImportSpecifications.GetTablesToImport(eligibleTables);
-
-                    // Throw an error if the user specifified an import table specification file and there were any lines
-                    // that specified a table directly (no wildcards) and the table does not exist. The user probably made a mistake.
-                    ICollection<TableWithSchemaSpecificationWithCustomSelect> nonMatchingNonWildcardSpecs = updateSettings.ImportOptions.TablesToImportSpecifications.GetNonWildcardTableSpecsThatDontExist(eligibleTables);
-                    if (nonMatchingNonWildcardSpecs.Count > 0)
-                    {
-                        throw new DbscException(string.Format("The following tables were specified to be imported but do not exist: {0}",
-                            string.Join(", ", nonMatchingNonWildcardSpecs.Select(spec => new PgTable(spec.Schema != null ? spec.Schema.Pattern[0].String : defaultSchema, spec.Table.Pattern[0].String)))));
-                    }
-
-                    return tablesToImport;
-                }
+                PgImportTableCalculator tableCalculator = new PgImportTableCalculator();
+                return tableCalculator.GetTablesToImport(conn, updateSettings.ImportOptions.TablesToImportSpecifications);
             }
         }
 
@@ -120,7 +76,7 @@ AND table_name = 'dbsc_metadata'";
             ICollection<PgTable> tablesExceptMetadata;
             using (PgDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
             {
-                tablesExceptMetadata = GetTablesExceptMetadata(conn);
+                tablesExceptMetadata = conn.GetTablesExceptMetadata();
             }
 
             PgImportOperation import = new PgImportOperation(updateSettings, tablesToImport, tablesExceptMetadata);

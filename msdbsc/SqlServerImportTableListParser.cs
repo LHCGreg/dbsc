@@ -25,8 +25,9 @@ namespace dbsc.SqlServer
         /// <exception cref="dbsc.Core.TableSpecificationParseException"></exception>
         public TableWithSchemaSpecificationWithCustomSelectCollection<SqlServerTable> Parse(TextReader input, string inputFileName)
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-            IList<TableWithSchemaSpecificationWithCustomSelect> result = parser.Parse(input, IdentifierSyntax.SqlServer, inputFileName);
+            TableSpecListParser parser = new TableSpecListParser();
+            bool allowCustomSelect = true;
+            IList<TableWithSchemaSpecificationWithCustomSelect> result = parser.Parse(input, IdentifierSyntax.SqlServer, allowCustomSelect, inputFileName);
             return new TableWithSchemaSpecificationWithCustomSelectCollection<SqlServerTable>(result, "dbo");
         }
     }

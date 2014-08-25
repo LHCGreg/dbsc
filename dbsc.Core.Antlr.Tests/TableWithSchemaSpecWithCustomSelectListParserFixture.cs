@@ -8,15 +8,14 @@ using dbsc.Core.Antlr;
 using dbsc.Core.ImportTableSpecification;
 using dbsc.Core.Tests.ImportTableSpecification;
 
-namespace dbsc.SqlServer.Tests
+namespace dbsc.Core.Antlr.Tests
 {
     [TestFixture]
     public class TableWithSchemaSpecWithCustomSelectListParserFixture
-    {        
+    {
         [Test]
         public void SqlServerBasicTest()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
             string inputString = @"
 HelloWorld
 [Hello World]
@@ -27,45 +26,12 @@ Hello . [World]
 [*].*
   ";
 
-            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
-            {
-                new TableWithSchemaSpecificationWithCustomSelect(null, FragFromString("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(null, FragFromString("Hello World"), negated: false, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(FragFromString("Hello"), FragFromString("World"), negated: false, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(FragFromString("Brackets] are fun"), FragFromString("Really]]]]really fun"), negated: false, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(
-                    new TableSpecificationFragment(
-                        new List<StringOrWildcard>()
-                        {
-                            new StringOrWildcard("Let's have some "),
-                            StringOrWildcard.Star,
-                            new StringOrWildcard(" wildcards"),
-                            StringOrWildcard.Star
-                        }, caseSensitive: false),
-                    new TableSpecificationFragment(
-                        new List<StringOrWildcard>()
-                        {
-                            new StringOrWildcard("Regular"),
-                            StringOrWildcard.Star
-                        }, caseSensitive: false),
-                    negated: false, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(
-                    new TableSpecificationFragment(new List<StringOrWildcard>() { StringOrWildcard.Star }, caseSensitive: false),
-                    new TableSpecificationFragment(new List<StringOrWildcard>() { StringOrWildcard.Star }, caseSensitive: false),
-                    negated: false, defaultSchemaIsCaseSensitive: false)
-            };
-
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.SqlServer, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+            BasicTest(inputString, Flavor.SqlServer);
         }
 
         [Test]
         public void PostgresBasicTest()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
             string inputString = @"
 HelloWorld
 ""Hello World""
@@ -76,12 +42,17 @@ Hello . ""World""
 ""*"".*
   ";
 
+            BasicTest(inputString, Flavor.Postgres);
+        }
+
+        private void BasicTest(string inputString, Flavor flavor)
+        {
             List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
             {
-                new TableWithSchemaSpecificationWithCustomSelect(null, FragFromString("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(null, FragFromString("Hello World"), negated: false, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(FragFromString("Hello"), FragFromString("World"), negated: false, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(FragFromString("Brackets\" are fun"), FragFromString("Really\"\"\"\"really fun"), negated: false, defaultSchemaIsCaseSensitive: false),
+                new TableWithSchemaSpecificationWithCustomSelect(null, Frag("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(null, Frag("Hello World"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(Frag("Hello"), Frag("World"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(Frag("Brackets{0} are fun", flavor.ClosingQuoteChar), Frag("Really{0}{0}{0}{0}really fun", flavor.ClosingQuoteChar), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
                 new TableWithSchemaSpecificationWithCustomSelect(
                     new TableSpecificationFragment(
                         new List<StringOrWildcard>()
@@ -97,265 +68,330 @@ Hello . ""World""
                             new StringOrWildcard("Regular"),
                             StringOrWildcard.Star
                         }, caseSensitive: false),
-                    negated: false, defaultSchemaIsCaseSensitive: false),
+                    negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
                 new TableWithSchemaSpecificationWithCustomSelect(
                     new TableSpecificationFragment(new List<StringOrWildcard>() { StringOrWildcard.Star }, caseSensitive: false),
                     new TableSpecificationFragment(new List<StringOrWildcard>() { StringOrWildcard.Star }, caseSensitive: false),
-                    negated: false, defaultSchemaIsCaseSensitive: false)
+                    negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive)
             };
 
-            using (StringReader input = new StringReader(inputString))
+            Test(inputString, expectedSpecs, flavor);
+        }
+
+        [Test]
+        public void MySqlBasicTest()
+        {
+            string inputString = @"
+HelloWorld
+`Hello World`
+
+`Brackets`` are ""fun""`
+""Quotes"""" are `too`""
+`Let's have some * wildcards*`
+""Let's have some * wildcards*""
+Regular*
+`*`
+*
+  ";
+
+            Flavor mysql = Flavor.MySql;
+
+            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
             {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.Postgres, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+                new TableWithSchemaSpecificationWithCustomSelect(null, Frag("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: mysql.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(null, Frag("Hello World"), negated: false, defaultSchemaIsCaseSensitive: mysql.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(null, Frag("Brackets` are \"fun\""), negated: false, defaultSchemaIsCaseSensitive: mysql.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(null, Frag("Quotes\" are `too`"), negated: false, defaultSchemaIsCaseSensitive: mysql.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(
+                    null,
+                    new TableSpecificationFragment(
+                        new List<StringOrWildcard>()
+                        {
+                            new StringOrWildcard("Let's have some "),
+                            StringOrWildcard.Star,
+                            new StringOrWildcard(" wildcards"),
+                            StringOrWildcard.Star
+                        }, caseSensitive: false),
+                    negated: false, defaultSchemaIsCaseSensitive: mysql.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(
+                    null,
+                    new TableSpecificationFragment(
+                        new List<StringOrWildcard>()
+                        {
+                            new StringOrWildcard("Let's have some "),
+                            StringOrWildcard.Star,
+                            new StringOrWildcard(" wildcards"),
+                            StringOrWildcard.Star
+                        }, caseSensitive: false),
+                    negated: false, defaultSchemaIsCaseSensitive: mysql.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(
+                    null,
+                    new TableSpecificationFragment(
+                        new List<StringOrWildcard>()
+                        {
+                            new StringOrWildcard("Regular"),
+                            StringOrWildcard.Star
+                        }, caseSensitive: false),
+                    negated: false, defaultSchemaIsCaseSensitive: mysql.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(
+                    new TableSpecificationFragment(new List<StringOrWildcard>() { StringOrWildcard.Star }, caseSensitive: false),
+                    new TableSpecificationFragment(new List<StringOrWildcard>() { StringOrWildcard.Star }, caseSensitive: false),
+                    negated: false, defaultSchemaIsCaseSensitive: mysql.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(
+                    new TableSpecificationFragment(new List<StringOrWildcard>() { StringOrWildcard.Star }, caseSensitive: false),
+                    new TableSpecificationFragment(new List<StringOrWildcard>() { StringOrWildcard.Star }, caseSensitive: false),
+                    negated: false, defaultSchemaIsCaseSensitive: mysql.DefaultSchemaCaseSensitive)
+            };
+
+            Test(inputString, expectedSpecs, Flavor.MySql);
         }
 
         [Test]
         public void SqlServerTestNonblankFirstLine()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-
-            string inputString = "HelloWorld";
-            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
-            {
-                new TableWithSchemaSpecificationWithCustomSelect(null, FragFromString("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: false),
-            };
-
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.SqlServer, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+            TestNonblankFirstLine(Flavor.SqlServer);
         }
 
         [Test]
         public void PostgresTestNonblankFirstLine()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
+            TestNonblankFirstLine(Flavor.Postgres);
+        }
 
+        [Test]
+        public void MySqlTestNonblankFirstLine()
+        {
+            TestNonblankFirstLine(Flavor.MySql);
+        }
+
+        private void TestNonblankFirstLine(Flavor flavor)
+        {
             string inputString = "HelloWorld";
+
             List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
             {
-                new TableWithSchemaSpecificationWithCustomSelect(null, FragFromString("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: false),
+                new TableWithSchemaSpecificationWithCustomSelect(null, Frag("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
             };
 
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.Postgres, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+            Test(inputString, expectedSpecs, flavor);
         }
 
         [Test]
         public void SqlServerTestBlankFile()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-
-            string inputString = "";
-            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>();
-
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.SqlServer, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
-
-            inputString = @"
-";
-
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.SqlServer, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+            TestBlankFile(Flavor.SqlServer);
         }
 
         [Test]
         public void PostgresTestBlankFile()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
+            TestBlankFile(Flavor.Postgres);
+        }
 
+        [Test]
+        public void MySqlTestBlankFile()
+        {
+            TestBlankFile(Flavor.MySql);
+        }
+
+        private void TestBlankFile(Flavor flavor)
+        {
             string inputString = "";
             List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>();
-
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.Postgres, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+            Test(inputString, expectedSpecs, flavor);
 
             inputString = @"
 ";
-
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.Postgres, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+            Test(inputString, expectedSpecs, flavor);
         }
 
         [Test]
         public void SqlServerTestBareWildcard()
         {
-            // * should be considered *.*
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-
-            string inputString = @"
-*
--*";
-
-            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
-            {
-                new TableWithSchemaSpecificationWithCustomSelect(schema: TableSpecificationFragment.Star, table: TableSpecificationFragment.Star, negated: false, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(schema: TableSpecificationFragment.Star, table: TableSpecificationFragment.Star, negated: true, defaultSchemaIsCaseSensitive: false),
-            };
-
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.SqlServer, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+            TestBareWildcard(Flavor.SqlServer);
         }
 
         [Test]
         public void PostgresTestBareWildcard()
         {
-            // * should be considered *.*
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
+            TestBareWildcard(Flavor.Postgres);
+        }
 
+        [Test]
+        public void MySqlTestBareWildcard()
+        {
+            TestBareWildcard(Flavor.MySql);
+        }
+
+        private void TestBareWildcard(Flavor flavor)
+        {
+            // * should be considered *.*
             string inputString = @"
 *
 -*";
 
             List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
             {
-                new TableWithSchemaSpecificationWithCustomSelect(schema: TableSpecificationFragment.Star, table: TableSpecificationFragment.Star, negated: false, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(schema: TableSpecificationFragment.Star, table: TableSpecificationFragment.Star, negated: true, defaultSchemaIsCaseSensitive: false),
+                new TableWithSchemaSpecificationWithCustomSelect(schema: TableSpecificationFragment.Star, table: TableSpecificationFragment.Star, negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(schema: TableSpecificationFragment.Star, table: TableSpecificationFragment.Star, negated: true, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
             };
 
-            using (StringReader input = new StringReader(inputString))
+            Test(inputString, expectedSpecs, flavor);
+        }
+
+        private void TestNegation(Flavor flavor)
+        {
+            /* @"
+- HelloWorld
+-[Hello].World
+"
+*/
+            
+            StringBuilder inputStringBuilder = new StringBuilder(@"
+- HelloWorld
+");
+            if (flavor.SchemasSupported)
             {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.Postgres, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
+                inputStringBuilder.AppendLine(string.Format("-{0}Hello{1}.World", flavor.OpeningQuoteChar, flavor.ClosingQuoteChar));
             }
+
+            string inputString = inputStringBuilder.ToString();
+
+            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
+            {
+                new TableWithSchemaSpecificationWithCustomSelect(schema: null, table: Frag("HelloWorld"), negated: true, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
+            };
+
+            if (flavor.SchemasSupported)
+            {
+                expectedSpecs.Add(new TableWithSchemaSpecificationWithCustomSelect(schema: Frag("Hello"), table: Frag("World"), negated: true, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive));
+            }
+
+            Test(inputString, expectedSpecs, flavor);
         }
 
         [Test]
         public void SqlServerTestNegation()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-
-            string inputString = @"
-- HelloWorld
--[Hello].World
-";
-
-            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
-            {
-                new TableWithSchemaSpecificationWithCustomSelect(schema: null, table: new TableSpecificationFragment("HelloWorld", caseSensitive: false), negated: true, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(schema: new TableSpecificationFragment("Hello", caseSensitive: false), table: new TableSpecificationFragment("World", caseSensitive: false), negated: true, defaultSchemaIsCaseSensitive: false),
-            };
-
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.SqlServer, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+            TestNegation(Flavor.SqlServer);
         }
 
         [Test]
         public void PostgresTestNegation()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
+            TestNegation(Flavor.Postgres);
+        }
 
-            string inputString = @"
-- HelloWorld
--""Hello"".World
-";
+        private void TestCustomSelect(Flavor flavor)
+        {
+            StringBuilder inputStringBuilder = new StringBuilder(@"
+HelloWorld : SELECT * FROM HelloWorld WHERE IncludeInImport = 1
+");
+            if (flavor.SchemasSupported)
+            {
+                inputStringBuilder.AppendLine(string.Format("Hello.{0}World{1}:SELECT * FROM Hello.{0}World{1} WHERE IncludeInImport = 1", flavor.OpeningQuoteChar, flavor.ClosingQuoteChar));
+            }
+
+            string inputString = inputStringBuilder.ToString();
 
             List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
             {
-                new TableWithSchemaSpecificationWithCustomSelect(schema: null, table: new TableSpecificationFragment("HelloWorld", caseSensitive: false), negated: true, defaultSchemaIsCaseSensitive: false),
-                new TableWithSchemaSpecificationWithCustomSelect(schema: new TableSpecificationFragment("Hello", caseSensitive: false), table: new TableSpecificationFragment("World", caseSensitive: false), negated: true, defaultSchemaIsCaseSensitive: false),
+                new TableWithSchemaSpecificationWithCustomSelect(schema: null, table: Frag("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive, customSelect: "SELECT * FROM HelloWorld WHERE IncludeInImport = 1")
             };
 
-            using (StringReader input = new StringReader(inputString))
+            if (flavor.SchemasSupported)
             {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.Postgres, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
+                expectedSpecs.Add(new TableWithSchemaSpecificationWithCustomSelect(schema: Frag("Hello"), table: Frag("World"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive, customSelect: string.Format("SELECT * FROM Hello.{0}World{1} WHERE IncludeInImport = 1", flavor.OpeningQuoteChar, flavor.ClosingQuoteChar)));
             }
+
+            Test(inputString, expectedSpecs, flavor);
         }
 
         [Test]
         public void SqlServerTestCustomSelect()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-            string inputString = @"
-HelloWorld : SELECT * FROM HelloWorld WHERE IncludeInImport = 1
-Hello.[World]:SELECT * FROM Hello.[World] WHERE IncludeInImport = 1
-";
-
-            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
-            {
-                new TableWithSchemaSpecificationWithCustomSelect(schema: null, table: new TableSpecificationFragment("HelloWorld", caseSensitive: false), negated: false, defaultSchemaIsCaseSensitive: false, customSelect: "SELECT * FROM HelloWorld WHERE IncludeInImport = 1"),
-                new TableWithSchemaSpecificationWithCustomSelect(schema: new TableSpecificationFragment("Hello", caseSensitive: false), table: new TableSpecificationFragment("World", caseSensitive: false), negated: false, defaultSchemaIsCaseSensitive: false, customSelect: "SELECT * FROM Hello.[World] WHERE IncludeInImport = 1"),
-            };
-
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.SqlServer, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+            TestCustomSelect(Flavor.SqlServer);
         }
 
         [Test]
         public void PostgresTestCustomSelect()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-            string inputString = @"
-HelloWorld : SELECT * FROM HelloWorld WHERE IncludeInImport = 1
-Hello.""World"":SELECT * FROM Hello.[World] WHERE IncludeInImport = 1
-";
+            TestCustomSelect(Flavor.Postgres);
+        }
 
-            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
-            {
-                new TableWithSchemaSpecificationWithCustomSelect(schema: null, table: new TableSpecificationFragment("HelloWorld", caseSensitive: false), negated: false, defaultSchemaIsCaseSensitive: false, customSelect: "SELECT * FROM HelloWorld WHERE IncludeInImport = 1"),
-                new TableWithSchemaSpecificationWithCustomSelect(schema: new TableSpecificationFragment("Hello", caseSensitive: false), table: new TableSpecificationFragment("World", caseSensitive: false), negated: false, defaultSchemaIsCaseSensitive: false, customSelect: "SELECT * FROM Hello.[World] WHERE IncludeInImport = 1"),
-            };
+        [Test]
+        public void MySqlTestCustomSelectThrows()
+        {
+            string inputString = "tab : SELECT * FROM tab";
+            TestThrows<TableSpecificationParseException>(inputString, Flavor.MySql);
+        }
 
-            using (StringReader input = new StringReader(inputString))
-            {
-                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, IdentifierSyntax.Postgres, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
-            }
+        private void TestSyntaxErrorThrows(Flavor flavor)
+        {
+            string inputString = "PeriodAtEnd.";
+            TestThrows<TableSpecificationParseException>(inputString, flavor);
         }
 
         [Test]
         public void SqlServerTestSyntaxErrorThrows()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-            string inputString = @"PeriodAtEnd.";
-            using (StringReader input = new StringReader(inputString))
-            {
-                Assert.Throws(Is.InstanceOf<TableSpecificationParseException>(), () => parser.Parse(input, IdentifierSyntax.SqlServer, "test.txt"));
-            }
+            TestSyntaxErrorThrows(Flavor.SqlServer);
         }
 
         [Test]
         public void PostgresTestSyntaxErrorThrows()
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-            string inputString = @"PeriodAtEnd.";
+            TestSyntaxErrorThrows(Flavor.Postgres);
+        }
+
+        [Test]
+        public void MySqlTestSyntaxErrorThrows()
+        {
+            TestSyntaxErrorThrows(Flavor.MySql);
+        }
+
+        // TODO: Test that custom select in mysql throws
+
+        [Test]
+        public void MySqlTestSchemaThrows()
+        {
+            string inputString = "Sch.Tab";
+            TestThrows<TableSpecificationParseException>(inputString, Flavor.MySql);
+
+            inputString = "`Sch`.`Tab`";
+            TestThrows<TableSpecificationParseException>(inputString, Flavor.MySql);
+
+            inputString = "\"Sch\".\"ab\"";
+            TestThrows<TableSpecificationParseException>(inputString, Flavor.MySql);
+        }
+
+        private TableSpecificationFragment Frag(string s)
+        {
+            return new TableSpecificationFragment(s, caseSensitive: false);
+        }
+
+        private TableSpecificationFragment Frag(string s, params object[] args)
+        {
+            return new TableSpecificationFragment(string.Format(s, args), caseSensitive: false);
+        }
+
+        private void Test(string inputString, List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs, Flavor flavor)
+        {
+            TableSpecListParser parser = new TableSpecListParser();
             using (StringReader input = new StringReader(inputString))
             {
-                Assert.Throws(Is.InstanceOf<TableSpecificationParseException>(), () => parser.Parse(input, IdentifierSyntax.Postgres, "test.txt"));
+                IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, flavor.Syntax, flavor.CustomSelectSupported, "test.txt");
+                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
             }
         }
 
-        private TableSpecificationFragment FragFromString(string s)
+        private void TestThrows<TException>(string inputString, Flavor flavor)
         {
-            return new TableSpecificationFragment(s, caseSensitive: false);
+            TableSpecListParser parser = new TableSpecListParser();
+            using (StringReader input = new StringReader(inputString))
+            {
+                Assert.Throws(Is.InstanceOf<TException>(), () => parser.Parse(input, flavor.Syntax, flavor.CustomSelectSupported, "test.txt"));
+            }
         }
     }
 }

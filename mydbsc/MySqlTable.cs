@@ -2,18 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MySql.Data.MySqlClient;
 using dbsc.Core;
-using dbsc.Core.Sql;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscApp : DbscApp<MyDbscCommandLineArgs, DbConnectionInfo, MySqlCheckoutSettings, MySqlImportSettings, MySqlUpdateSettings>
+    class MySqlTable : ITable
     {
-        public MySqlDbscApp()
-            : base(engine: new MySqlDbscEngine())
+        public string Table { get; private set; }
+
+        public MySqlTable(string table)
         {
-            ;
+            Table = table;
+        }
+
+        /// <summary>
+        /// The table name in backticks, with any backticks in the table name escaped
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return "`" + Table.Replace("`", "``") + "`";
         }
     }
 }

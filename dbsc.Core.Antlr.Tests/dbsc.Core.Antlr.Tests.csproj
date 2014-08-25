@@ -60,6 +60,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Flavor.cs" />
     <Compile Include="TableWithSchemaSpecWithCustomSelectListParserFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

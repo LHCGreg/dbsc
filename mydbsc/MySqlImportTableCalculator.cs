@@ -2,18 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MySql.Data.MySqlClient;
-using dbsc.Core;
+using dbsc.Core.ImportTableSpecification;
 using dbsc.Core.Sql;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscApp : DbscApp<MyDbscCommandLineArgs, DbConnectionInfo, MySqlCheckoutSettings, MySqlImportSettings, MySqlUpdateSettings>
+    class MySqlImportTableCalculator : ImportTableCalculator<MySqlTable, TableWithoutSchemaSpecification, TableWithoutSchemaSpecificationCollection<MySqlTable>, MySqlDbscDbConnection>
     {
-        public MySqlDbscApp()
-            : base(engine: new MySqlDbscEngine())
+        protected override TableWithoutSchemaSpecification GetStarSpec()
         {
-            ;
+            return TableWithoutSchemaSpecification.Star;
+        }
+
+        protected override ICollection<MySqlTable> GetTablesExceptMetadata(MySqlDbscDbConnection conn)
+        {
+            return conn.GetTablesExceptMetadata();
+        }
+
+        protected override MySqlTable GetTableFromNonWildcardSpec(TableWithoutSchemaSpecification spec, TableWithoutSchemaSpecificationCollection<MySqlTable> tableSpecs)
+        {
+            return new MySqlTable(spec.Table.Pattern[0].String);
         }
     }
 }

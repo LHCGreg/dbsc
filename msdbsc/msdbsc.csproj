@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="SqlServerImportSettings.cs" />
+    <Compile Include="SqlServerImportTableCalculator.cs" />
     <Compile Include="SqlServerTable.cs" />
     <Compile Include="MsDbscApp.cs" />
     <Compile Include="MsDbscCommandLineArgs.cs" />

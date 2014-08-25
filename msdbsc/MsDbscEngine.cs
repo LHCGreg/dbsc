@@ -61,67 +61,12 @@ AND TABLE_NAME = 'dbsc_metadata'";
             return true;
         }
 
-        private class Table
-        {
-            public string TableSchema { get; set; }
-            public string TableName { get; set; }
-        }
-
-        private class DefaultSchema
-        {
-            public string DefaultSchemaName { get; set; }
-        }
-
-        private ICollection<SqlServerTable> GetTablesExceptMetadata(MsDbscDbConnection conn)
-        {
-            string sql = @"SELECT TABLE_SCHEMA AS TableSchema, TABLE_NAME AS TableName FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_TYPE = 'BASE TABLE'
-AND TABLE_NAME <> 'dbsc_metadata'";
-            List<Table> tables = conn.Query<Table>(sql).ToList();
-            return tables.Select(table => new SqlServerTable(table.TableSchema, table.TableName)).ToList();
-        }
-
         public override ICollection<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> GetTablesToImport(SqlServerUpdateSettings updateSettings)
         {
             using (MsDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
             {
-                ICollection<SqlServerTable> eligibleTables = GetTablesExceptMetadata(conn);
-
-                if(updateSettings.ImportOptions.TablesToImportSpecifications == null)
-                {
-                    List<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> tables = new List<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>>();
-                    foreach (SqlServerTable table in eligibleTables)
-                    {
-                        tables.Add(new TableAndRule<SqlServerTable,TableWithSchemaSpecificationWithCustomSelect>(table,
-                            TableWithSchemaSpecificationWithCustomSelect.Star));
-                    }
-                    return tables;
-                }
-                else
-                {
-                    // Get default schema
-                    string defaultSchemaSql = "SELECT SCHEMA_NAME() AS DefaultSchemaName";
-                    DefaultSchema defaultSchema = conn.Query<DefaultSchema>(defaultSchemaSql).FirstOrDefault();
-                    if(defaultSchema == null)
-                    {
-                        throw new DbscException("Error: No default schema returned from SELECT SCHEMA_NAME()");
-                    }
-
-                    // Set default schema to use when calculating
-                    updateSettings.ImportOptions.TablesToImportSpecifications.DefaultSchema = defaultSchema.DefaultSchemaName;
-                    ICollection<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport = updateSettings.ImportOptions.TablesToImportSpecifications.GetTablesToImport(eligibleTables);
-                    
-                    // Throw an error if the user specifified an import table specification file and there were any lines
-                    // that specified a table directly (no wildcards) and the table does not exist. The user probably made a mistake.
-                    ICollection<TableWithSchemaSpecificationWithCustomSelect> nonMatchingNonWildcardSpecs = updateSettings.ImportOptions.TablesToImportSpecifications.GetNonWildcardTableSpecsThatDontExist(eligibleTables);
-                    if (nonMatchingNonWildcardSpecs.Count > 0)
-                    {
-                        throw new DbscException(string.Format("The following tables were specified to be imported but do not exist: {0}",
-                            string.Join(", ", nonMatchingNonWildcardSpecs.Select(spec => new SqlServerTable(spec.Schema != null ? spec.Schema.Pattern[0].String : defaultSchema.DefaultSchemaName, spec.Table.Pattern[0].String)))));
-                    }
-
-                    return tablesToImport;
-                }
+                SqlServerImportTableCalculator tableCalculator = new SqlServerImportTableCalculator();
+                return tableCalculator.GetTablesToImport(conn, updateSettings.ImportOptions.TablesToImportSpecifications);
             }
         }
 
@@ -130,7 +75,7 @@ AND TABLE_NAME <> 'dbsc_metadata'";
             ICollection<SqlServerTable> tablesExceptMetadata;
             using (MsDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
             {
-                tablesExceptMetadata = GetTablesExceptMetadata(conn);
+                tablesExceptMetadata = conn.GetTablesExceptMetadata();
             }
 
             MsImportOperation import = new MsImportOperation(updateSettings, tablesToImport, tablesExceptMetadata);

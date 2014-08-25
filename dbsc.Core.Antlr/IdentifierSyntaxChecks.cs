@@ -5,11 +5,22 @@ using System.Text;
 
 namespace dbsc.Core.Antlr
 {
-    public enum IdentifierSyntax
+    static class IdentifierSyntaxChecks
     {
-        SqlServer,
-        Postgres,
-        MySql
+        public static bool TwoPartIdentifiersSupported(this IdentifierSyntax flavor)
+        {
+            switch (flavor)
+            {
+                case IdentifierSyntax.SqlServer:
+                    return true;
+                case IdentifierSyntax.Postgres:
+                    return true;
+                case IdentifierSyntax.MySql:
+                    return false;
+                default:
+                    throw new Exception("Oops, missed checking if a database type supports two part identifiers.");
+            }
+        }
     }
 }
 

@@ -25,8 +25,9 @@ namespace dbsc.Postgres
         /// <exception cref="dbsc.Core.TableSpecificationParseException"></exception>
         public TableWithSchemaSpecificationWithCustomSelectCollection<PgTable> Parse(TextReader input, string inputFileName)
         {
-            TableWithSchemaSpecWithCustomSelectListParser parser = new TableWithSchemaSpecWithCustomSelectListParser();
-            IList<TableWithSchemaSpecificationWithCustomSelect> result = parser.Parse(input, IdentifierSyntax.Postgres, inputFileName);
+            TableSpecListParser parser = new TableSpecListParser();
+            bool allowCustomSelect = true;
+            IList<TableWithSchemaSpecificationWithCustomSelect> result = parser.Parse(input, IdentifierSyntax.Postgres, allowCustomSelect, inputFileName);
             return new TableWithSchemaSpecificationWithCustomSelectCollection<PgTable>(result, "public");
         }
     }

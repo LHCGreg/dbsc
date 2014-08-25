@@ -95,6 +95,21 @@ namespace dbsc.SqlServer
             return Connection.BeginTransaction(IsolationLevel.Snapshot);
         }
 
+        private class TableName
+        {
+            public string TableSchema { get; set; }
+            public string Table { get; set; }
+        }
+
+        public ICollection<SqlServerTable> GetTablesExceptMetadata()
+        {
+            string sql = @"SELECT TABLE_SCHEMA AS TableSchema, TABLE_NAME AS [Table] FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE'
+AND TABLE_NAME <> 'dbsc_metadata'";
+            List<TableName> tables = Query<TableName>(sql).ToList();
+            return tables.Select(table => new SqlServerTable(table.TableSchema, table.Table)).ToList();
+        }
+
         /// <summary>
         /// 
         /// </summary>

@@ -18,6 +18,7 @@ namespace dbsc.Core.Options
         public string OptionDescription { get; set; }
 
         public static readonly string WildcardsNegationsAndCustomSelectDescription = "File with a list of tables to import from the source database, one per line. Wildcards (*) may be used. A table specification may be prefixed with a minus sign (-) to exclude the table or tables matched. If a table matches multiple lines, some of which are includes and others excludes, the last line to match wins. If the file consists only of exclusions, then a table not matching any specification will be imported. Otherwise a table that does not match any inclusion rules is not imported. A custom SELECT statement may be specified by adding \": SELECT foo, bar FROM baz\" at the end of a line. If this parameter is not specified, all tables will be imported.";
+        public static readonly string WildcardsAndNegationsDescription = "File with a list of tables to import from the source database, one per line. Wildcards (*) may be used. A table specification may be prefixed with a minus sign (-) to exclude the table or tables matched. If a table matches multiple lines, some of which are includes and others excludes, the last line to match wins. If the file consists only of exclusions, then a table not matching any specification will be imported. Otherwise a table that does not match any inclusion rules is not imported. If this parameter is not specified, all tables will be imported.";
 
         private IImportTableListParser<TParseResult> _parser;
 
@@ -26,7 +27,7 @@ namespace dbsc.Core.Options
             _parser = parser;
             OptionDescription = optionDescription;
         }
-        
+
         public void AddToOptionSet(OptionSet optionSet)
         {
             optionSet.Add("importTableList=", OptionDescription, arg => ImportTableListPath = arg);
@@ -34,7 +35,7 @@ namespace dbsc.Core.Options
 
         public void Validate()
         {
-            
+
         }
 
         public void PostValidate()

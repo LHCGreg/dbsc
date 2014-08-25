@@ -105,6 +105,23 @@ namespace dbsc.Postgres
             return Connection.BeginTransaction();
         }
 
+        private class Table
+        {
+            public string table_schema { get; set; }
+            public string table_name { get; set; }
+        }
+
+        public ICollection<PgTable> GetTablesExceptMetadata()
+        {
+            string sql = @"SELECT table_schema, table_name FROM information_schema.tables
+WHERE table_schema NOT LIKE 'pg_%' AND table_schema <> 'information_schema'
+AND table_type = 'BASE TABLE'
+AND table_name <> 'dbsc_metadata'";
+
+            List<PgTable> tables = Query<Table>(sql).Select(t => new PgTable(t.table_schema, t.table_name)).ToList();
+            return tables;
+        }
+
         public static string QuotePgIdentifier(string identifier)
         {
             // Replace quotes with quotequote and enclose in quotes

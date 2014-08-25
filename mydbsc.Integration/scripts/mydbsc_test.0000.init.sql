@@ -24,7 +24,7 @@ VALUES
 CREATE TABLE script_isolation_test
 (
 	step int NOT NULL PRIMARY KEY,
-	val char(1) NOT NULL
+	val varchar(128) NOT NULL
 )
 ENGINE=InnoDB;
 

@@ -28,14 +28,19 @@ namespace dbsc.Core.Antlr
 
         public void SyntaxError(IRecognizer recognizer, int offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
         {
-            string error = string.Format("{0} line {1}:{2} {3}", _inputFileName, line, charPositionInLine, msg);
+            string error = FormErrorMessage(_inputFileName, line, charPositionInLine, msg);
             Errors.Add(error);
         }
 
         public void SyntaxError(IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine, string msg, RecognitionException e)
         {
-            string error = string.Format("{0} line {1}:{2} {3}", _inputFileName, line, charPositionInLine, msg);
+            string error = FormErrorMessage(_inputFileName, line, charPositionInLine, msg);
             Errors.Add(error);
+        }
+
+        public static string FormErrorMessage(string inputFileName, int line, int charPositionInLine, string msg)
+        {
+            return string.Format("{0} line {1}:{2} {3}", inputFileName, line, charPositionInLine, msg);
         }
 
         /// <summary>

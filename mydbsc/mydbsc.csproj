@@ -71,13 +71,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MyDbscCommandLineArgs.cs" />
+    <Compile Include="MySqlCheckoutSettings.cs" />
     <Compile Include="MySqlDbscApp.cs" />
     <Compile Include="MySqlDbscDbConnection.cs" />
     <Compile Include="MySqlDbscEngine.cs" />
+    <Compile Include="MySqlImportSettings.cs" />
+    <Compile Include="MySqlImportTableCalculator.cs" />
+    <Compile Include="MySqlImportTableListParser.cs" />
+    <Compile Include="MySqlTable.cs" />
+    <Compile Include="MySqlUpdateSettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\dbsc.Core.Antlr\dbsc.Core.Antlr.csproj">
+      <Project>{cdefc094-16f2-4c98-a576-ce5634db8912}</Project>
+      <Name>dbsc.Core.Antlr</Name>
+    </ProjectReference>
     <ProjectReference Include="..\dbsc.Core.Sql\dbsc.Core.Sql.csproj">
       <Project>{d618dbb1-f4ec-4b6d-8a24-a504c45cc36e}</Project>
       <Name>dbsc.Core.Sql</Name>

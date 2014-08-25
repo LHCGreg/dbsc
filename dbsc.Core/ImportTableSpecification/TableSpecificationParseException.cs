@@ -15,6 +15,12 @@ namespace dbsc.Core.ImportTableSpecification
         {
             Errors = errors;
         }
+
+        public TableSpecificationParseException(string error)
+            : this(new List<string>(1) { error })
+        {
+
+        }
     }
 }
 
