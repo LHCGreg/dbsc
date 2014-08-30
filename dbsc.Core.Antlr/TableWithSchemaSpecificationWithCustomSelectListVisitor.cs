@@ -80,6 +80,10 @@ namespace dbsc.Core.Antlr
                 string rawTokenText = context.CUSTOM_SELECT().GetText();
                 string customSelectWithLeadingWhitespace = rawTokenText.Substring(1);
                 customSelect = customSelectWithLeadingWhitespace.TrimStart(' ', '\t');
+
+                // Handle backslashes followed by newlines as newlines
+                customSelect = customSelect.Replace("\\\r\n", "\r\n");
+                customSelect = customSelect.Replace("\\\n", "\n");
             }
 
             return VisitPossiblyQualifiedTable(context.possiblyQualifiedTable(), negated: negated, customSelect: customSelect);

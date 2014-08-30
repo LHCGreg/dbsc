@@ -347,6 +347,9 @@ wild*cards*
         {
             StringBuilder inputStringBuilder = new StringBuilder(@"
 HelloWorld : SELECT * FROM HelloWorld WHERE IncludeInImport = 1
+Backslash : \
+SELECT * \
+FROM Backslash WHERE 5 \ 2 = 1
 ");
             if (flavor.SchemasSupported)
             {
@@ -357,7 +360,11 @@ HelloWorld : SELECT * FROM HelloWorld WHERE IncludeInImport = 1
 
             List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
             {
-                new TableWithSchemaSpecificationWithCustomSelect(schema: null, table: Frag("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive, customSelect: "SELECT * FROM HelloWorld WHERE IncludeInImport = 1")
+                new TableWithSchemaSpecificationWithCustomSelect(schema: null, table: Frag("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive, customSelect: "SELECT * FROM HelloWorld WHERE IncludeInImport = 1"),
+                new TableWithSchemaSpecificationWithCustomSelect(schema: null, table: Frag("Backslash"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive, 
+                    customSelect: @"
+SELECT * 
+FROM Backslash WHERE 5 \ 2 = 1")
             };
 
             if (flavor.SchemasSupported)

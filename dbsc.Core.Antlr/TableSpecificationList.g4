@@ -64,7 +64,8 @@ LETTER : [a-zA-Z\u0080-\u00FF] ;
 NUMBER : [0-9] ;
 WILDCARD : '*' ;
 NEGATER : '-' ;
-CUSTOM_SELECT : ':' WS_NO_NEWLINE* ~[\r\n]+ ; // Can't use two tokens because the token definition of the SELECT would match anything. Could use a separate lexer mode trigerred by :, but then would have to have separate lexer and parser grammar files, don't know if the msbuild integration supports that. WS_NO_NEWLINE* is necessary because this is a token definition, not a rule definition. The WS_NO_NEWLINE rule is copied into this token definition, not referenced.
+CUSTOM_SELECT : ':' WS_NO_NEWLINE* (BACKSLASH_NEWLINE | ~[\r\n\\] | '\\')+ ; // WS_NO_NEWLINE* is necessary because this is a token definition, not a rule definition. The WS_NO_NEWLINE rule is copied into this token definition, not referenced.
+fragment BACKSLASH_NEWLINE : '\\' NEWLINE;
 
 /*
  Copyright 2014 Greg Najda
