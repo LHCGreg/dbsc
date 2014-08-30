@@ -71,7 +71,7 @@ namespace dbsc.Mongo.Integration
             DropDatabase(TestDatabaseName);
             CheckoutZero();
             RunSuccessfulCommand(string.Format("update -targetDb {0} -sourceDbServer localhost -sourceDb {1}", TestDatabaseName, SourceDatabaseName));
-            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedSourcePeople, ExpectedSourceNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -80,7 +80,7 @@ namespace dbsc.Mongo.Integration
             DropDatabaseOnAuthMongo(TestDatabaseName);
             CheckoutZeroOnAuthMongo();
             RunSuccessfulCommand(string.Format("update -port 30017 -u useradmin -p testpw -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
-            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
+            VerifyDatabaseOnAuthMongo(TestDatabaseName, ExpectedSourceBooks, ExpectedSourcePeople, ExpectedSourceNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -102,6 +102,24 @@ namespace dbsc.Mongo.Integration
         }
 
         [Test]
+        public void ImportWithOnlyNegationsTest()
+        {
+            DropDatabase(TestDatabaseName);
+            CheckoutZero();
+            RunSuccessfulCommand(string.Format("update -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import_only_negations.txt", SourceDatabaseName));
+            VerifyDatabase(TestDatabaseName, ExpectedBooks, ExpectedPeople, ExpectedSourceNumbers, expectedVersion: 2);
+        }
+
+        [Test]
+        public void ImportWithWildcardsAndNegationsTest()
+        {
+            DropDatabase(TestDatabaseName);
+            CheckoutZero();
+            RunSuccessfulCommand(string.Format("update -sourceDbServer localhost -sourceDb {0} -importTableList tables_to_import_wildcards_and_negations.txt", SourceDatabaseName));
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
+        }
+
+        [Test]
         public void TestTargetDb()
         {
             DropDatabase(TestDatabaseName);
@@ -113,7 +131,7 @@ namespace dbsc.Mongo.Integration
             // Then import from the main test database into the alt test database
             CheckoutZeroOnAltDatabase();
             RunSuccessfulCommand(string.Format("update -targetDbServer localhost -targetDb {0} -port 27017 -sourceDbServer localhost -sourcePort 27017", AltTestDatabaseName));
-            VerifyDatabase(AltTestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
+            VerifyDatabase(AltTestDatabaseName, ExpectedSourceBooks, ExpectedSourcePeople, ExpectedSourceNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -132,7 +150,7 @@ namespace dbsc.Mongo.Integration
             DropDatabase(TestDatabaseName);
             CheckoutZero();
             RunSuccessfulCommand(string.Format("update -r 2 -sourceDbServer localhost -sourceDb {0}", SourceDatabaseName));
-            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedSourcePeople, ExpectedSourceNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -151,7 +169,7 @@ namespace dbsc.Mongo.Integration
             RunSuccessfulCommand(string.Format("checkout"));
             RunSuccessfulCommand(string.Format("update -sourceDbServer localhost -sourceDb {0}",
                 SourceDatabaseName));
-            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
+            VerifyDatabase(TestDatabaseName, ExpectedSourceBooks, ExpectedSourcePeople, ExpectedSourceNumbers, expectedVersion: 2);
         }
 
         [Test]
@@ -160,7 +178,7 @@ namespace dbsc.Mongo.Integration
             DropDatabase(TestDatabaseName);
             CheckoutZero();
             RunSuccessfulCommand(string.Format("update -sourceDbServer localhost -sourceDb {0}", AltSourceDatabaseName));
-            VerifyDatabase(TestDatabaseName, ExpectedAltSourceBooks, ExpectedPeople, ExpectedNumbers, expectedVersion: 2);
+            VerifyDatabase(TestDatabaseName, ExpectedAltSourceBooks, ExpectedAltSourcePeople, ExpectedNumbers, expectedVersion: 2);
         }
 
         private void CheckoutZero()
@@ -184,7 +202,7 @@ namespace dbsc.Mongo.Integration
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

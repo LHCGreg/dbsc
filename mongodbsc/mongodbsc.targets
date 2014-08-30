@@ -15,6 +15,6 @@
 
   <!-- Used for Debian packaging. -->
   <ItemGroup>
-    <LicenseFiles Include="..\linux_common\apache\copyright;..\licenses\Dapper\dapper_license.txt;license.txt;notice.txt;..\licenses\NDesk.Options\ndesk_options_license.txt;..\licenses\Mongo\mongo_license.txt" />
+    <LicenseFiles Include="..\linux_common\apache\copyright;..\licenses\Antlr\antlr_license.txt;..\licenses\Dapper\dapper_license.txt;license.txt;notice.txt;..\licenses\NDesk.Options\ndesk_options_license.txt;..\licenses\Mongo\mongo_license.txt" />
   </ItemGroup>
 </Project>

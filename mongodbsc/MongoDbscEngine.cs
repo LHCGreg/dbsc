@@ -8,12 +8,13 @@ using System.Globalization;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.IO;
+using dbsc.Core.ImportTableSpecification;
 
 namespace dbsc.Mongo
 {
     class MongoDbscEngine
-        : DbscEngine<DbConnectionInfo, MongoCheckoutOptions, ImportSettingsWithTableList<DbConnectionInfo>, MongoUpdateOptions>
-        , IDbscEngineWithTableImport<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>, MongoUpdateOptions>
+        : DbscEngine<DbConnectionInfo, MongoCheckoutOptions, MongoImportSettings, MongoUpdateSettings>
+        , IDbscEngineWithTableImport<DbConnectionInfo, MongoImportSettings, MongoUpdateSettings, TableAndRule<MongoTable, TableWithoutSchemaSpecification>>
     {
         protected override string ScriptExtensionWithoutDot { get { return "js"; } }
 
@@ -114,13 +115,13 @@ namespace dbsc.Mongo
             }
         }
 
-        protected override void RunScriptAndUpdateMetadata(MongoUpdateOptions options, string scriptPath, int newRevision)
+        protected override void RunScriptAndUpdateMetadata(MongoUpdateSettings options, string scriptPath, int newRevision)
         {
             RunScript(options, scriptPath);
             UpdateMetadata(options, newRevision, DateTime.UtcNow);
         }
 
-        private void RunScript(MongoUpdateOptions options, string scriptPath)
+        private void RunScript(MongoUpdateSettings options, string scriptPath)
         {
             string mongoArgs = GetMongoArgs(options, scriptPath: scriptPath);
             Process mongo = new Process()
@@ -150,7 +151,7 @@ namespace dbsc.Mongo
             }
         }
 
-        private string GetMongoArgs(MongoUpdateOptions options, string scriptPath)
+        private string GetMongoArgs(MongoUpdateSettings options, string scriptPath)
         {
             // mongo --norc [--port portnum] --host hostname [-u username] [-p password] [--eval jsToEval] dbname [script.js]
             if (scriptPath == null)
@@ -193,7 +194,7 @@ namespace dbsc.Mongo
             return argsString;
         }
 
-        private void UpdateMetadata(MongoUpdateOptions options, int newRevision, DateTime utcTimestamp)
+        private void UpdateMetadata(MongoUpdateSettings options, int newRevision, DateTime utcTimestamp)
         {
             using (MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase))
             {
@@ -206,51 +207,38 @@ namespace dbsc.Mongo
             }
         }
 
-        protected override void ImportData(MongoUpdateOptions options)
+        protected override void ImportData(MongoUpdateSettings options)
         {
             DbscEngineWithTableImportExtensions.ImportData(this, options);
         }
 
-        public void ImportData(MongoUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public void ImportData(MongoUpdateSettings updateSettings, ICollection<TableAndRule<MongoTable, TableWithoutSchemaSpecification>> tablesToImport)
         {
-            using (MongoDbscConnection conn = new MongoDbscConnection(options.TargetDatabase))
-            {
-                string clearMessage;
-                if (tablesToImportAlreadyEscaped.Count == allTablesExceptMetadataAlreadyEscaped.Count)
-                {
-                    clearMessage = "Removing all collections";
-                }
-                else
-                {
-                    clearMessage = "Removing collections to import";
-                }
-                
+            using (MongoDbscConnection conn = new MongoDbscConnection(updateSettings.TargetDatabase))
+            {             
                 // Drop collections
-                Utils.DoTimedOperation(clearMessage, () =>
+                Utils.DoTimedOperation("Removing collections to import", () =>
                 {
-                    foreach (string collectionName in tablesToImportAlreadyEscaped)
+                    foreach (string collectionToImport in tablesToImport.Select(tableAndRule => tableAndRule.Table.Table))
                     {
-                        conn.DropCollection(collectionName);
+                        conn.DropCollection(collectionToImport);
                     }
                 });
 
                 // Import each collection to import
-                foreach (string collectionToImport in tablesToImportAlreadyEscaped)
+                foreach (string collectionToImport in tablesToImport.Select(tableAndRule => tableAndRule.Table.Table))
                 {
-                    conn.ImportCollection(options.ImportOptions.SourceDatabase, options.TargetDatabase, collectionToImport);
+                    conn.ImportCollection(updateSettings.ImportOptions.SourceDatabase, updateSettings.TargetDatabase, collectionToImport);
                 }
             }
         }
 
-        public ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)
+        public ICollection<TableAndRule<MongoTable, TableWithoutSchemaSpecification>> GetTablesToImport(MongoUpdateSettings updateSettings)
         {
-            // No need to escape names because there is no query language to escape them for.
-
-            using (MongoDbscConnection conn = new MongoDbscConnection(connectionInfo))
+            MongoImportTableCalculator collectionCalculator = new MongoImportTableCalculator();
+            using (MongoDbscConnection conn = new MongoDbscConnection(updateSettings.TargetDatabase))
             {
-                ICollection<string> collectionNames = conn.GetCollectionNames();
-                collectionNames.Remove(MetadataCollectionName);
-                return collectionNames;
+                return collectionCalculator.GetTablesToImport(conn, updateSettings.ImportOptions.CollectionsToImportSpecifications);
             }
         }
     }

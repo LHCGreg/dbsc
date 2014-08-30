@@ -9,7 +9,8 @@ namespace dbsc.Core.Antlr
     {
         SqlServer,
         Postgres,
-        MySql
+        MySql,
+        Mongo
     }
 }
 

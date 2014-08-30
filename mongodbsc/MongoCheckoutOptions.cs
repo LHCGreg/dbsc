@@ -6,7 +6,7 @@ using dbsc.Core;
 
 namespace dbsc.Mongo
 {
-    class MongoCheckoutOptions : ICheckoutOptions<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>, MongoUpdateOptions>
+    class MongoCheckoutOptions : ICheckoutOptions<DbConnectionInfo, MongoImportSettings, MongoUpdateSettings>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
@@ -17,9 +17,9 @@ namespace dbsc.Mongo
         /// </summary>
         public string CreationTemplate { get; set; }
 
-        public ImportSettingsWithTableList<DbConnectionInfo> ImportOptions { get; set; }
+        public MongoImportSettings ImportOptions { get; set; }
 
-        public MongoUpdateOptions UpdateOptions { get { return new MongoUpdateOptions(this); } }
+        public MongoUpdateSettings UpdateOptions { get { return new MongoUpdateSettings(this); } }
 
         public MongoCheckoutOptions(DbConnectionInfo targetDatabase)
         {
@@ -45,7 +45,7 @@ namespace dbsc.Mongo
             return clone;
         }
 
-        ICheckoutOptions<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>, MongoUpdateOptions> ICheckoutOptions<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>, MongoUpdateOptions>.Clone()
+        ICheckoutOptions<DbConnectionInfo, MongoImportSettings, MongoUpdateSettings> ICheckoutOptions<DbConnectionInfo, MongoImportSettings, MongoUpdateSettings>.Clone()
         {
             return Clone();
         }

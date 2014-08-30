@@ -136,6 +136,14 @@ namespace dbsc.Mongo
             return m_database.GetCollectionNames().Where(collName => !collName.StartsWith("system.")).ToList();
         }
 
+        public ICollection<MongoTable> GetCollectionsExceptMetadata()
+        {
+            return GetCollectionNames()
+                .Where(name => !name.Equals("dbsc_metadata", StringComparison.OrdinalIgnoreCase))
+                .Select(name => new MongoTable(name))
+                .ToList();
+        }
+
         private List<string> GetCommonMongoDumpRestoreArgs(DbConnectionInfo source, string collectionName)
         {
             List<string> args = new List<string>();

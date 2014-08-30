@@ -141,6 +141,7 @@
     <Compile Include="IDbscEngineWithTableImport.cs" />
     <Compile Include="IImportSettings.cs" />
     <Compile Include="IImportSettingsWithTableList.cs" />
+    <Compile Include="ImportTableCalculator.cs" />
     <Compile Include="ImportTableSpecification\CaseInsensitiveTableSpecificationFragment.cs" />
     <Compile Include="ImportTableSpecification\CaseSensitiveTableSpecificationFragment.cs" />
     <Compile Include="ImportTableSpecification\IImportTableListParser.cs" />
@@ -170,7 +171,7 @@
     <Compile Include="Options\IOptionBundle.cs" />
     <Compile Include="Options\SourceDBOptionBundle.cs" />
     <Compile Include="Options\SourceDBPortOptionBundle.cs" />
-    <Compile Include="Options\SqlServerImportTableListOptionBundle.cs" />
+    <Compile Include="Options\ImportTableListOptionBundle.cs" />
     <Compile Include="Options\TargetDBPortOptionBundle.cs" />
     <Compile Include="DbConnectionInfo.cs" />
     <Compile Include="DbscEngine.cs" />

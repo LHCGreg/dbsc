@@ -147,6 +147,37 @@ Regular*
         }
 
         [Test]
+        public void MongoBasicTest()
+        {
+            Flavor flavor = Flavor.Mongo;
+            
+            string inputString = @"
+HelloWorld
+
+wild*cards*
+*
+";
+
+            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
+            {
+                new TableWithSchemaSpecificationWithCustomSelect(null, Frag("HelloWorld"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(null, new TableSpecificationFragment(
+                    new List<StringOrWildcard>()
+                    {
+                        new StringOrWildcard("wild"),
+                        StringOrWildcard.Star,
+                        new StringOrWildcard("cards"),
+                        StringOrWildcard.Star
+                    }
+                    , caseSensitive: false)
+                , negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive),
+                new TableWithSchemaSpecificationWithCustomSelect(TableSpecificationFragment.Star, TableSpecificationFragment.Star, negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive)
+            };
+
+            Test(inputString, expectedSpecs, flavor);
+        }
+
+        [Test]
         public void SqlServerTestNonblankFirstLine()
         {
             TestNonblankFirstLine(Flavor.SqlServer);
@@ -162,6 +193,12 @@ Regular*
         public void MySqlTestNonblankFirstLine()
         {
             TestNonblankFirstLine(Flavor.MySql);
+        }
+
+        [Test]
+        public void MongoTestNonblankFirstLine()
+        {
+            TestNonblankFirstLine(Flavor.Mongo);
         }
 
         private void TestNonblankFirstLine(Flavor flavor)
@@ -194,6 +231,12 @@ Regular*
             TestBlankFile(Flavor.MySql);
         }
 
+        [Test]
+        public void MongoTestBlankFile()
+        {
+            TestBlankFile(Flavor.Mongo);
+        }
+
         private void TestBlankFile(Flavor flavor)
         {
             string inputString = "";
@@ -221,6 +264,12 @@ Regular*
         public void MySqlTestBareWildcard()
         {
             TestBareWildcard(Flavor.MySql);
+        }
+
+        [Test]
+        public void MongoTestBareWildcard()
+        {
+            TestBareWildcard(Flavor.Mongo);
         }
 
         private void TestBareWildcard(Flavor flavor)
@@ -282,6 +331,18 @@ Regular*
             TestNegation(Flavor.Postgres);
         }
 
+        [Test]
+        public void MySqlTestNegation()
+        {
+            TestNegation(Flavor.MySql);
+        }
+
+        [Test]
+        public void MongoTestNegation()
+        {
+            TestNegation(Flavor.Mongo);
+        }
+
         private void TestCustomSelect(Flavor flavor)
         {
             StringBuilder inputStringBuilder = new StringBuilder(@"
@@ -326,6 +387,13 @@ HelloWorld : SELECT * FROM HelloWorld WHERE IncludeInImport = 1
             TestThrows<TableSpecificationParseException>(inputString, Flavor.MySql);
         }
 
+        [Test]
+        public void MongoTestCustomSelectThrows()
+        {
+            string inputString = "collection : would would even go here?";
+            TestThrows<TableSpecificationParseException>(inputString, Flavor.Mongo);
+        }
+
         private void TestSyntaxErrorThrows(Flavor flavor)
         {
             string inputString = "PeriodAtEnd.";
@@ -350,7 +418,11 @@ HelloWorld : SELECT * FROM HelloWorld WHERE IncludeInImport = 1
             TestSyntaxErrorThrows(Flavor.MySql);
         }
 
-        // TODO: Test that custom select in mysql throws
+        [Test]
+        public void MongoTestSyntaxErrorThrows()
+        {
+            TestSyntaxErrorThrows(Flavor.Mongo);
+        }
 
         [Test]
         public void MySqlTestSchemaThrows()
@@ -363,6 +435,21 @@ HelloWorld : SELECT * FROM HelloWorld WHERE IncludeInImport = 1
 
             inputString = "\"Sch\".\"ab\"";
             TestThrows<TableSpecificationParseException>(inputString, Flavor.MySql);
+        }
+
+        [Test]
+        public void MongoTestDotIsOk()
+        {
+            Flavor flavor = Flavor.Mongo;
+            
+            string inputString = "abc.def";
+
+            List<TableWithSchemaSpecificationWithCustomSelect> expectedSpecs = new List<TableWithSchemaSpecificationWithCustomSelect>()
+            {
+                new TableWithSchemaSpecificationWithCustomSelect(null, Frag("abc.def"), negated: false, defaultSchemaIsCaseSensitive: flavor.DefaultSchemaCaseSensitive)
+            };
+
+            Test(inputString, expectedSpecs, flavor);
         }
 
         private TableSpecificationFragment Frag(string s)

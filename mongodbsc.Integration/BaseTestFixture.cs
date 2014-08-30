@@ -96,6 +96,44 @@ namespace dbsc.Mongo.Integration
                     b = new List<int>() { 800, 900 },
                     c = true
                 }
+            }
+        };
+
+        protected List<Person> ExpectedSourcePeople = new List<Person>()
+        {
+            new Person()
+            {
+                name = "Greg",
+                preferences = new PersonPreferences()
+                {
+                    a = 500,
+                    b = new List<int>() { 800, 900 },
+                    c = true
+                }
+            },
+            new Person()
+            {
+                name = "Joe",
+                preferences = new PersonPreferences()
+                {
+                    a = 1000,
+                    b = null,
+                    c = false
+                }
+            }
+        };
+
+        protected List<Person> ExpectedAltSourcePeople = new List<Person>()
+        {
+            new Person()
+            {
+                name = "Greg",
+                preferences = new PersonPreferences()
+                {
+                    a = 500,
+                    b = new List<int>() { 800, 900 },
+                    c = true
+                }
             },
             new Person()
             {
@@ -110,6 +148,16 @@ namespace dbsc.Mongo.Integration
         };
 
         protected List<Number> ExpectedNumbers = new List<Number>()
+        {
+            new Number()
+            {
+                num = 1,
+                english = "one",
+                spanish = "uno"
+            }
+        };
+
+        protected List<Number> ExpectedSourceNumbers = new List<Number>()
         {
             new Number()
             {

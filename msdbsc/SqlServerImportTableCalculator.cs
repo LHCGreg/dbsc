@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using dbsc.Core;
 using dbsc.Core.ImportTableSpecification;
-using dbsc.Core.Sql;
 
 namespace dbsc.SqlServer
 {

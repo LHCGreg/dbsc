@@ -4,11 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using dbsc.Core;
+using dbsc.Core.ImportTableSpecification;
 using dbsc.Core.Options;
 
 namespace dbsc.Mongo
 {
-    class MongoCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<MongoCheckoutOptions, MongoUpdateOptions>
+    class MongoCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<MongoCheckoutOptions, MongoUpdateSettings>
     {
         private TargetDBOptionBundle _targetDB = new TargetDBOptionBundle()
         {
@@ -32,10 +33,11 @@ namespace dbsc.Mongo
         };
 
         private SourceDBPortOptionBundle _sourceDBPort = new SourceDBPortOptionBundle();
-        private ImportTableListFileOptionBundle _importTableListFile = new ImportTableListFileOptionBundle()
-        {
-            HelpMessage = "File with a list of collections to import from the source database, one per line. If not specified, all collections will be imported."
-        };
+
+        private ImportTableListOptionBundle<TableWithoutSchemaSpecificationCollection<MongoTable>> _importSpecificationOptionBundle =
+            new ImportTableListOptionBundle<TableWithoutSchemaSpecificationCollection<MongoTable>>(
+                new MongoImportTableListParser(), ImportTableListOptionBundle<TableWithoutSchemaSpecificationCollection<MongoTable>>.MongoWildcardsAndNegationsDescription);
+
         
         public MongoCommandLineArgs()
         {
@@ -44,7 +46,7 @@ namespace dbsc.Mongo
             ExtraOptions.Add(_template);
             ExtraOptions.Add(_sourceDB);
             ExtraOptions.Add(_sourceDBPort);
-            ExtraOptions.Add(_importTableListFile);
+            ExtraOptions.Add(_importSpecificationOptionBundle);
         }
 
         private DbConnectionInfo GetTargetConnectionSettings()
@@ -58,7 +60,7 @@ namespace dbsc.Mongo
             );
         }
 
-        private ImportSettingsWithTableList<DbConnectionInfo> GetImportSettings()
+        private MongoImportSettings GetImportSettings()
         {
             if (_sourceDB.SourceDBServer != null)
             {
@@ -70,8 +72,7 @@ namespace dbsc.Mongo
                     password: _sourceDB.SourcePassword
                 );
 
-                ImportSettingsWithTableList<DbConnectionInfo> importSettings = new ImportSettingsWithTableList<DbConnectionInfo>(sourceConnectionSettings);
-                importSettings.TablesToImport = _importTableListFile.TablesToImport;
+                MongoImportSettings importSettings = new MongoImportSettings(sourceConnectionSettings, _importSpecificationOptionBundle.ImportTableSpecifications);
                 return importSettings;
             }
             else
@@ -93,10 +94,10 @@ namespace dbsc.Mongo
             return checkoutOptions;
         }
 
-        public MongoUpdateOptions GetUpdateSettings()
+        public MongoUpdateSettings GetUpdateSettings()
         {
             DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
-            MongoUpdateOptions updateSettings = new MongoUpdateOptions(connectionSettings);
+            MongoUpdateSettings updateSettings = new MongoUpdateSettings(connectionSettings);
             updateSettings.Directory = this.ScriptDirectory;
             updateSettings.Revision = this.Revison;
             updateSettings.ImportOptions = GetImportSettings();

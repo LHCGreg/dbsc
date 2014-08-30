@@ -46,7 +46,8 @@ identifier :
 	// Don't bother trying to handle U& Postgres identifiers
 	| {Flavor == IdentifierSyntax.MySql}? MYSQL_UNENCLOSED_ID
 	| {Flavor == IdentifierSyntax.MySql}? MYSQL_BACKTICK_ID
-	| {Flavor == IdentifierSyntax.MySql}? MYSQL_QUOTE_ID;
+	| {Flavor == IdentifierSyntax.MySql}? MYSQL_QUOTE_ID
+	| {Flavor == IdentifierSyntax.Mongo}? MONGO_ID;
 	
                            
 MS_UNENCLOSED_ID_NAME : (LETTER | '_' | '@' | '#' | WILDCARD) (LETTER | NUMBER | '_' | '@' | '#' | WILDCARD)* {Flavor == IdentifierSyntax.SqlServer}?;
@@ -56,6 +57,7 @@ PG_QUOTE_ENCLOSED_ID : '"' (~[\r\n"] | '""')+ '"' {Flavor == IdentifierSyntax.Po
 MYSQL_UNENCLOSED_ID : ([0-9a-zA-Z$_\u0080-\uFFFF] | WILDCARD)+ {Flavor == IdentifierSyntax.MySql}?;
 MYSQL_BACKTICK_ID : '`' (~[\r\n`] | '``')+ '`' {Flavor == IdentifierSyntax.MySql}?;
 MYSQL_QUOTE_ID : '"' (~[\r\n"] | '""')+ '"' {Flavor == IdentifierSyntax.MySql}?;
+MONGO_ID : (LETTER | '_' | WILDCARD) (~[\r\n\t ])* {Flavor == IdentifierSyntax.Mongo}?;
 WS_NO_NEWLINE : [ \t] -> skip;
 NEWLINE : '\r'? '\n';
 LETTER : [a-zA-Z\u0080-\u00FF] ;

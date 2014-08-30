@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using dbsc.Core.ImportTableSpecification;
 
-namespace dbsc.Core.Sql
+namespace dbsc.Core
 {
     public abstract class ImportTableCalculator<TTable, TTableSpec, TTableSpecCollection, TConnection>
         where TTableSpecCollection : TableSpecificationCollection<TTableSpec, TTable>

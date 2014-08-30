@@ -2,26 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using dbsc.Core;
 
-namespace dbsc.Core.Antlr
+namespace dbsc.Mongo
 {
-    static class IdentifierSyntaxChecks
+    class MongoTable : ITable
     {
-        public static bool TwoPartIdentifiersSupported(this IdentifierSyntax flavor)
+        public string Table { get; private set; }
+
+        public MongoTable(string collectionName)
         {
-            switch (flavor)
-            {
-                case IdentifierSyntax.SqlServer:
-                    return true;
-                case IdentifierSyntax.Postgres:
-                    return true;
-                case IdentifierSyntax.MySql:
-                    return false;
-                case IdentifierSyntax.Mongo:
-                    return false;
-                default:
-                    throw new Exception("Oops, missed checking if a database type supports two part identifiers.");
-            }
+            Table = collectionName;
+        }
+
+        public override string ToString()
+        {
+            return Table;
         }
     }
 }

@@ -123,7 +123,6 @@
   <ItemGroup>
     <Compile Include="BaseDbscDbConnection.cs" />
     <Compile Include="IDbscDbConnection.cs" />
-    <Compile Include="ImportTableCalculator.cs" />
     <Compile Include="ISqlCheckoutSettings.cs" />
     <Compile Include="ISqlUpdateSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

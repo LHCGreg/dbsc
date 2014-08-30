@@ -132,7 +132,8 @@ namespace dbsc.Core.Antlr
             //    // Don't bother trying to handle U& Postgres identifiers
             //    | {Flavor == IdentifierSyntax.MySql}? MYSQL_UNENCLOSED_ID
             //    | {Flavor == IdentifierSyntax.MySql}? MYSQL_BACKTICK_ID
-            //    | {Flavor == IdentifierSyntax.Mysql}? MYSQL_QUOTE_ID;
+            //    | {Flavor == IdentifierSyntax.Mysql}? MYSQL_QUOTE_ID
+            //	  | {Flavor == IdentifierSyntax.Mongo}? MONGO_ID;
             if (context.MS_UNENCLOSED_ID_NAME() != null)
             {
                 return ParseUnenclosedIdentifier(context.MS_UNENCLOSED_ID_NAME().Symbol.Text);
@@ -160,6 +161,10 @@ namespace dbsc.Core.Antlr
             else if (context.MYSQL_QUOTE_ID() != null)
             {
                 return ParseMySqlQuoteIdentifier(context.MYSQL_QUOTE_ID().Symbol.Text);
+            }
+            else if (context.MONGO_ID() != null)
+            {
+                return ParseUnenclosedIdentifier(context.MONGO_ID().Symbol.Text);
             }
             else
             {

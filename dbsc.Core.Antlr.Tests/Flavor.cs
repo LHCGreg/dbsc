@@ -48,6 +48,14 @@ namespace dbsc.Core.Antlr.Tests
                 return new Flavor(IdentifierSyntax.MySql, customSelectSupported: false, schemasSuported: false, defaultSchemaCaseSensitive: false, openingQuoteChar: "`", closingQuoteChar: "`");
             }
         }
+
+        public static Flavor Mongo
+        {
+            get
+            {
+                return new Flavor(IdentifierSyntax.Mongo, customSelectSupported: false, schemasSuported: false, defaultSchemaCaseSensitive: false, openingQuoteChar: null, closingQuoteChar: null);
+            }
+        }
     }
 }
 
