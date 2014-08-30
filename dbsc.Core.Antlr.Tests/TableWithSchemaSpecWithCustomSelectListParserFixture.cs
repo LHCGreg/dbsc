@@ -394,34 +394,33 @@ HelloWorld : SELECT * FROM HelloWorld WHERE IncludeInImport = 1
             TestThrows<TableSpecificationParseException>(inputString, Flavor.Mongo);
         }
 
-        private void TestSyntaxErrorThrows(Flavor flavor)
+        private void TestSyntaxErrorThrows(string inputString, Flavor flavor)
         {
-            string inputString = "PeriodAtEnd.";
             TestThrows<TableSpecificationParseException>(inputString, flavor);
         }
 
         [Test]
         public void SqlServerTestSyntaxErrorThrows()
         {
-            TestSyntaxErrorThrows(Flavor.SqlServer);
+            TestSyntaxErrorThrows("PeriodAtEnd.", Flavor.SqlServer);
         }
 
         [Test]
         public void PostgresTestSyntaxErrorThrows()
         {
-            TestSyntaxErrorThrows(Flavor.Postgres);
+            TestSyntaxErrorThrows("PeriodAtEnd.", Flavor.Postgres);
         }
 
         [Test]
         public void MySqlTestSyntaxErrorThrows()
         {
-            TestSyntaxErrorThrows(Flavor.MySql);
+            TestSyntaxErrorThrows("PeriodAtEnd.", Flavor.MySql);
         }
 
         [Test]
         public void MongoTestSyntaxErrorThrows()
         {
-            TestSyntaxErrorThrows(Flavor.Mongo);
+            TestSyntaxErrorThrows("$$dollars", Flavor.Mongo);
         }
 
         [Test]
