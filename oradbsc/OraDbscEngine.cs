@@ -8,7 +8,7 @@ using dbsc.Core.Sql;
 
 namespace dbsc.Oracle
 {
-    class OraDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings, OraDbscDbConnection>
+    class OraDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportSettingsWithTableList<DbConnectionInfo>, SqlUpdateSettings, OraDbscDbConnection, object>
     {
         protected override char QueryParamChar { get { return ':'; } }
 
@@ -127,12 +127,12 @@ namespace dbsc.Oracle
             }
         }
 
-        public override void ImportData(SqlUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public override void ImportData(SqlUpdateSettings updateSettings, ICollection<object> tablesToImport)
         {
             throw new NotImplementedException("Importing not implemented for Oracle.");
         }
 
-        public override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)
+        public override ICollection<object> GetTablesToImport(SqlUpdateSettings updateSettings)
         {
             throw new NotImplementedException("Importing not implemented for Oracle.");
         }

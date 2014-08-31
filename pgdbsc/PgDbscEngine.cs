@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using dbsc.Core;
+using dbsc.Core.ImportTableSpecification;
 using dbsc.Core.Sql;
 
 namespace dbsc.Postgres
 {
-    class PgDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings, PgDbscDbConnection>
+    class PgDbscEngine : SqlDbscEngine<DbConnectionInfo, PgCheckoutSettings, PgImportSettings, PgUpdateSettings, PgDbscDbConnection, TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>>
     {
         public PgDbscEngine()
         {
@@ -41,31 +42,6 @@ namespace dbsc.Postgres
             }
         }
 
-        private class Table
-        {
-            public string table_schema { get; set; }
-            public string table_name { get; set; }
-        }
-
-        public override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)
-        {
-            using (PgDbscDbConnection conn = OpenConnection(connectionInfo))
-            {
-                return GetTableNamesExceptMetadataAlreadyEscaped(conn);
-            }
-        }
-
-        protected ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(PgDbscDbConnection conn)
-        {
-            string sql = @"SELECT table_schema, table_name FROM information_schema.tables
-WHERE table_schema NOT LIKE 'pg_%' AND table_schema <> 'information_schema'
-AND table_type = 'BASE TABLE'
-AND table_name <> 'dbsc_metadata'";
-
-            List<string> tables = conn.Query<Table>(sql).Select(t => PgDbscDbConnection.QuotePgIdentifier(t.table_schema, t.table_name)).ToList();
-            return tables;
-        }
-
         protected override bool MetadataTableExists(PgDbscDbConnection conn)
         {
             string sql = @"SELECT count(*) FROM information_schema.tables
@@ -86,9 +62,24 @@ AND table_name = 'dbsc_metadata'";
             return true;
         }
 
-        public override void ImportData(SqlUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public override ICollection<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>> GetTablesToImport(PgUpdateSettings updateSettings)
         {
-            PgImportOperation import = new PgImportOperation(options, tablesToImportAlreadyEscaped, allTablesExceptMetadataAlreadyEscaped);
+            using (PgDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
+            {
+                PgImportTableCalculator tableCalculator = new PgImportTableCalculator();
+                return tableCalculator.GetTablesToImport(conn, updateSettings.ImportOptions.TablesToImportSpecifications);
+            }
+        }
+
+        public override void ImportData(PgUpdateSettings updateSettings, ICollection<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport)
+        {
+            ICollection<PgTable> tablesExceptMetadata;
+            using (PgDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
+            {
+                tablesExceptMetadata = conn.GetTablesExceptMetadata();
+            }
+
+            PgImportOperation import = new PgImportOperation(updateSettings, tablesToImport, tablesExceptMetadata);
             import.Run();
         }
     }

@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using dbsc.Core;
+using dbsc.Core.ImportTableSpecification;
 using dbsc.Core.Options;
 using dbsc.Core.Sql;
 
 namespace dbsc.MySql
 {
-    class MyDbscCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<SqlCheckoutSettings, SqlUpdateSettings>
+    class MyDbscCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<MySqlCheckoutSettings, MySqlUpdateSettings>
     {
         private TargetDBOptionBundle _targetDB = new TargetDBOptionBundle();
         private TargetDBPortOptionBundle _targetDBPort = new TargetDBPortOptionBundle();
         private DBCreateTemplateOptionBundle _template = new DBCreateTemplateOptionBundle(DBCreateTemplateOptionBundle.DefaultSQLTemplate);
         private SourceDBOptionBundle _sourceDB = new SourceDBOptionBundle();
         private SourceDBPortOptionBundle _sourceDBPort = new SourceDBPortOptionBundle();
-        private ImportTableListFileOptionBundle _importTableListFile = new ImportTableListFileOptionBundle();
+        private ImportTableListOptionBundle<TableWithoutSchemaSpecificationCollection<MySqlTable>> _importSpecificationOptionBundle =
+            new ImportTableListOptionBundle<TableWithoutSchemaSpecificationCollection<MySqlTable>>(
+                new MySqlImportTableListParser(), ImportTableListOptionBundle<TableWithoutSchemaSpecificationCollection<MySqlTable>>.WildcardsAndNegationsDescription);
+
 
         public MyDbscCommandLineArgs()
         {
@@ -24,7 +28,7 @@ namespace dbsc.MySql
             ExtraOptions.Add(_template);
             ExtraOptions.Add(_sourceDB);
             ExtraOptions.Add(_sourceDBPort);
-            ExtraOptions.Add(_importTableListFile);
+            ExtraOptions.Add(_importSpecificationOptionBundle);
         }
 
         private DbConnectionInfo GetTargetConnectionSettings()
@@ -38,7 +42,7 @@ namespace dbsc.MySql
             );
         }
 
-        private ImportOptions<DbConnectionInfo> GetImportSettings()
+        private MySqlImportSettings GetImportSettings()
         {
             if (_sourceDB.SourceDBServer != null)
             {
@@ -50,8 +54,7 @@ namespace dbsc.MySql
                     password: _sourceDB.SourcePassword
                 );
 
-                ImportOptions<DbConnectionInfo> importSettings = new ImportOptions<DbConnectionInfo>(sourceConnectionSettings);
-                importSettings.TablesToImport = _importTableListFile.TablesToImport;
+                MySqlImportSettings importSettings = new MySqlImportSettings(sourceConnectionSettings, _importSpecificationOptionBundle.ImportTableSpecifications);
                 return importSettings;
             }
             else
@@ -60,11 +63,11 @@ namespace dbsc.MySql
             }
         }
 
-        public SqlCheckoutSettings GetCheckoutSettings()
+        public MySqlCheckoutSettings GetCheckoutSettings()
         {
             DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
 
-            SqlCheckoutSettings checkoutSettings = new SqlCheckoutSettings(connectionSettings);
+            MySqlCheckoutSettings checkoutSettings = new MySqlCheckoutSettings(connectionSettings);
             checkoutSettings.CreationTemplate = _template.Template;
             checkoutSettings.ImportOptions = GetImportSettings();
             checkoutSettings.Directory = this.ScriptDirectory;
@@ -73,10 +76,10 @@ namespace dbsc.MySql
             return checkoutSettings;
         }
 
-        public SqlUpdateSettings GetUpdateSettings()
+        public MySqlUpdateSettings GetUpdateSettings()
         {
             DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
-            SqlUpdateSettings updateSettings = new SqlUpdateSettings(connectionSettings);
+            MySqlUpdateSettings updateSettings = new MySqlUpdateSettings(connectionSettings);
             updateSettings.Directory = this.ScriptDirectory;
             updateSettings.Revision = this.Revison;
             updateSettings.ImportOptions = GetImportSettings();

@@ -16,6 +16,12 @@ namespace TestUtils.Sql
         protected abstract int? Port { get; }
         protected virtual bool ImportSupported { get { return true; } }
         protected virtual bool TemplateSupported { get { return true; } }
+        protected abstract bool CustomSelectImportSupported { get; }
+
+        /// <summary>
+        /// If table specification file supports wildcards and negations
+        /// </summary>
+        protected abstract bool ExtendedTableSpecsSupported { get; }
 
         protected SqlBaseTestFixture()
         {
@@ -27,6 +33,22 @@ namespace TestUtils.Sql
             if (!ImportSupported)
             {
                 Assert.Ignore("Import not supported.");
+            }
+        }
+
+        protected void IgnoreIfCustomSelectImportNotSupported()
+        {
+            if (!CustomSelectImportSupported)
+            {
+                Assert.Ignore("Custom select import not supported.");
+            }
+        }
+
+        protected void IgnoreIfExtendedTableSpecsNotSupported()
+        {
+            if (!ExtendedTableSpecsSupported)
+            {
+                Assert.Ignore("Extended table spec syntax not supported.");
             }
         }
 
@@ -84,12 +106,14 @@ namespace TestUtils.Sql
 
         protected List<Person> ExpectedPeople { get { return Helper.ExpectedPeople; } }
         protected List<Person> ExpectedSourcePeople { get { return Helper.ExpectedSourcePeople; } }
+        protected List<Person> ExpectedSourcePeopleCustomSelect { get { return Helper.ExpectedSourcePeopleCustomSelect; } }
         protected List<Person> ExpectedAltSourcePeople { get { return Helper.ExpectedAltSourcePeople; } }
         protected List<Person> ExpectedRevision0People { get { return Helper.ExpectedRevision0People; } }
         protected List<Person> ExpectedRevision1People { get { return Helper.ExpectedRevision1People; } }
         protected Func<List<Person>, List<Book>> GetExpectedBooksFunc { get { return Helper.GetExpectedBooksFunc; } }
         protected List<script_isolation_test> ExpectedIsolationTestValues { get { return Helper.ExpectedIsolationTestValues; } }
         protected List<script_isolation_test> ExpectedRevision0IsolationTestValues { get { return Helper.ExpectedRevision0IsolationTestValues; } }
+        protected List<script_isolation_test> ExpectedSourceIsolationTestValues { get { return Helper.ExpectedSourceIsolationTestValues; } }
 
         protected void RunSuccessfulCommand(string arguments)
         {

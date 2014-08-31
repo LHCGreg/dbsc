@@ -1,0 +1,2 @@
+﻿person : SELECT * FROM person WHERE Name = 'George R.R. Martin'
+script_isolation_test

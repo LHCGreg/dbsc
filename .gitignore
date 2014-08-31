@@ -3,10 +3,18 @@ obj/
 *.user
 *.suo
 ZipReleases
+
+# Used for dynamically versioning assemblies
 AssemblyInfo_*.cs
+
+# Ignore nuget packages (but not repositories.config)
 packages/*/
+
+# Output files generated when running NUnit tests
 test_stdout.txt
 test_stderr.txt
+
+# .deb/.rpm directories holding files to be packaged
 **/deb/staging/
 **/rpm/staging/
 

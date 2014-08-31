@@ -136,6 +136,14 @@ namespace dbsc.Mongo
             return m_database.GetCollectionNames().Where(collName => !collName.StartsWith("system.")).ToList();
         }
 
+        public ICollection<MongoTable> GetCollectionsExceptMetadata()
+        {
+            return GetCollectionNames()
+                .Where(name => !name.Equals("dbsc_metadata", StringComparison.OrdinalIgnoreCase))
+                .Select(name => new MongoTable(name))
+                .ToList();
+        }
+
         private List<string> GetCommonMongoDumpRestoreArgs(DbConnectionInfo source, string collectionName)
         {
             List<string> args = new List<string>();
@@ -229,13 +237,13 @@ namespace dbsc.Mongo
                 string dbFolder = Directory.EnumerateDirectories(tempDirPath).FirstOrDefault();
                 if (dbFolder == null)
                 {
-                    throw new DbscException("mongodump did not create a directory.");
+                    throw new DbscException("error: mongodump did not create a directory.");
                 }
 
                 string bsonFilePath = Directory.EnumerateFiles(dbFolder, "*.bson").FirstOrDefault();
                 if (bsonFilePath == null)
                 {
-                    throw new DbscException("mongodump did not create a .bson file.");
+                    throw new DbscException("error: mongodump did not create a .bson file.");
                 }
 
                 mongorestoreArgs.Add(bsonFilePath.QuoteCommandLineArg());

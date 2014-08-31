@@ -35,6 +35,12 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
     <Directory Id='TARGETDIR' Name='SourceDir'>
       <Directory Id='ProgramFilesFolder' Name='PFiles'>
         <Directory Id='INSTALLDIR' Name='DBSC for PostgreSQL'>
+          <Component Id="Antlr4.Runtime.net40.dll" Guid="{E48A70BD-AB2B-4209-AD17-7F64BF6E2DD6}">
+            <File Id="Antlr4.Runtime.net40.dll" KeyPath="yes" Source="SourceDir\Antlr4.Runtime.net40.dll" />
+          </Component>
+          <Component Id="antlr_license.txt" Guid="{82CB29A4-7DD5-4325-B55E-CC7D837EC2A5}">
+            <File Id="antlr_license.txt" KeyPath="yes" Source="SourceDir\antlr_license.txt" />
+          </Component>
           <Component Id="Dapper.dll" Guid="{38902832-5320-49E0-9B2F-BBBA03AB10A8}">
             <File Id="Dapper.dll" KeyPath="yes" Source="SourceDir\Dapper.dll" />
           </Component>
@@ -43,6 +49,9 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
           </Component>
           <Component Id="dbsc.Core.dll" Guid="{E0A7E10B-C60D-49D8-9F42-62C7BAE8BEF2}">
             <File Id="dbsc.Core.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.dll" />
+          </Component>
+          <Component Id="dbsc.Core.Antlr.dll" Guid="{487529AF-5026-4C37-96B4-DD55871FB996}">
+            <File Id="dbsc.Core.Antlr.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.Antlr.dll" />
           </Component>
           <Component Id="dbsc.Core.Sql.dll" Guid="{22DD4F23-A64A-43B3-AF7A-CDCE0DD29A32}">
             <File Id="dbsc.Core.Sql.dll" KeyPath="yes" Source="SourceDir\dbsc.Core.Sql.dll" />
@@ -90,9 +99,12 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
     <Feature Id="pgdbsc" Title="pgdbsc" Description="DBSC for PostgreSQL" Display="expand"
              ConfigurableDirectory="INSTALLDIR" Level="1" Absent="disallow" InstallDefault="local" AllowAdvertise="no">
       <ComponentRef Id="AddToPath"/>
+      <ComponentRef Id="Antlr4.Runtime.net40.dll"/>
+      <ComponentRef Id="antlr_license.txt"/>
       <ComponentRef Id="Dapper.dll"/>
       <ComponentRef Id="dapper_license.txt"/>
       <ComponentRef Id="dbsc.Core.dll"/>
+      <ComponentRef Id="dbsc.Core.Antlr.dll"/>
       <ComponentRef Id="dbsc.Core.Sql.dll"/>
       <ComponentRef Id="license.rtf"/>
       <ComponentRef Id="license.txt"/>

@@ -11,6 +11,10 @@ namespace oradbsc.Integration
     class ShowRevisionTestFixture : AbstractShowRevisionTestFixture<OracleTestHelper>
     {
         protected override int? Port { get { return 1521; } }
+        protected override bool ImportSupported { get { return false; } }
+        protected override bool ExtendedTableSpecsSupported { get { return false; } }
+        protected override bool CustomSelectImportSupported { get { return false; } }
+        protected override bool TemplateSupported { get { return false; } }
     }
 }
 

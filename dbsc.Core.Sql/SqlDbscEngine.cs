@@ -15,15 +15,15 @@ namespace dbsc.Core.Sql
     /// <typeparam name="TConnectionSettings"></typeparam>
     /// <typeparam name="TCheckoutOptions"></typeparam>
     /// <typeparam name="TImportSettings"></typeparam>
-    /// <typeparam name="TUpdateOptions"></typeparam>
+    /// <typeparam name="TUpdateSettings"></typeparam>
     /// <typeparam name="TConnection"></typeparam>
-    public abstract class SqlDbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions, TConnection>
-        : DbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateOptions>
-        , IDbscEngineWithTableImport<TConnectionSettings, TImportSettings, TUpdateOptions>
-        where TCheckoutOptions : ISqlCheckoutSettings<TConnectionSettings, TImportSettings, TUpdateOptions>
-        where TUpdateOptions : ISqlUpdateSettings<TConnectionSettings, TImportSettings>
+    public abstract class SqlDbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateSettings, TConnection, TTable>
+        : DbscEngine<TConnectionSettings, TCheckoutOptions, TImportSettings, TUpdateSettings>
+        , IDbscEngineWithTableImport<TConnectionSettings, TImportSettings, TUpdateSettings, TTable>
+        where TCheckoutOptions : ISqlCheckoutSettings<TConnectionSettings, TImportSettings, TUpdateSettings>
+        where TUpdateSettings : ISqlUpdateSettings<TConnectionSettings, TImportSettings>
         where TConnectionSettings : IConnectionSettings
-        where TImportSettings : IImportSettingsWithTableList<TConnectionSettings>
+        where TImportSettings : IImportSettings<TConnectionSettings>
         where TConnection : IDbscDbConnection
     {
         /// <summary>
@@ -53,20 +53,18 @@ namespace dbsc.Core.Sql
         protected abstract string CreateMetadataTableSql { get; }
 
         /// <summary>
-        /// Imports data from another database into the database being updated.
+        /// Imports data from another database into the database being updated
         /// </summary>
-        /// <param name="options"></param>
-        /// <param name="tablesToImportAlreadyEscaped">The tables to import data for, already escaped (eg [dbo].[MyTable] in SQL Server).</param>
-        /// <param name="allTablesExceptMetadataAlreadyEscaped">All tables in the target tables other than the dbsc metadata table, already escaped (eg [dbo].[MyTable] in SQL Server).</param>
-        public abstract void ImportData(TUpdateOptions options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped);
+        /// <param name="updateSettings"></param>
+        /// <param name="tablesToImport"></param>
+        public abstract void ImportData(TUpdateSettings updateSettings, ICollection<TTable> tablesToImport);
 
         /// <summary>
-        /// Returns the names of all tables, already escaped (eg [dbo].[MyTable] in SQL Server), except for the dbsc
-        /// metadata table.
+        /// Returns the tables that should be imported.
         /// </summary>
-        /// <param name="connectionInfo"></param>
+        /// <param name="updateSettings"></param>
         /// <returns></returns>
-        public abstract ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(TConnectionSettings connectionInfo);
+        public abstract ICollection<TTable> GetTablesToImport(TUpdateSettings updateSettings);
 
         protected override string ScriptExtensionWithoutDot { get { return "sql"; } }
 
@@ -180,7 +178,7 @@ WHERE {2} = {3}name", MetadataPropertyValueColumn, MetadataTableName, MetadataPr
 
             if (propertyValue == null)
             {
-                throw new DbscException(string.Format("No metadata property {0}.", propertyName));
+                throw new DbscException(string.Format("error: No metadata property {0}.", propertyName));
             }
             else
             {
@@ -196,14 +194,14 @@ WHERE {2} = {3}name", MetadataPropertyValueColumn, MetadataTableName, MetadataPr
                 int revision;
                 if (!int.TryParse(revisionString, out revision))
                 {
-                    throw new DbscException(string.Format("{0} metadata property on database {1} has value \"{2}\" is not an integer.",
+                    throw new DbscException(string.Format("error: {0} metadata property on database {1} has value \"{2}\" is not an integer.",
                         RevisionPropertyName, connectionInfo.ToDescriptionString(), revisionString));
                 }
                 return revision;
             }
         }
 
-        protected override void RunScriptAndUpdateMetadata(TUpdateOptions options, string scriptPath, int newRevision)
+        protected override void RunScriptAndUpdateMetadata(TUpdateSettings options, string scriptPath, int newRevision)
         {
             string scriptText = File.ReadAllText(scriptPath);
             using (TConnection conn = OpenConnection(options.TargetDatabase))
@@ -218,7 +216,7 @@ WHERE {2} = {3}name", MetadataPropertyValueColumn, MetadataTableName, MetadataPr
             }
         }
 
-        protected override void ImportData(TUpdateOptions options)
+        protected override void ImportData(TUpdateSettings options)
         {
             DbscEngineWithTableImportExtensions.ImportData(this, options);
         }

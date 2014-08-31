@@ -6,14 +6,14 @@ using dbsc.Core;
 
 namespace dbsc.Mongo
 {
-    class MongoUpdateOptions : IUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>>
+    class MongoUpdateSettings : IUpdateSettings<DbConnectionInfo, MongoImportSettings>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
         public int? Revision { get; set; }
-        public ImportOptions<DbConnectionInfo> ImportOptions { get; set; }
+        public MongoImportSettings ImportOptions { get; set; }
 
-        public MongoUpdateOptions(DbConnectionInfo targetDatabase)
+        public MongoUpdateSettings(DbConnectionInfo targetDatabase)
         {
             Directory = Environment.CurrentDirectory;
             TargetDatabase = targetDatabase;
@@ -21,21 +21,21 @@ namespace dbsc.Mongo
             ImportOptions = null;
         }
 
-        public MongoUpdateOptions(MongoCheckoutOptions checkoutOptions)
+        public MongoUpdateSettings(MongoCheckoutOptions checkoutSettings)
         {
-            Directory = checkoutOptions.Directory;
-            TargetDatabase = checkoutOptions.TargetDatabase.Clone();
-            Revision = checkoutOptions.Revision;
+            Directory = checkoutSettings.Directory;
+            TargetDatabase = checkoutSettings.TargetDatabase.Clone();
+            Revision = checkoutSettings.Revision;
 
-            if (checkoutOptions.ImportOptions != null)
+            if (checkoutSettings.ImportOptions != null)
             {
-                ImportOptions = checkoutOptions.ImportOptions.Clone();
+                ImportOptions = checkoutSettings.ImportOptions.Clone();
             }
         }
 
-        public MongoUpdateOptions Clone()
+        public MongoUpdateSettings Clone()
         {
-            MongoUpdateOptions clone = new MongoUpdateOptions(this.TargetDatabase.Clone());
+            MongoUpdateSettings clone = new MongoUpdateSettings(this.TargetDatabase.Clone());
             clone.Directory = this.Directory;
             clone.Revision = this.Revision;
 
@@ -46,7 +46,7 @@ namespace dbsc.Mongo
             return clone;
         }
 
-        IUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>> IUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>>.Clone()
+        IUpdateSettings<DbConnectionInfo, MongoImportSettings> IUpdateSettings<DbConnectionInfo, MongoImportSettings>.Clone()
         {
             return Clone();
         }

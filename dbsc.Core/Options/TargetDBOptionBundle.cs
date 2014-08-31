@@ -62,7 +62,7 @@ namespace dbsc.Core.Options
         {
             if (Username != null && Password == null)
             {
-                Console.Write("Password for {0} on target database {1}: ", Username, TargetDBServer);
+                Console.Write("Password for {0} on target database server {1}: ", Username, TargetDBServer);
                 Password = Utils.ReadPassword();
             }
         }

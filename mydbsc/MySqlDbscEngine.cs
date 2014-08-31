@@ -10,10 +10,11 @@ using MySql.Data.MySqlClient;
 using Dapper;
 using dbsc.Core;
 using dbsc.Core.Sql;
+using dbsc.Core.ImportTableSpecification;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscEngine : SqlDbscEngine<DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings, MySqlDbscDbConnection>
+    class MySqlDbscEngine : SqlDbscEngine<DbConnectionInfo, MySqlCheckoutSettings, MySqlImportSettings, MySqlUpdateSettings, MySqlDbscDbConnection, TableAndRule<MySqlTable, TableWithoutSchemaSpecification>>
     {
         protected override char QueryParamChar { get { return '@'; } }
         
@@ -65,23 +66,6 @@ AND TABLE_SCHEMA = @db";
             return metadataTable != null;
         }
 
-        public override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(DbConnectionInfo connectionInfo)
-        {
-            using (MySqlDbscDbConnection conn = OpenConnection(connectionInfo))
-            {
-                string sql =
-@"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_NAME <> 'dbsc_metadata'
-AND TABLE_SCHEMA = @db
-AND TABLE_TYPE = 'BASE TABLE'";
-
-                Dictionary<string, object> sqlParams = new Dictionary<string, object>() { { "db", conn.ConnectionInfo.Database } };
-
-                List<string> tables = conn.Query<Table>(sql, sqlParams).Select(table => table.TABLE_NAME).ToList();
-                return tables;
-            }
-        }
-
         protected override bool CheckoutAndUpdateIsSupported(out string whyNot)
         {
             whyNot = null;
@@ -107,7 +91,16 @@ AND TABLE_TYPE = 'BASE TABLE'";
             return true;
         }
 
-        public override void ImportData(SqlUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public override ICollection<TableAndRule<MySqlTable, TableWithoutSchemaSpecification>> GetTablesToImport(MySqlUpdateSettings updateSettings)
+        {
+            MySqlImportTableCalculator tableCalculator = new MySqlImportTableCalculator();
+            using (MySqlDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
+            {
+                return tableCalculator.GetTablesToImport(conn, updateSettings.ImportOptions.TablesToImportSpecifications);
+            }
+        }
+
+        public override void ImportData(MySqlUpdateSettings updateSettings, ICollection<TableAndRule<MySqlTable, TableWithoutSchemaSpecification>> tablesToImport)
         {
             // MS SQL Server and PostgreSQL have simple methods of streaming bulk data to the DB server. MySQL does not.
             // The best MySQL can do is accept a file with the bulk data in it.
@@ -117,7 +110,7 @@ AND TABLE_TYPE = 'BASE TABLE'";
 
             const int enableConstraintsTimeoutInSeconds = 60 * 60 * 6;
 
-            using (MySqlDbscDbConnection targetConn = OpenConnection(options.TargetDatabase))
+            using (MySqlDbscDbConnection targetConn = OpenConnection(updateSettings.TargetDatabase))
             {
                 // Disable foreign key constraints
                 string disableForeignKeyChecksSql = "SET foreign_key_checks = 0";
@@ -131,20 +124,12 @@ AND TABLE_TYPE = 'BASE TABLE'";
 
                 // Can only disable indexes on MyISAM tables, so don't do that for now.
 
-                string clearMessage;
-                if (tablesToImportAlreadyEscaped.Count == allTablesExceptMetadataAlreadyEscaped.Count)
-                {
-                    clearMessage = "Clearing all tables";
-                }
-                else
-                {
-                    clearMessage = "Clearing tables to import";
-                }
+                string clearMessage = "Clearing tables to import";
 
                 // Clear tables
                 Utils.DoTimedOperation(clearMessage, () =>
                 {
-                    foreach (string table in tablesToImportAlreadyEscaped)
+                    foreach (MySqlTable table in tablesToImport.Select(t => t.Table))
                     {
                         string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
                         targetConn.ExecuteSql(clearTableSql);
@@ -152,19 +137,19 @@ AND TABLE_TYPE = 'BASE TABLE'";
                 });
 
                 // Import each table
-                foreach (string table in tablesToImportAlreadyEscaped)
+                foreach (MySqlTable table in tablesToImport.Select(t => t.Table))
                 {
                     string tempFilePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sql");
                     Utils.DoTimedOperationThatOuputsStuff(string.Format("Making mysqldump of {0}", table), () =>
                     {
                         string mysqldumpArgs = string.Format("--no-defaults --skip-comments --skip-add-drop-table --no-create-info --no-autocommit {0} {1} {2} {3} {4} {5} {6}",
-                            string.Format("--host={0}", options.ImportOptions.SourceDatabase.Server).QuoteCommandLineArg(),
-                            options.ImportOptions.SourceDatabase.Port != null ? string.Format(CultureInfo.InvariantCulture, "--port={0}", options.ImportOptions.SourceDatabase.Port.Value).QuoteCommandLineArg() : "",
-                            string.Format("--user={0}", options.ImportOptions.SourceDatabase.Username).QuoteCommandLineArg(),
-                            string.Format("--password={0}", options.ImportOptions.SourceDatabase.Password).QuoteCommandLineArg(),
+                            string.Format("--host={0}", updateSettings.ImportOptions.SourceDatabase.Server).QuoteCommandLineArg(),
+                            updateSettings.ImportOptions.SourceDatabase.Port != null ? string.Format(CultureInfo.InvariantCulture, "--port={0}", updateSettings.ImportOptions.SourceDatabase.Port.Value).QuoteCommandLineArg() : "",
+                            string.Format("--user={0}", updateSettings.ImportOptions.SourceDatabase.Username).QuoteCommandLineArg(),
+                            string.Format("--password={0}", updateSettings.ImportOptions.SourceDatabase.Password).QuoteCommandLineArg(),
                             string.Format("--result-file={0}", tempFilePath).QuoteCommandLineArg(),
-                            options.ImportOptions.SourceDatabase.Database.QuoteCommandLineArg(),
-                            table.QuoteCommandLineArg()
+                            updateSettings.ImportOptions.SourceDatabase.Database.QuoteCommandLineArg(),
+                            table.Table.QuoteCommandLineArg()
                             );
 
                         Process mysqldump = new Process()
@@ -199,11 +184,11 @@ AND TABLE_TYPE = 'BASE TABLE'";
                         Utils.DoTimedOperationThatOuputsStuff(string.Format("Importing mysqldump of {0}", table), () =>
                         {
                             string mysqlArgs = string.Format("{0} {1} {2} {3} {4}",
-                                string.Format("--database={0}", options.TargetDatabase.Database).QuoteCommandLineArg(),
-                                string.Format("--host={0}", options.TargetDatabase.Server).QuoteCommandLineArg(),
-                                options.TargetDatabase.Port != null ? string.Format(CultureInfo.InvariantCulture, "--port={0}", options.TargetDatabase.Port.Value).QuoteCommandLineArg() : "",
-                                string.Format("--user={0}", options.TargetDatabase.Username).QuoteCommandLineArg(),
-                                string.Format("--password={0}", options.TargetDatabase.Password).QuoteCommandLineArg()
+                                string.Format("--database={0}", updateSettings.TargetDatabase.Database).QuoteCommandLineArg(),
+                                string.Format("--host={0}", updateSettings.TargetDatabase.Server).QuoteCommandLineArg(),
+                                updateSettings.TargetDatabase.Port != null ? string.Format(CultureInfo.InvariantCulture, "--port={0}", updateSettings.TargetDatabase.Port.Value).QuoteCommandLineArg() : "",
+                                string.Format("--user={0}", updateSettings.TargetDatabase.Username).QuoteCommandLineArg(),
+                                string.Format("--password={0}", updateSettings.TargetDatabase.Password).QuoteCommandLineArg()
                             );
 
                             Process mysql = new Process()

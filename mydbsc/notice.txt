@@ -1,4 +1,4 @@
-﻿Copyright (C) 2013 Greg Najda
+﻿Copyright (C) 2014 Greg Najda
 
 mydbsc is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,3 +21,5 @@ NDesk.Options is copyright NDesk.org and is licensed under the MIT/X11 license (
 Dapper is Copyright (c) 2012 Sam Saffron and Marc Gravell and is licensed under the Apache License 2.0 (dapper_license.txt).
 
 MySQL.Data Copyright (c) 2004, 2011, Oracle and/or its affiliates and is licensed under the GPL version 2 (mysql.data_license.txt). See "mysql.data Licenses for Third-Party Components" folder for license acknowledgements for software used by MySQL.Data.
+
+The ANTLR 4 C# runtime library is copyright 2013 Sam Harwell and Terence Parr and is licensed under the BSD license (antlr_license.txt).

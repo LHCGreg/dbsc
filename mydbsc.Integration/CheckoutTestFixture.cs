@@ -11,10 +11,12 @@ namespace dbsc.MySql.Integration
     public class CheckoutTestFixture : AbstractCheckoutTestFixture<MySqlTestHelper>
     {
         protected override int? Port { get { return 3306; } }
+        protected override bool ExtendedTableSpecsSupported { get { return true; } }
+        protected override bool CustomSelectImportSupported { get { return false; } }
     }
 }
 
-// Copyright (C) 2013 Greg Najda
+// Copyright (C) 2014 Greg Najda
 //
 // This file is part of mydbsc.Integration.
 //

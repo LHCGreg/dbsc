@@ -17,7 +17,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugDotNet|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\DebugDotNet\</OutputPath>
+    <OutputPath>bin\DebugDotNet_AnyCPU\</OutputPath>
     <DefineConstants>TRACE;DEBUG;ORACLE_ODP</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -26,7 +26,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugMono|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\DebugMono\</OutputPath>
+    <OutputPath>bin\DebugMono_AnyCPU\</OutputPath>
     <DefineConstants>TRACE;DEBUG;ORACLE_SYSTEM</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,7 +34,7 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseDotNet|AnyCPU'">
-    <OutputPath>bin\ReleaseDotNet\</OutputPath>
+    <OutputPath>bin\ReleaseDotNet_AnyCPU\</OutputPath>
     <DefineConstants>TRACE;ORACLE_ODP</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -43,7 +43,7 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseMono|AnyCPU'">
-    <OutputPath>bin\ReleaseMono\</OutputPath>
+    <OutputPath>bin\ReleaseMono_AnyCPU\</OutputPath>
     <DefineConstants>TRACE;ORACLE_SYSTEM</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -53,7 +53,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugDotNet|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\DebugDotNet\</OutputPath>
+    <OutputPath>bin\DebugDotNet_x86\</OutputPath>
     <DefineConstants>TRACE;DEBUG;ORACLE_ODP</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -62,7 +62,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugMono|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\DebugMono\</OutputPath>
+    <OutputPath>bin\DebugMono_x86\</OutputPath>
     <DefineConstants>TRACE;DEBUG;ORACLE_SYSTEM</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -70,7 +70,7 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseDotNet|x86'">
-    <OutputPath>bin\x86\ReleaseDotNet\</OutputPath>
+    <OutputPath>bin\ReleaseDotNet_x86\</OutputPath>
     <DefineConstants>TRACE;ORACLE_ODP</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -79,7 +79,7 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseMono|x86'">
-    <OutputPath>bin\x86\ReleaseMono\</OutputPath>
+    <OutputPath>bin\ReleaseMono_x86\</OutputPath>
     <DefineConstants>TRACE;ORACLE_SYSTEM</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -88,9 +88,8 @@
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dapper, Version=1.25.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Dapper.1.25\lib\net40\Dapper.dll</HintPath>
+    <Reference Include="Dapper">
+      <HintPath>..\packages\Dapper.1.34\lib\net40\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

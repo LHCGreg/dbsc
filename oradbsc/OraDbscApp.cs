@@ -8,7 +8,7 @@ using dbsc.Core.Sql;
 
 namespace dbsc.Oracle
 {
-    class OraDbscApp : DbscApp<OraDbscCommandLineArgs, DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings>
+    class OraDbscApp : DbscApp<OraDbscCommandLineArgs, DbConnectionInfo, SqlCheckoutSettings, ImportSettingsWithTableList<DbConnectionInfo>, SqlUpdateSettings>
     {
         public OraDbscApp()
             : base(new OraDbscEngine())

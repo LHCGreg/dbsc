@@ -141,6 +141,27 @@
     <Compile Include="IDbscEngineWithTableImport.cs" />
     <Compile Include="IImportSettings.cs" />
     <Compile Include="IImportSettingsWithTableList.cs" />
+    <Compile Include="ImportTableCalculator.cs" />
+    <Compile Include="ImportTableSpecification\CaseInsensitiveTableSpecificationFragment.cs" />
+    <Compile Include="ImportTableSpecification\CaseSensitiveTableSpecificationFragment.cs" />
+    <Compile Include="ImportTableSpecification\IImportTableListParser.cs" />
+    <Compile Include="ImportTableSpecification\ITableWithSchemaSpecification.cs" />
+    <Compile Include="ImportTableSpecification\TableAndRule.cs" />
+    <Compile Include="ImportTableSpecification\TableWithoutSchemaSpecificationCollection.cs" />
+    <Compile Include="ImportTableSpecification\TableWithSchemaSpecificationWithCustomSelect.cs" />
+    <Compile Include="ImportTableSpecification\TableWithSchemaSpecificationWithCustomSelectCollection.cs" />
+    <Compile Include="ITable.cs" />
+    <Compile Include="ImportTableSpecification\ITableSpecification.cs" />
+    <Compile Include="ImportTableSpecification\TableSpecificationCollection.cs" />
+    <Compile Include="ImportTableSpecification\TableWithoutSchemaSpecification.cs" />
+    <Compile Include="ImportTableSpecification\TableWithSchemaSpecificationCollection.cs" />
+    <Compile Include="ITableWithSchema.cs" />
+    <Compile Include="ImportTableSpecification\MatchResult.cs" />
+    <Compile Include="ImportTableSpecification\TableWithSchemaSpecification.cs" />
+    <Compile Include="ImportTableSpecification\StringOrWildcard.cs" />
+    <Compile Include="ImportTableSpecification\TableSpecificationFragment.cs" />
+    <Compile Include="ImportTableSpecification\TableSpecificationParseException.cs" />
+    <Compile Include="ImportTableSpecification\WildcardType.cs" />
     <Compile Include="Options\BaseCommandLineArgs.cs" />
     <Compile Include="Options\BasicOptionBundle.cs" />
     <Compile Include="DbscOptionException.cs" />
@@ -150,6 +171,7 @@
     <Compile Include="Options\IOptionBundle.cs" />
     <Compile Include="Options\SourceDBOptionBundle.cs" />
     <Compile Include="Options\SourceDBPortOptionBundle.cs" />
+    <Compile Include="Options\ImportTableListOptionBundle.cs" />
     <Compile Include="Options\TargetDBPortOptionBundle.cs" />
     <Compile Include="DbConnectionInfo.cs" />
     <Compile Include="DbscEngine.cs" />
@@ -158,11 +180,12 @@
     <Compile Include="DbscApp.cs" />
     <Compile Include="DbscException.cs" />
     <Compile Include="DbscOperation.cs" />
-    <Compile Include="ImportOptions.cs" />
+    <Compile Include="ImportSettingsWithTableList.cs" />
     <Compile Include="ScriptStack.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="Options\TargetDBOptionBundle.cs" />
+    <Compile Include="TableWithSchema.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>

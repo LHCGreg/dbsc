@@ -11,6 +11,8 @@ namespace dbsc.SqlServer.Integration
     public class UpdateTestFixture : AbstractUpdateTestFixture<MSTestHelper>
     {
         protected override int? Port { get { return null; } }
+        protected override bool CustomSelectImportSupported { get { return true; } }
+        protected override bool ExtendedTableSpecsSupported { get { return true; } }
 
         [Test]
         public void TestIntegratedSecurity()
@@ -19,7 +21,7 @@ namespace dbsc.SqlServer.Integration
             CheckoutZeroWithIntegratedSecurity();
             RunSuccessfulCommand(string.Format("update -targetDb {0} -sourceDbServer localhost -sourceDb {1}",
                 Helper.IntegratedSecurityTargetDatabaseName, SourceDatabaseName));
-            VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         private void CheckoutZeroWithIntegratedSecurity()

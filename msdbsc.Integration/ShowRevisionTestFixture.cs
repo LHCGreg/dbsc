@@ -11,6 +11,8 @@ namespace dbsc.SqlServer.Integration
     class ShowRevisionTestFixture : AbstractShowRevisionTestFixture<MSTestHelper>
     {
         protected override int? Port { get { return null; } }
+        protected override bool CustomSelectImportSupported { get { return true; } }
+        protected override bool ExtendedTableSpecsSupported { get { return true; } }
     }
 }
 

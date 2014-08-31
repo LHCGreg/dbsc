@@ -17,16 +17,14 @@ VALUES
 CREATE TABLE script_isolation_test
 (
 	step int NOT NULL PRIMARY KEY,
-	val char(1) NOT NULL
+	val varchar(128) NOT NULL
 )
 ENGINE=InnoDB;
 
 INSERT INTO script_isolation_test
 (step, val)
 VALUES
-(0, '1'),
-(1, '5'),
-(2, '1');
+(0, 'imported');
 
 CREATE TABLE book
 (

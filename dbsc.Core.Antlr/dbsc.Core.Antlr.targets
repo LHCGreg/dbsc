@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <AntlrCSharpJarPath>../packages/Antlr4.4.3.0/tools/antlr4-csharp-4.3-complete.jar</AntlrCSharpJarPath>
+    <AntlrInput>TableSpecificationList.g4</AntlrInput>
+  </PropertyGroup>
+  
+  <Target Name="CompileGrammar">
+    <Exec
+      WorkingDirectory="$(MSBuildThisFileDirectory)"
+      Command="java -jar $(AntlrCSharpJarPath) -o . -no-listener -no-visitor -Dlanguage=CSharp_v4_0 -package dbsc.Core.Antlr $(AntlrInput)"
+    />
+  </Target>
+</Project>

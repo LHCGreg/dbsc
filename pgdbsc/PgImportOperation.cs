@@ -6,15 +6,16 @@ using System.Diagnostics;
 using Npgsql;
 using dbsc.Core;
 using dbsc.Core.Sql;
+using dbsc.Core.ImportTableSpecification;
 
 namespace dbsc.Postgres
 {
     // Moved this out to a class to break up the three import stages without having to pass state like fkCreationSql around
     class PgImportOperation
     {
-        private SqlUpdateSettings _options;
-        private ICollection<string> _tablesToImportAlreadyEscaped;
-        private ICollection<string> _allTablesExceptMetadataAlreadyEscaped;
+        private PgUpdateSettings _options;
+        private ICollection<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>> _tablesToImport;
+        private ICollection<PgTable> _allTablesExceptMetadata;
 
         private List<string> _fkCreationSql;
         private List<string> _pkCreationSql;
@@ -24,11 +25,11 @@ namespace dbsc.Postgres
         const int EnableConstraintTimeoutInSeconds = 60 * 60 * 6;
         const int VacuumTimeoutInSeconds = 60 * 60 * 6;
 
-        public PgImportOperation(SqlUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public PgImportOperation(PgUpdateSettings options, ICollection<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport, ICollection<PgTable> allTablesExceptMetadata)
         {
             _options = options;
-            _tablesToImportAlreadyEscaped = tablesToImportAlreadyEscaped;
-            _allTablesExceptMetadataAlreadyEscaped = allTablesExceptMetadataAlreadyEscaped;
+            _tablesToImport = tablesToImport;
+            _allTablesExceptMetadata = allTablesExceptMetadata;
         }
 
         private class ConstraintInfo
@@ -131,19 +132,11 @@ AND tab.relname <> 'dbsc_metadata'";
                 }
             });
 
-            string clearMessage;
-            if (_tablesToImportAlreadyEscaped.Count == _allTablesExceptMetadataAlreadyEscaped.Count)
-            {
-                clearMessage = "Clearing all tables";
-            }
-            else
-            {
-                clearMessage = "Clearing tables to import";
-            }
+            string clearMessage = "Clearing tables to import";
 
             Utils.DoTimedOperation(clearMessage, () =>
             {
-                foreach (string table in _tablesToImportAlreadyEscaped)
+                foreach (PgTable table in _tablesToImport.Select(t => t.Table))
                 {
                     string clearTableSql = string.Format("TRUNCATE TABLE {0}", table);
                     targetConn.ExecuteSql(clearTableSql, targetTransaction);
@@ -155,11 +148,20 @@ AND tab.relname <> 'dbsc_metadata'";
         {
             using (NpgsqlTransaction sourceTransaction = sourceConn.BeginTransaction())
             {
-                foreach (string table in _tablesToImportAlreadyEscaped)
+                foreach (var tableAndRule in _tablesToImport)
                 {
-                    Utils.DoTimedOperation(string.Format("Importing {0}", table), () =>
+                    Utils.DoTimedOperation(string.Format("Importing {0}", tableAndRule.Table), () =>
                     {
-                        targetConn.ImportTable(sourceConn, table, targetDbTransaction: targetTransaction, sourceDbTransaction: sourceTransaction);
+                        string importSelect;
+                        if (tableAndRule.Rule == null || tableAndRule.Rule.CustomSelect == null)
+                        {
+                            importSelect = string.Format("SELECT * FROM {0}", tableAndRule.Table);
+                        }
+                        else
+                        {
+                            importSelect = tableAndRule.Rule.CustomSelect;
+                        }
+                        targetConn.ImportTable(sourceConn, tableAndRule.Table, importSelect, targetDbTransaction: targetTransaction, sourceDbTransaction: sourceTransaction);
                     });
                 }
 

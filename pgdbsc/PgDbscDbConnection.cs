@@ -105,6 +105,23 @@ namespace dbsc.Postgres
             return Connection.BeginTransaction();
         }
 
+        private class Table
+        {
+            public string table_schema { get; set; }
+            public string table_name { get; set; }
+        }
+
+        public ICollection<PgTable> GetTablesExceptMetadata()
+        {
+            string sql = @"SELECT table_schema, table_name FROM information_schema.tables
+WHERE table_schema NOT LIKE 'pg_%' AND table_schema <> 'information_schema'
+AND table_type = 'BASE TABLE'
+AND table_name <> 'dbsc_metadata'";
+
+            List<PgTable> tables = Query<Table>(sql).Select(t => new PgTable(t.table_schema, t.table_name)).ToList();
+            return tables;
+        }
+
         public static string QuotePgIdentifier(string identifier)
         {
             // Replace quotes with quotequote and enclose in quotes
@@ -120,12 +137,11 @@ namespace dbsc.Postgres
         /// 
         /// </summary>
         /// <param name="sourceConn"></param>
-        /// <param name="table">Table name already with quotes and schema-qualified if needed</param>
         /// <param name="sourceDbTransaction">Required.</param>
         /// <param name="targetDbTransaction">Required.</param>
-        public void ImportTable(PgDbscDbConnection sourceConn, string table, NpgsqlTransaction targetDbTransaction, NpgsqlTransaction sourceDbTransaction)
+        public void ImportTable(PgDbscDbConnection sourceConn, PgTable table, string select, NpgsqlTransaction targetDbTransaction, NpgsqlTransaction sourceDbTransaction)
         {
-            string copyOutSql = string.Format("COPY {0} TO STDOUT WITH (FORMAT 'text', ENCODING 'utf-8')", table);
+            string copyOutSql = string.Format("COPY ({0}) TO STDOUT WITH (FORMAT 'text', ENCODING 'utf-8')", select);
             NpgsqlCommand copyOutCommand = new NpgsqlCommand(copyOutSql, sourceConn.Connection, sourceDbTransaction);
             copyOutCommand.CommandTimeout = ImportTableTimeoutInSeconds;
             NpgsqlCopyOut source = new NpgsqlCopyOut(copyOutCommand, sourceConn.Connection);

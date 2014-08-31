@@ -75,6 +75,25 @@ namespace dbsc.MySql
                 Console.WriteLine("{0}: {1}", message.Level, message.Message);
             }
         }
+
+        private class Table
+        {
+            public string TABLE_NAME { get; set; }
+        }
+
+        public ICollection<MySqlTable> GetTablesExceptMetadata()
+        {
+            string sql =
+@"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_NAME <> 'dbsc_metadata'
+AND TABLE_SCHEMA = @db
+AND TABLE_TYPE = 'BASE TABLE'";
+
+            Dictionary<string, object> sqlParams = new Dictionary<string, object>() { { "db", ConnectionInfo.Database } };
+
+            List<MySqlTable> tables = Query<Table>(sql, sqlParams).Select(table => new MySqlTable(table.TABLE_NAME)).ToList();
+            return tables;
+        }
     }
 }
 

@@ -5,10 +5,11 @@ using System.Text;
 using dbsc.Core.Options;
 using dbsc.Core;
 using dbsc.Core.Sql;
+using dbsc.Core.ImportTableSpecification;
 
 namespace dbsc.Postgres
 {
-    class PgDbscCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<SqlCheckoutSettings, SqlUpdateSettings>
+    class PgDbscCommandLineArgs : BaseCommandLineArgs, ICommandLineArgs<PgCheckoutSettings, PgUpdateSettings>
     {
         // Postgres handles integrated security (SSPI) weirdly.
         // You still have to specify what user you're logging in as.
@@ -29,7 +30,11 @@ namespace dbsc.Postgres
         private DBCreateTemplateOptionBundle _template = new DBCreateTemplateOptionBundle(DBCreateTemplateOptionBundle.DefaultSQLTemplate);
         private PgSourceDBOptionBundle _sourceDB = new PgSourceDBOptionBundle();
         private SourceDBPortOptionBundle _sourceDBPort = new SourceDBPortOptionBundle();
-        private ImportTableListFileOptionBundle _importTableListFile = new ImportTableListFileOptionBundle();
+
+        private ImportTableListOptionBundle<TableWithSchemaSpecificationWithCustomSelectCollection<PgTable>> _importSpecificationOptionBundle =
+            new ImportTableListOptionBundle<TableWithSchemaSpecificationWithCustomSelectCollection<PgTable>>(
+                new PgImportTableListParser(), ImportTableListOptionBundle<TableWithSchemaSpecificationWithCustomSelectCollection<PgTable>>.WildcardsNegationsAndCustomSelectDescription);
+
         
         public PgDbscCommandLineArgs()
         {
@@ -38,7 +43,7 @@ namespace dbsc.Postgres
             ExtraOptions.Add(_template);
             ExtraOptions.Add(_sourceDB);
             ExtraOptions.Add(_sourceDBPort);
-            ExtraOptions.Add(_importTableListFile);
+            ExtraOptions.Add(_importSpecificationOptionBundle);
         }
 
         private DbConnectionInfo GetTargetConnectionSettings()
@@ -52,7 +57,7 @@ namespace dbsc.Postgres
             );
         }
 
-        private ImportOptions<DbConnectionInfo> GetImportSettings()
+        private PgImportSettings GetImportSettings()
         {
             if (_sourceDB.SourceDBServer != null)
             {
@@ -64,8 +69,7 @@ namespace dbsc.Postgres
                     password: _sourceDB.SourcePassword // Null password indicates using SSPI
                 );
 
-                ImportOptions<DbConnectionInfo> importSettings = new ImportOptions<DbConnectionInfo>(sourceConnectionSettings);
-                importSettings.TablesToImport = _importTableListFile.TablesToImport;
+                PgImportSettings importSettings = new PgImportSettings(sourceConnectionSettings, _importSpecificationOptionBundle.ImportTableSpecifications);
                 return importSettings;
             }
             else
@@ -74,11 +78,11 @@ namespace dbsc.Postgres
             }
         }
 
-        public SqlCheckoutSettings GetCheckoutSettings()
+        public PgCheckoutSettings GetCheckoutSettings()
         {
             DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
 
-            SqlCheckoutSettings checkoutSettings = new SqlCheckoutSettings(connectionSettings);
+            PgCheckoutSettings checkoutSettings = new PgCheckoutSettings(connectionSettings);
             checkoutSettings.CreationTemplate = _template.Template;
             checkoutSettings.ImportOptions = GetImportSettings();
             checkoutSettings.Directory = this.ScriptDirectory;
@@ -87,10 +91,10 @@ namespace dbsc.Postgres
             return checkoutSettings;
         }
 
-        public SqlUpdateSettings GetUpdateSettings()
+        public PgUpdateSettings GetUpdateSettings()
         {
             DbConnectionInfo connectionSettings = GetTargetConnectionSettings();
-            SqlUpdateSettings updateSettings = new SqlUpdateSettings(connectionSettings);
+            PgUpdateSettings updateSettings = new PgUpdateSettings(connectionSettings);
             updateSettings.Directory = this.ScriptDirectory;
             updateSettings.Revision = this.Revison;
             updateSettings.ImportOptions = GetImportSettings();

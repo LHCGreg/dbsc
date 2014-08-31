@@ -69,6 +69,17 @@ namespace TestUtils.Sql
             }
         }
 
+        public List<Person> ExpectedSourcePeopleCustomSelect
+        {
+            get
+            {
+                return new List<Person>()
+                {
+                    new Person() { birthday = new DateTime(1948, 9, 20), name = "George R.R. Martin", default_test = 5 },
+                };
+            }
+        }
+
         public List<Person> ExpectedAltSourcePeople
         {
             get
@@ -119,6 +130,16 @@ namespace TestUtils.Sql
 
         public abstract List<script_isolation_test> ExpectedIsolationTestValues { get; }
         public abstract List<script_isolation_test> ExpectedRevision0IsolationTestValues { get; }
+        public List<script_isolation_test> ExpectedSourceIsolationTestValues
+        {
+            get
+            {
+                return new List<script_isolation_test>()
+                {
+                    new script_isolation_test() { step = 0, val = "imported" }
+                };
+            }
+        }
 
         public void RunSuccessfulCommand(string arguments)
         {

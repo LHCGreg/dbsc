@@ -8,7 +8,7 @@ using dbsc.Core.Sql;
 
 namespace dbsc.MySql
 {
-    class MySqlDbscApp : DbscApp<MyDbscCommandLineArgs, DbConnectionInfo, SqlCheckoutSettings, ImportOptions<DbConnectionInfo>, SqlUpdateSettings>
+    class MySqlDbscApp : DbscApp<MyDbscCommandLineArgs, DbConnectionInfo, MySqlCheckoutSettings, MySqlImportSettings, MySqlUpdateSettings>
     {
         public MySqlDbscApp()
             : base(engine: new MySqlDbscEngine())

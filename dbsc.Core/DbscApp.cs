@@ -64,6 +64,12 @@ namespace dbsc.Core
                 }
                 Environment.ExitCode = 1;
             }
+            catch (DbscException ex)
+            {
+                // DbscException has the error message already how it should be shown, no "Error:" or inner exception output needed.
+                Console.WriteLine(ex.Message);
+                Environment.ExitCode = 1;
+            }
             catch (Exception ex)
             {
                 StringBuilder errorMessage = new StringBuilder("Error");

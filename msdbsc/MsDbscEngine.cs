@@ -8,10 +8,11 @@ using System.Data;
 using Dapper;
 using dbsc.Core;
 using dbsc.Core.Sql;
+using dbsc.Core.ImportTableSpecification;
 
 namespace dbsc.SqlServer
 {
-    class MsDbscEngine : SqlDbscEngine<SqlServerConnectionSettings, SqlServerCheckoutSettings, ImportOptions<SqlServerConnectionSettings>, SqlServerUpdateSettings, MsDbscDbConnection>
+    class MsDbscEngine : SqlDbscEngine<SqlServerConnectionSettings, SqlServerCheckoutSettings, SqlServerImportSettings, SqlServerUpdateSettings, MsDbscDbConnection, TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>>
     {
         protected override char QueryParamChar { get { return '@'; } }
         
@@ -60,27 +61,24 @@ AND TABLE_NAME = 'dbsc_metadata'";
             return true;
         }
 
-        private class Table
+        public override ICollection<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> GetTablesToImport(SqlServerUpdateSettings updateSettings)
         {
-            public string TableSchema { get; set; }
-            public string TableName { get; set; }
-        }
-
-        public override ICollection<string> GetTableNamesExceptMetadataAlreadyEscaped(SqlServerConnectionSettings connectionSettings)
-        {
-            using (MsDbscDbConnection conn = OpenConnection(connectionSettings))
+            using (MsDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
             {
-                string sql = @"SELECT TABLE_SCHEMA AS TableSchema, TABLE_NAME AS TableName FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_TYPE = 'BASE TABLE'
-AND TABLE_NAME <> 'dbsc_metadata'";
-                List<string> tables = conn.Query<Table>(sql).Select(t => MsDbscDbConnection.QuoteSqlServerIdentifier(t.TableSchema, t.TableName)).ToList();
-                return tables;
+                SqlServerImportTableCalculator tableCalculator = new SqlServerImportTableCalculator();
+                return tableCalculator.GetTablesToImport(conn, updateSettings.ImportOptions.TablesToImportSpecifications);
             }
         }
 
-        public override void ImportData(SqlServerUpdateSettings options, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public override void ImportData(SqlServerUpdateSettings updateSettings, ICollection<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport)
         {
-            MsImportOperation import = new MsImportOperation(options, tablesToImportAlreadyEscaped, allTablesExceptMetadataAlreadyEscaped);
+            ICollection<SqlServerTable> tablesExceptMetadata;
+            using (MsDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
+            {
+                tablesExceptMetadata = conn.GetTablesExceptMetadata();
+            }
+
+            MsImportOperation import = new MsImportOperation(updateSettings, tablesToImport, tablesExceptMetadata);
             import.Run();
         }
     }

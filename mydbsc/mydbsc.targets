@@ -15,6 +15,6 @@
 
   <!-- Used for Debian packaging. -->
   <ItemGroup>
-    <LicenseFiles Include="..\linux_common\gpl\copyright;..\licenses\Dapper\dapper_license.txt;..\licenses\mysql.data\Licenses for Third-Party Components\license-us-secure-hash.html;..\licenses\mysql.data\Licenses for Third-Party Components\license-zlib.html;..\licenses\mysql.data\Licenses for Third-Party Components\license-zlib-net.html;..\licenses\mysql.data\mysql.data_license.txt;license.txt;notice.txt;..\licenses\NDesk.Options\ndesk_options_license.txt"/>
+    <LicenseFiles Include="..\linux_common\gpl\copyright;..\licenses\Dapper\dapper_license.txt;..\licenses\Antlr\antlr_license.txt;..\licenses\mysql.data\Licenses for Third-Party Components\license-us-secure-hash.html;..\licenses\mysql.data\Licenses for Third-Party Components\license-zlib.html;..\licenses\mysql.data\Licenses for Third-Party Components\license-zlib-net.html;..\licenses\mysql.data\mysql.data_license.txt;license.txt;notice.txt;..\licenses\NDesk.Options\ndesk_options_license.txt"/>
   </ItemGroup>
 </Project>

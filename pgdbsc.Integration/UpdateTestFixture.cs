@@ -12,6 +12,8 @@ namespace dbsc.Postgres.Integration
     class UpdateTestFixture : AbstractUpdateTestFixture<PgTestHelper>
     {
         protected override int? Port { get { return 5432; } }
+        protected override bool ExtendedTableSpecsSupported { get { return true; } }
+        protected override bool CustomSelectImportSupported { get { return true; } }
 
         [Test]
         public void TestIntegratedSecurity()
@@ -25,7 +27,7 @@ namespace dbsc.Postgres.Integration
             CheckoutZeroWithIntegratedSecurity();
             RunSuccessfulCommand(string.Format("update -targetDb {0} -u {1} -SSPI -sourceDbServer localhost -sourceDb {2} -sourceUsername {1} -sourceSSPI ",
                 Helper.IntegratedSecurityTargetDatabaseName, Helper.IntegratedSecurityPostgresUsername, SourceDatabaseName));
-            VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         private void CheckoutZeroWithIntegratedSecurity()

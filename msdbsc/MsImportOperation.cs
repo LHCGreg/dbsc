@@ -5,14 +5,15 @@ using System.Text;
 using System.Diagnostics;
 using System.Data.SqlClient;
 using dbsc.Core;
+using dbsc.Core.ImportTableSpecification;
 
 namespace dbsc.SqlServer
 {
     class MsImportOperation
     {
         private SqlServerUpdateSettings _settings;
-        private ICollection<string> _tablesToImportAlreadyEscaped;
-        private ICollection<string> _allTablesExceptMetadataAlreadyEscaped;
+        private ICollection<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> _tablesToImport;
+        private ICollection<SqlServerTable> _allTablesExceptMetadata;
 
         private bool _recoveryModelWasFullBeforeImport;
         private List<Index> _nonClusteredIndexes;
@@ -21,11 +22,11 @@ namespace dbsc.SqlServer
         const int enableIndexTimeoutInSeconds = 60 * 60 * 6;
         const int enableConstraintsTimeoutInSeconds = 60 * 60 * 6;
 
-        public MsImportOperation(SqlServerUpdateSettings settings, ICollection<string> tablesToImportAlreadyEscaped, ICollection<string> allTablesExceptMetadataAlreadyEscaped)
+        public MsImportOperation(SqlServerUpdateSettings settings, ICollection<TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport, ICollection<SqlServerTable> allTablesExceptMetadata)
         {
             _settings = settings;
-            _tablesToImportAlreadyEscaped = tablesToImportAlreadyEscaped;
-            _allTablesExceptMetadataAlreadyEscaped = allTablesExceptMetadataAlreadyEscaped;
+            _tablesToImport = tablesToImport;
+            _allTablesExceptMetadata = allTablesExceptMetadata;
         }
 
         public void Run()
@@ -64,7 +65,7 @@ namespace dbsc.SqlServer
             // Disable constraints
             Utils.DoTimedOperation("Removing constraints", () =>
             {
-                foreach (string table in _allTablesExceptMetadataAlreadyEscaped)
+                foreach (SqlServerTable table in _allTablesExceptMetadata)
                 {
                     string disableConstraintsSql = string.Format("ALTER TABLE {0} NOCHECK CONSTRAINT ALL", table);
                     targetConn.ExecuteSql(disableConstraintsSql);
@@ -92,19 +93,11 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
                 }
             });
 
-            string clearMessage;
-            if (_tablesToImportAlreadyEscaped.Count == _allTablesExceptMetadataAlreadyEscaped.Count)
-            {
-                clearMessage = "Clearing all tables";
-            }
-            else
-            {
-                clearMessage = "Clearing tables to import";
-            }
+            string clearMessage = "Clearing tables to import";
 
             Utils.DoTimedOperation(clearMessage, () =>
             {
-                foreach (string table in _tablesToImportAlreadyEscaped)
+                foreach (SqlServerTable table in _tablesToImport.Select(t => t.Table))
                 {
                     //string truncateSql = string.Format("TRUNCATE TABLE {0}", table);
                     // Can't use TRUNCATE if there's a foreign key to the table, even if the FK constraint is disabled.
@@ -138,7 +131,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             SourceDbInfo sourceDbInfo = sourceConn.Query<SourceDbInfo>(sourceDbInfoSql, sourceDbInfoParams).FirstOrDefault();
             if (sourceDbInfo == null)
             {
-                throw new DbscException("No rows returned when querying source database info.");
+                throw new DbscException("error: No rows returned when querying source database info.");
             }
 
             // Use a snapshot isolation transaction if snapshot isolation is enabled.
@@ -154,11 +147,21 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             // using (null) is ok
             using (sourceDbTransaction)
             {
-                foreach (string table in _tablesToImportAlreadyEscaped)
+                foreach (TableAndRule<SqlServerTable, TableWithSchemaSpecificationWithCustomSelect> tableAndRule in _tablesToImport)
                 {
-                    Utils.DoTimedOperation(string.Format("Importing {0}", table), () =>
+                    Utils.DoTimedOperation(string.Format("Importing {0}", tableAndRule.Table), () =>
                     {
-                        targetConn.ImportTable(sourceConn, table, sourceDbTransaction);
+                        string importSelect;
+                        if (tableAndRule.Rule == null || tableAndRule.Rule.CustomSelect == null)
+                        {
+                            importSelect = string.Format("SELECT * FROM {0}", tableAndRule.Table);
+                        }
+                        else
+                        {
+                            importSelect = tableAndRule.Rule.CustomSelect;
+                        }
+
+                        targetConn.ImportTable(sourceConn, tableAndRule.Table, importSelect, sourceDbTransaction);
                     });
                 }
 
@@ -197,7 +200,7 @@ AND Ind.name IS NOT NULL -- Tables without a primary key clustered index are hea
             // Enable constraints
             Utils.DoTimedOperation("Enabling constraints", () =>
             {
-                foreach (string table in _allTablesExceptMetadataAlreadyEscaped)
+                foreach (SqlServerTable table in _allTablesExceptMetadata)
                 {
                     string enableConstraintsSql = string.Format("ALTER TABLE {0} WITH CHECK CHECK CONSTRAINT ALL", table);
                     targetConn.ExecuteSql(enableConstraintsSql, timeoutInSeconds: enableConstraintsTimeoutInSeconds);

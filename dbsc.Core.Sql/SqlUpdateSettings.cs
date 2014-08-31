@@ -8,12 +8,12 @@ namespace dbsc.Core.Sql
     /// <summary>
     /// Typical settings needed for updating a SQL database
     /// </summary>
-    public class SqlUpdateSettings : ISqlUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>>
+    public class SqlUpdateSettings : ISqlUpdateSettings<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>>
     {
         public string Directory { get; set; }
         public DbConnectionInfo TargetDatabase { get; set; }
         public int? Revision { get; set; }
-        public ImportOptions<DbConnectionInfo> ImportOptions { get; set; }
+        public ImportSettingsWithTableList<DbConnectionInfo> ImportOptions { get; set; }
 
         public SqlUpdateSettings(DbConnectionInfo targetDatabase)
         {
@@ -47,7 +47,7 @@ namespace dbsc.Core.Sql
             return clone;
         }
 
-        IUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>> IUpdateSettings<DbConnectionInfo, ImportOptions<DbConnectionInfo>>.Clone()
+        IUpdateSettings<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>> IUpdateSettings<DbConnectionInfo, ImportSettingsWithTableList<DbConnectionInfo>>.Clone()
         {
             return Clone();
         }

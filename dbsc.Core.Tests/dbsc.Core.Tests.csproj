@@ -64,9 +64,13 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ImportTableSpecification\Comparisons.cs" />
+    <Compile Include="ImportTableSpecification\TableWithSchemaSpecificationCollectionFixture.cs" />
+    <Compile Include="ImportTableSpecification\TableWithSchemaSpecificationFixture.cs" />
     <Compile Include="ScriptStackFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringExtensionsFixture.cs" />
+    <Compile Include="ImportTableSpecification\TableSpecificationFragmentFixture.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\dbsc.Core\dbsc.Core.csproj">

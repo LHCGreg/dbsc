@@ -5,6 +5,9 @@ using System.Text;
 
 namespace dbsc.Core
 {
+    /// <summary>
+    /// Message is used as the error message verbatim, without showing inner exceptions or prefixing with "Error"
+    /// </summary>
     [Serializable]
     public class DbscException : Exception
     {
@@ -19,7 +22,7 @@ namespace dbsc.Core
 }
 
 /*
- Copyright 2013 Greg Najda
+ Copyright 2014 Greg Najda
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
