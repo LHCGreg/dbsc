@@ -127,6 +127,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="linux_common\oradbsc" />
+    <None Include="linux_common\oradbsc.1" />
     <None Include="oradbsc.targets" />
     <None Include="packages.config" />
   </ItemGroup>
