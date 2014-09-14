@@ -212,6 +212,10 @@
       <Output TaskParameter="Include" ItemName="UsrShareDocPackageFiles" />
     </CreateItem>
     
+    <CreateProperty Value="$(MSBuildProjectDirectory)/linux_common/$(RpmPackageName).1">
+      <Output TaskParameter="Value" PropertyName="ManPagePath" />
+    </CreateProperty>
+    
     <CreateProperty Value="$(RpmOutputDir)$(RpmPackageName)-$(RpmPackageVersion).noarch.rpm">
       <Output TaskParameter="Value" PropertyName="RpmOutputFilePath" />
     </CreateProperty>
@@ -221,7 +225,7 @@
     <!-- Copy *.dll, *.exe, *.config to rpm/staging/$(RpmPackageName)_$(RpmPackageVersion)/usr/lib/$(RpmPackageName)/ -->
     <Copy SourceFiles="@(UsrLibPackageFiles)" DestinationFolder="$(RpmStagingDir)usr/lib/$(RpmPackageName)/" />
     
-    <!-- Copy copyright and license files to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/usr/share/doc/$(DebianPackageName)/ -->
+    <!-- Copy copyright and license files to rpm/staging/$(RpmPackageName)_$(RpmPackageVersion)/usr/share/doc/$(RpmPackageName)/ -->
     <Copy SourceFiles="@(UsrShareDocPackageFiles)" DestinationFolder="$(RpmStagingDir)usr/share/doc/$(RpmPackageName)/" />
     
     <!-- Mark the .exe as executable as per packaging guidelines. It's not required to run it using "mono foo.exe" but it does allow
@@ -231,8 +235,12 @@
     <!-- Mark dlls as not executable. -->
     <Exec Command="chmod -x $(RpmStagingDir)usr/lib/$(RpmPackageName)/*.dll" />
     
-    <!-- Copy wrapper shell script to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)usr/bin/ -->
+    <!-- Copy wrapper shell script to rpm/staging/$(RpmPackageName)_$(RpmPackageVersion)usr/bin/ -->
     <Copy SourceFiles="@(UsrBinPackageFiles)" DestinationFolder="$(RpmStagingDir)usr/bin/" />
+    
+    <!-- Copy man page to rpm/staging/$(RpmPackageName)_$(RpmPackageVersion)/usr/share/man/man1 and gzip it. -->
+    <Copy SourceFiles="$(ManPagePath)" DestinationFolder="$(RpmStagingDir)usr/share/man/man1" />
+    <Exec Command="gzip -9 $(RpmStagingDir)usr/share/man/man1/$(RpmPackageName).1" />
     
     <MakeDir Directories="$(RpmOutputDir)" />
     
