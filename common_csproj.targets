@@ -115,6 +115,10 @@
       <Output TaskParameter="Include" ItemName="UsrShareDocPackageFiles" />
     </CreateItem>
     
+    <CreateProperty Value="$(MSBuildProjectDirectory)/linux_common/$(DebianPackageName).1">
+      <Output TaskParameter="Value" PropertyName="ManPagePath" />
+    </CreateProperty>
+    
     <CreateProperty Value="$(DebOutputDir)$(DebianPackageName)_$(DebianPackageVersion).deb">
       <Output TaskParameter="Value" PropertyName="DebOutputFilePath" />
     </CreateProperty>
@@ -136,6 +140,10 @@
     
     <!-- Copy wrapper shell script to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)usr/bin/ -->
     <Copy SourceFiles="@(UsrBinPackageFiles)" DestinationFolder="$(DebStagingDir)usr/bin/" />
+    
+    <!-- Copy man page to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/usr/share/man/man1 and gzip it. -->
+    <Copy SourceFiles="$(ManPagePath)" DestinationFolder="$(DebStagingDir)usr/share/man/man1" />
+    <Exec Command="gzip -9 $(DebStagingDir)usr/share/man/man1/$(DebianPackageName).1" />
     
     <MakeDir Directories="$(DebOutputDir)" />
     
