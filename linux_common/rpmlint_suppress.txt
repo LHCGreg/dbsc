@@ -15,3 +15,5 @@ addFilter("W: only-non-binary-in-usr-lib")
 # We're not signing the rpm at build time, we're signing it later.
 addFilter("E: no-signature")
 
+# Man pages use gzip, not bz2.
+addFilter("W: manpage-not-compressed bz2")

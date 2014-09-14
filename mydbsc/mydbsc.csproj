@@ -160,6 +160,7 @@
     <None Include="license.rtf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="linux_common\mydbsc.1" />
     <None Include="mydbsc.targets">
       <SubType>Designer</SubType>
     </None>

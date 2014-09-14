@@ -1,0 +1,159 @@
+.TH ORADBSC 1 "2014-09-13"
+.SH NAME
+oradbsc - database source control for Oracle
+.SH SYNOPSIS
+\fBoradbsc\fP <command> <options>
+.SH DESCRIPTION
+oradbsc helps you initialize and update development and production Oracle databases.
+Change scripts between database revisions are .sql files stored in one directory with a certain naming convention.
+Scripts must be in one the following formats to be detected by oradbsc:
+
+DatabaseName.RevisionNumber.sql
+
+DatabaseName.RevisionNumber.Comment.sql
+
+DatabaseName is the default name for databases created using the scripts.
+You can create and update databases named differently using the -targetDb option.
+
+RevisionNumber is the revision the database will be on after running the script.
+Padding with zeros to 4 digits is a good idea but not in any way required.
+There must be a script for revision 0.
+Scripts will typically increase by 1 like fizzbuzz.0000.sql, fizzbuzz.0001.sql, etc, but skipping revisions is permitted.
+A common use of that is to archive all the scripts and create a new revision 0 script when the number of scripts gets into the hundreds.
+
+Comment is an optional comment to help you see what the script is for without having to open it.
+For example, fizzbuzz.0001.users.sql.
+
+oradbsc brings your database to a certain revision by running all scripts with a revision greater than the current revision up to the revision to update to.
+.SH COMMANDS
+.SS checkout
+Initializes the target database server and brings it up to the latest revision.
+Unlike other flavors of dbsc, oradbsc does not create the database because creating an Oracle database is not a simple "CREATE DATABASE" command.
+The database must already exist.
+.SS update
+Updates an existing database to the latest revision.
+.SS revision
+Displays the current revision of the target database.
+.SH OPTIONS
+Boolean options may be specified with a dash (-foo), two dashes (--foo), or a forward slash (/foo).
+Options that take a value may be specified with a dash (-foo value), two dashes (--foo=value) or a forward slash (/foo=value).
+Many options have synonyms.
+Any synonym may be used with any form.
+.TP
+\fB-?, -h, --help\fP
+Show command line help and exit.
+.TP
+\fB-v, --version\fP
+Show version information and exit.
+.TP
+\fB-dir, --scriptDirectory=VALUE\fP
+Directory with SQL scripts to run.
+If not specified, defaults to the current directory.
+.TP
+\fB-r, --r=VALUE\fP
+Revision number to check out or update to.
+If not specified, goes up to the highest available revision.
+.TP
+\fB-targetDb, --targetDb=VALUE\fP
+Oracle service name of the target database.
+Defaults to the master database name detected from script names.
+Unlike other dbsc flavors, the database must already exist.
+.TP
+\fB-targetDbServer, --targetDbServer=VALUE\fP
+Server of the target database.
+Defaults to localhost.
+.TP
+\fB-u, --username=VALUE\fP
+Username to use to log in to the target database.
+REQUIRED.
+.TP
+\fB-p, --password=VALUE\fP
+Password to use to log in to the target database.
+If not specified, you will be prompted for your password.
+.TP
+\fB-port, --targetDbPort=VALUE\fP
+Port number of the target database to connect to.
+Defaults to the normal port.
+.SH IMPORTING DATA
+oradbsc does not currently support importing data.
+.SH EXAMPLES
+.SS DIRECTORY CONTENTS
+.nf
+my_database.0000.sql
+my_database.0001.users.sql
+my_database.0002.gizmos.sql
+my_database.0003.sql
+.fi
+
+.nf
+my_database.0000.sql
+my_database.0500.sql
+my_database.0501.sql
+.fi
+.SS COMMAND LINE USE
+.nf
+$ oradbsc checkout -u greg
+.fi
+
+Initializes a database called my_database on localhost with the dbsc_metadata table and runs my_database.0000.sql, my_database.0001.users.sql, my_database.0002.gizmos.sql, and my_database.0003.sql on it, using username greg and a password that you will be prompted for.
+
+.nf
+$ oradbsc checkout -u greg -targetDb foo -targetDbServer foo-qa.foocorp.local -dir /home/greg/foo/scripts -r 1
+.fi
+
+Initializes a database called foo on the Oracle server running on foo-qa.foocorp.local, using scripts in /home/greg/foo/scripts, stopping at revision 1 even if there are more scripts.
+
+.nf
+$ oradbsc update -u greg
+.fi
+
+Updates a database called my_database on localhost to the latest revision.
+If the database is on revision 2 and the scripts in the current directory go up to my_database.0003.sql, my_database.0003.sql will be run.
+
+.nf
+$ oradbsc update -u greg -targetDb foo -targetDbServer foo-qa.foocorp.local -dir /home/greg/foo/scripts -r 3
+.fi
+
+Updates a database called foo on the Oracle server running on foo-qa.foocorp.local, using scripts in /home/greg/foo/scripts, stopping at revision 3 even if there are more scripts.
+
+.nf
+$ oradbsc revision -u greg
+.fi
+
+Displays the revision that my_database on localhost is.
+
+.nf
+$ oradbsc revision -u greg -targetDbServer foo-qa.foocorp.local -targetDb foo
+.fi
+
+Displays the revision that database foo on foo-qa.foocorp.local is on.
+.SH THE dbsc_metadata TABLE
+If you need to make an existing database work with oradbsc you can create
+the metadata table oradbsc uses with the following SQL:
+
+.nf
+CREATE TABLE dbsc_metadata
+(
+    property_name nvarchar2(128) NOT NULL PRIMARY KEY,
+    property_value nvarchar2(1000)
+);
+
+INSERT INTO dbsc_metadata
+(property_name, property_value)
+VALUES
+('Version', '12345'), -- Replace with revision you want to set the DB at
+('MasterDatabaseName', 'DatabaseNameInScriptFiles'), -- Replace
+('LastChangeUTC', '2013-12-22T04:01:48'); -- does not really matter
+.fi
+.SH BUGS
+Prompting for a password does not work when running under mono if stdout
+is redirected, for example if piping output through tee.
+See mono bug https://bugzilla.xamarin.com/show_bug.cgi?id=12552
+.SH AUTHOR
+Greg Najda <gregnajda@gmail.com>
+.SH SOURCE CODE
+https://github.com/LHCGreg/dbsc
+.SH MORE DOCUMENTATION
+https://github.com/LHCGreg/dbsc/wiki
+.SH ISSUE TRACKER
+Please report bugs or request features at https://github.com/LHCGreg/dbsc/issues

@@ -1,0 +1,254 @@
+.TH MONGODBSC 1 "2014-09-13"
+.SH NAME
+mongodbsc - database source control for MongoDB
+.SH SYNOPSIS
+\fBmongodbsc\fP <command> <options>
+.SH DESCRIPTION
+mongodbsc helps you create and update development and production MongoDB databases.
+Change scripts between database revisions are .js files stored in one directory with a certain naming convention.
+Scripts must be in one the following formats to be detected by mongodbsc:
+
+DatabaseName.RevisionNumber.js
+
+DatabaseName.RevisionNumber.Comment.js
+
+DatabaseName is the default name for databases created using the scripts.
+You can create and update databases named differently using the -targetDb option.
+
+RevisionNumber is the revision the database will be on after running the script.
+Padding with zeros to 4 digits is a good idea but not in any way required.
+There must be a script for revision 0.
+Scripts will typically increase by 1 like fizzbuzz.0000.js, fizzbuzz.0001.js, etc, but skipping revisions is permitted.
+A common use of that is to archive all the scripts and create a new revision 0 script when the number of scripts gets into the hundreds.
+
+Comment is an optional comment to help you see what the script is for without having to open it.
+For example, fizzbuzz.0001.users.js.
+
+mongodbsc brings your database to a certain revision by running all scripts with a revision greater than the current revision up to the revision to update to.
+Scripts are run using the mongo shell.
+.SH COMMANDS
+.SS checkout
+Creates a new database on the target database server and brings it up to the latest revision.
+Data can be imported from another database by specifying the -sourceDbServer option.
+.SS update
+Updates an existing database to the latest revision.
+Data can be imported from another database by specifying the -sourceDbServer option.
+.SS revision
+Displays the current revision of the target database.
+.SH OPTIONS
+Boolean options may be specified with a dash (-foo), two dashes (--foo), or a forward slash (/foo).
+Options that take a value may be specified with a dash (-foo value), two dashes (--foo=value) or a forward slash (/foo=value).
+Many options have synonyms.
+Any synonym may be used with any form.
+.TP
+\fB-?, -h, --help\fP
+Show command line help and exit.
+.TP
+\fB-v, --version\fP
+Show version information and exit.
+.TP
+\fB-dir, --scriptDirectory=VALUE\fP
+Directory with Javascript scripts to run.
+If not specified, defaults to the current directory.
+.TP
+\fB-r, --r=VALUE\fP
+Revision number to check out or update to.
+If not specified, goes up to the highest available revision.
+.TP
+\fB-targetDb, --targetDb=VALUE\fP
+Target database name to create or update.
+Defaults to the master database name detected from script names.
+.TP
+\fB-targetDbServer, --targetDbServer=VALUE\fP
+Server of the target database.
+Defaults to localhost.
+.TP
+\fB-u, --username=VALUE\fP
+Username to use to log in to the target database.
+Only specify if the target MongoDB has authentication enabled.
+.TP
+\fB-p, --password=VALUE\fP
+Password to use to log in to the target database.
+If username is specified and no password is specified, you will be prompted for your password.
+Only specify if the target MongoDB has authentication enabled.
+.TP
+\fB-port, --targetDbPort=VALUE\fP
+Port number of the target database to connect to.
+Defaults to the normal port.
+.TP
+\fB-dbCreateTemplate, --createDbTemplate=VALUE\fP
+File with a template javascript file to run after creating the database in a checkout.
+$DatabaseName$ will be replaced with the database name.
+.SH IMPORTING DATA
+When doing a checkout or update, data can be imported from another database by specifying the -sourceDbServer option.
+The source database must have been created using mongodbsc.
+If it was not, you can fake it by creating the dbsc_metadata collection on the source database and populating it (see the dbsc_metadata collection section).
+Data will be imported when the target database's revision matches the source database's revision.
+This can be very useful for populating a development database with test data.
+
+Importing uses mongodump/mongorestore for each collection that is imported.
+Because of MongoDB's lack of transactions, importing from an database in use could result in inconsistent data.
+
+Because a collection must be destroyed before importing with mongorestore, you will lose indexes on imported collections and get whatever indexes the source database has on the collection.
+This differs from every other dbsc flavor.
+.SH IMPORT OPTIONS
+.TP
+\fB-sourceDbServer, --sourceDbServer=VALUE\fP
+Database server to import data from.
+Only specify this option if you wish to import data.
+Data will be imported when the target database's revision matches the source database's revision.
+The source database must have been created using mongodbsc.
+.TP
+\fB-sourceDb, --sourceDb=VALUE\fP
+Database to import data from.
+If not specified, defaults to the name used in the script file names.
+.TP
+\fB-sourceUsername, --sourceUsername=VALUE\fP
+Username to use to log in to the source database.
+Only specify if the source MongoDB has authentication enabled.
+.TP
+\fB-sourcePassword, --sourcePassword=VALUE\fP
+Password to use to log in to the source database.
+If username is specified and no password is specified, you will be prompted for your password.
+Only specify if the source MongoDB has authentication enabled.
+.TP
+\fB-sourcePort, --sourceDbPort=VALUE\fP
+Port number of the source database to connect to.
+Defaults to the normal port.
+.TP
+\fB-importTableList, --importTableList\fP
+File with a list of collections to import from the source database, one per line.
+Wildcards (*) may be used.
+A collection specification may be prefixed with a minus sign (-) to exclude the collection or collections matched.
+If a collection matches multiple lines, some of which are includes and others excludes, the last line to match wins.
+If the file consists only of exclusions, then a collection not matching any specification will be imported.
+Otherwise a collection that does not match any inclusion rules is not imported.
+If this parameter is not specified, all collections will be imported.
+.SH EXAMPLES
+.SS DIRECTORY CONTENTS
+.nf
+my_database.0000.js
+my_database.0001.users.js
+my_database.0002.gizmos.js
+my_database.0003.js
+.fi
+
+.nf
+my_database.0000.js
+my_database.0500.js
+my_database.0501.js
+.fi
+.SS SCRIPTS
+.nf
+db.createCollection('books');
+db.books.ensureIndex({ name: 1 });
+db.books.insert(
+    [
+        {
+            name: 'Charlie and the Chocolate Factory',
+            author: 'Roald Dahl'
+        }
+    ]
+);
+.fi
+.SS COMMAND LINE USE
+.nf
+$ mongodbsc checkout
+.fi
+
+Creates a database called my_database on localhost and runs my_database.0000.js, my_database.0001.users.js, my_database.0002.gizmos.js, and my_database.0003.js on it.
+
+.nf
+$ mongodbsc checkout -targetDb foo -targetDbServer foo-qa.foocorp.local -dir /home/greg/foo/scripts -r 1
+.fi
+
+Creates a database called foo on the MongoDB server running on foo-qa.foocorp.local, using scripts in /home/greg/foo/scripts, stopping at revision 1 even if there are more scripts.
+
+.nf
+$ mongodbsc checkout -sourceDbServer foo-qa.foocorp.local
+.fi
+
+Creates a database called my_database on localhost and runs scripts until it reaches the revision that my_database on foo-qa.foocorp.local is on, then clears all collections and imports data from my_database on foo-qa.foocorp.local, then finishes running the rest of the scripts.
+
+.nf
+$ mongodbsc update
+.fi
+
+Updates a database called my_database on localhost to the latest revision.
+If the database is on revision 2 and the scripts in the current directory go up to my_database.0003.js, my_database.0003.js will be run.
+
+.nf
+$ mongodbsc update -targetDb foo -targetDbServer foo-qa.foocorp.local -dir /home/greg/foo/scripts -r 3
+.fi
+
+Updates a database called foo on the MongoDB server running on foo-qa.foocorp.local, using scripts in /home/greg/foo/scripts, stopping at revision 3 even if there are more scripts.
+
+.nf
+$ mongodbsc update -sourceDbServer foo-qa.foocorp.local
+.fi
+
+Updates a database called my_database on localhost and runs scripts until it reaches the revision that my_database on foo-qa.foocorp.local is on, then clears all collections and imports data from my_database on foo-qa.foocorp.local, then finishes running the rest of the scripts.
+The import will be triggered even if the database on localhost and foo-qa.foocorp.local are already on the same revision.
+
+.nf
+$ mongodbsc revision
+.fi
+
+Displays the revision that my_database on localhost is.
+
+.nf
+$ mongodbsc revision -targetDbServer foo-qa.foocorp.local -targetDb foo
+.fi
+
+Displays the revision that database foo on foo-qa.foocorp.local is on.
+.SS IMPORT TABLE LIST
+By default, when importing data from a source database, all collections are imported.
+To import only a subset of collections, you can specify a import table list file with -importTableList collections.txt
+
+.nf
+collection1
+collection2
+collection3
+.fi
+
+Imports collection1, collection2, and collection3.
+All other collections are not cleared and not imported.
+
+.nf
+-collection1
+-collection2
+.fi
+
+Imports all colections other than table 1 and table 2
+
+.nf
+user_*
+-user_x
+.fi
+
+Imports all collections beginning with user_ except for user_x.
+.SH THE dbsc_metadata COLLECTION
+If you need to make an existing database work with mongodbsc you can create the metadata table mongodbsc uses with the following Javascript in the mongo shell:
+
+.nf
+db.createCollection('dbsc_metadata');
+db.dbsc_metadata.insert(
+  {
+    "_id" : 1,
+    "Version" : 12345, // Replace with the revision you want to set the DB at
+    "MasterDatabaseName" : "DatabaseNameInScriptFiles", // Replace
+    "LastChangeUTC" : ISODate("2013-11-18T01:48:55.17Z") // Does not really matter
+  }
+);
+.SH BUGS
+Prompting for a password does not work when running under mono if stdout
+is redirected, for example if piping output through tee.
+See mono bug https://bugzilla.xamarin.com/show_bug.cgi?id=12552
+.SH AUTHOR
+Greg Najda <gregnajda@gmail.com>
+.SH SOURCE CODE
+https://github.com/LHCGreg/dbsc
+.SH MORE DOCUMENTATION
+https://github.com/LHCGreg/dbsc/wiki
+.SH ISSUE TRACKER
+Please report bugs or request features at https://github.com/LHCGreg/dbsc/issues

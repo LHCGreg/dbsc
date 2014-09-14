@@ -163,6 +163,7 @@
     <None Include="..\common_csproj.targets">
       <Link>common_csproj.targets</Link>
     </None>
+    <None Include="linux_common\pgdbsc.1" />
     <None Include="packages.config" />
     <None Include="pgdbsc.targets">
       <SubType>Designer</SubType>

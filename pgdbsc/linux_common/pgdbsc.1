@@ -1,0 +1,282 @@
+.TH PGDBSC 1 "2014-09-13"
+.SH NAME
+pgdbsc - database source control for PostgreSQL
+.SH SYNOPSIS
+\fBpgdbsc\fP <command> <options>
+.SH DESCRIPTION
+pgdbsc helps you create and update development and production PostgreSQL databases.
+Change scripts between database revisions are .sql files stored in one directory with a certain naming convention.
+Scripts must be in one the following formats to be detected by pgdbsc:
+
+DatabaseName.RevisionNumber.sql
+
+DatabaseName.RevisionNumber.Comment.sql
+
+DatabaseName is the default name for databases created using the scripts.
+You can create and update databases named differently using the -targetDb option.
+
+RevisionNumber is the revision the database will be on after running the script.
+Padding with zeros to 4 digits is a good idea but not in any way required.
+There must be a script for revision 0.
+Scripts will typically increase by 1 like fizzbuzz.0000.sql, fizzbuzz.0001.sql, etc, but skipping revisions is permitted.
+A common use of that is to archive all the scripts and create a new revision 0 script when the number of scripts gets into the hundreds.
+
+Comment is an optional comment to help you see what the script is for without having to open it.
+For example, fizzbuzz.0001.users.sql.
+
+pgdbsc brings your database to a certain revision by running all scripts with a revision greater than the current revision up to the revision to update to.
+.SH COMMANDS
+.SS checkout
+Creates a new database on the target database server and brings it up to the latest revision.
+Data can be imported from another database by specifying the -sourceDbServer option.
+.SS update
+Updates an existing database to the latest revision.
+Data can be imported from another database by specifying the -sourceDbServer option.
+.SS revision
+Displays the current revision of the target database.
+.SH OPTIONS
+Boolean options may be specified with a dash (-foo), two dashes (--foo), or a forward slash (/foo).
+Options that take a value may be specified with a dash (-foo value), two dashes (--foo=value) or a forward slash (/foo=value).
+Many options have synonyms.
+Any synonym may be used with any form.
+.TP
+\fB-?, -h, --help\fP
+Show command line help and exit.
+.TP
+\fB-v, --version\fP
+Show version information and exit.
+.TP
+\fB-dir, --scriptDirectory=VALUE\fP
+Directory with SQL scripts to run.
+If not specified, defaults to the current directory.
+.TP
+\fB-r, --r=VALUE\fP
+Revision number to check out or update to.
+If not specified, goes up to the highest available revision.
+.TP
+\fB-targetDb, --targetDb=VALUE\fP
+Target database name to create or update.
+Defaults to the master database name detected from script names.
+.TP
+\fB-targetDbServer, --targetDbServer=VALUE\fP
+Server of the target database.
+Defaults to localhost.
+.TP
+\fB-u, --username=VALUE\fP
+Username to use to log in to the target database.
+REQUIRED.
+.TP
+\fB-p, --password=VALUE\fP
+Password to use to log in to the target database.
+If not specified, you will be prompted for your password unless the -SSPI flag is specified.
+.TP
+\fB-SSPI, --integratedSecurity\fP
+Use SSPI (Windows login) authentication to authenticate to the target database.
+Only usable on Windows.
+.TP
+\fB-port, --targetDbPort=VALUE\fP
+Port number of the target database to connect to.
+Defaults to the normal port.
+.TP
+\fB-dbCreateTemplate, --createDbTemplate=VALUE\fP
+File with a template to use when creating the database in a checkout.
+$DatabaseName$ will be replaced with the database name.
+If not specified, a simple "CREATE DATABASE $DatabaseName$" will be used.
+This is a good place to set database options or grant permissions.
+.SH DATABASE CREATION TEMPLATES
+You can specify a database creation template with the -dbCreateTemplate option.
+The template is a SQL script that is run instead of "CREATE DATABASE $DatabaseName$".
+At the end of the script, it is assumed that the database has been created.
+Do not hardcode the database name in the template, use $DatabaseName$ instead.
+pgdbsc will replace $DatabaseName$ with the name of the database from the script files or the name specified with the -targetDb option.
+
+Example template to create the database with an encoding of UTF-8:
+
+.nf
+CREATE DATABASE $DatabaseName$
+       ENCODING = 'UTF8'
+       LC_COLLATE = 'en_US.UTF-8'
+       LC_CTYPE = 'en_US.UTF-8';
+.fi
+.SH IMPORTING DATA
+When doing a checkout or update, data can be imported from another database by specifying the -sourceDbServer option.
+The source database must have been created using pgdbsc.
+If it was not, you can fake it by creating the dbsc_metadata table on the source database and populating it (see the dbsc_metadata table section).
+Data will be imported when the target database's revision matches the source database's revision.
+This can be very useful for populating a development database with test data.
+
+Importing uses a transaction on the source database for the duration of the import so imports are transactionally consistent.
+.SH IMPORT OPTIONS
+.TP
+\fB-sourceDbServer, --sourceDbServer=VALUE\fP
+Database server to import data from.
+Only specify this option if you wish to import data.
+Data will be imported when the target database's revision matches the source database's revision.
+The source database must have been created using pgdbsc.
+.TP
+\fB-sourceDb, --sourceDb=VALUE\fP
+Database to import data from.
+If not specified, defaults to the name used in the script file names.
+.TP
+\fB-sourceUsername, --sourceUsername=VALUE\fP
+Username to use to log in to the source database.
+.TP
+\fB-sourcePassword, --sourcePassword=VALUE\fP
+Password to use to log in to the source database.
+If not specified, you will be prompted for your password unless the -sourceSSPI flag is specified.
+.TP
+\fB-sourceSSPI, --sourceIntegratedSecurity\fP
+Use SSPI (Windows login) authentication to authenticate to the source database.
+Only usable on Windows.
+.TP
+\fB-sourcePort, --sourceDbPort=VALUE\fP
+Port number of the source database to connect to.
+Defaults to the normal port.
+.TP
+\fB-importTableList, --importTableList\fP
+File with a list of tables to import from the source database, one per line.
+Wildcards (*) may be used.
+A table specification may be prefixed with a minus sign (-) to exclude the table or tables matched.
+If a table matches multiple lines, some of which are includes and others excludes, the last line to match wins.
+If the file consists only of exclusions, then a table not matching any specification will be imported.
+Otherwise a table that does not match any inclusion rules is not imported.
+A custom SELECT statement may be specified by adding ": SELECT foo, bar FROM baz" at the end of a line.
+If -importTableList is not specified, all tables will be imported.
+.SH EXAMPLES
+.SS DIRECTORY CONTENTS
+.nf
+my_database.0000.sql
+my_database.0001.users.sql
+my_database.0002.gizmos.sql
+my_database.0003.sql
+.fi
+
+.nf
+my_database.0000.sql
+my_database.0500.sql
+my_database.0501.sql
+.fi
+.SS COMMAND LINE USE
+.nf
+$ pgdbsc checkout -u greg
+.fi
+
+Creates a database called my_database on localhost and runs my_database.0000.sql, my_database.0001.users.sql, my_database.0002.gizmos.sql, and my_database.0003.sql on it, using PostgreSQL username greg and a password that you will be prompted for.
+
+.nf
+$ pgdbsc checkout -u greg -targetDb foo -targetDbServer foo-qa.foocorp.local -dir /home/greg/foo/scripts -r 1 -createDbTemplate template.sql
+.fi
+
+Creates a database called foo on the PostgreSQL server running on foo-qa.foocorp.local, using scripts in /home/greg/foo/scripts, stopping at revision 1 even if there are more scripts.
+The database is created using the contents of template.sql instead of "CREATE DATABASE foo".
+
+.nf
+$ pgdbsc checkout -u greg -sourceDbServer foo-qa.foocorp.local -sourceUsername greg
+.fi
+
+Creates a database called my_database on localhost and runs scripts until it reaches the revision that my_database on foo-qa.foocorp.local is on, then clears all tables and imports data from my_database on foo-qa.foocorp.local, then finishes running the rest of the scripts.
+
+.nf
+$ pgdbsc update -u greg
+.fi
+
+Updates a database called my_database on localhost to the latest revision.
+If the database is on revision 2 and the scripts in the current directory go up to my_database.0003.sql, my_database.0003.sql will be run.
+
+.nf
+$ pgdbsc update -u greg -targetDb foo -targetDbServer foo-qa.foocorp.local -dir /home/greg/foo/scripts -r 3
+.fi
+
+Updates a database called foo on the PostgreSQL server running on foo-qa.foocorp.local, using scripts in /home/greg/foo/scripts, stopping at revision 3 even if there are more scripts.
+
+.nf
+$ pgdbsc update -u greg -sourceDbServer foo-qa.foocorp.local -sourceUsername greg
+.fi
+
+Updates a database called my_database on localhost and runs scripts until it reaches the revision that my_database on foo-qa.foocorp.local is on, then clears all tables and imports data from my_database on foo-qa.foocorp.local, then finishes running the rest of the scripts.
+The import will be triggered even if the database on localhost and foo-qa.foocorp.local are already on the same revision.
+
+.nf
+$ pgdbsc revision -u greg
+.fi
+
+Displays the revision that my_database on localhost is.
+
+.nf
+$ pgdbsc revision -u greg -targetDbServer foo-qa.foocorp.local -targetDb foo
+.fi
+
+Displays the revision that database foo on foo-qa.foocorp.local is on.
+.SS IMPORT TABLE LIST
+By default, when importing data from a source database, all tables are imported.
+To import only a subset of tables, you can specify a import table list file with -importTableList tables.txt
+
+.nf
+table1
+table2
+my_schema.table3
+.fi
+
+Imports table1, table2, and my_schema.table3.
+All other tables are not cleared and not imported.
+
+.nf
+-table1
+-table2
+.fi
+
+Imports all tables other than table 1 and table 2
+
+.nf
+my_schema.*
+user_*
+-user_x
+.fi
+
+Imports all tables in the my_schema schema and all tables in the default schema beginning with user_ except for user_x.
+
+.nf
+table1 : SELECT * FROM table1 WHERE import = true
+table2 : SELECT table2.* FROM table2 \\
+         JOIN table1 ON table2.table1_id = table1.table1_id \\
+         WHERE table1.import = true
+.fi
+
+Imports table1 and table2.
+Only table1 rows where column import is true are imported.
+Only table2 rows associated with a table1 row where import is true are imported.
+.SH THE dbsc_metadata TABLE
+If you need to make an existing database work with pgdbsc you can create
+the metadata table pgdbsc uses with the following SQL:
+
+.nf
+CREATE TABLE dbsc_metadata
+(
+    property_name text NOT NULL PRIMARY KEY,
+    property_value text
+);
+
+INSERT INTO dbsc_metadata
+(property_name, property_value)
+VALUES
+('Version', '12345'), -- Replace with revision you want to set the DB at
+('MasterDatabaseName', 'DatabaseNameInScriptFiles'), -- Replace
+('LastChangeUTC', '2013-12-22T04:01:48'); -- does not really matter
+.fi
+.SH MISCELLANEOUS
+Any notices raised by scripts are displayed in the output.
+You can raise notices in your scripts by using inline pl/pgsql like:
+
+DO $$ BEGIN RAISE NOTICE 'Hello'; END $$;
+.SH BUGS
+Prompting for a password does not work when running under mono if stdout
+is redirected, for example if piping output through tee.
+See mono bug https://bugzilla.xamarin.com/show_bug.cgi?id=12552
+.SH AUTHOR
+Greg Najda <gregnajda@gmail.com>
+.SH SOURCE CODE
+https://github.com/LHCGreg/dbsc
+.SH MORE DOCUMENTATION
+https://github.com/LHCGreg/dbsc/wiki
+.SH ISSUE TRACKER
+Please report bugs or request features at https://github.com/LHCGreg/dbsc/issues
