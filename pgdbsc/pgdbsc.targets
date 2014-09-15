@@ -7,7 +7,7 @@
     <BuildVersion>0</BuildVersion>
     <ZipNameWithoutVersion>DBSC for PostgreSQL</ZipNameWithoutVersion>
     <DebianPackageName>pgdbsc</DebianPackageName>
-    <DebianDependencyFpmFlags>-d 'mono-runtime (>= 2.10.8.1)' -d 'libmono-corlib4.0-cil (>= 2.10.8.1)' -d 'libmono-system4.0-cil (>= 2.10.8.1)' -d 'libmono-system-core4.0-cil (>= 2.10.8.1)' -d 'libmono-microsoft-csharp4.0-cil (>= 2.10.8.1)' -d 'libmono-system-data4.0-cil (>= 2.10.8.1)' -d 'libmono-system-transactions4.0-cil (>= 2.10.8.1)' -d 'libmono-security4.0-cil (>= 2.10.8.1)'</DebianDependencyFpmFlags>
+    <DebianDependencyFpmFlags>-d 'mono-runtime (>= 2.10.8.1)' -d 'libmono-corlib4.0-cil (>= 2.10.8.1)' -d 'libmono-system4.0-cil (>= 2.10.8.1)' -d 'libmono-system-core4.0-cil (>= 2.10.8.1)' -d 'libmono-microsoft-csharp4.0-cil (>= 2.10.8.1)' -d 'libmono-system-data4.0-cil (>= 2.10.8.1)' -d 'libmono-system-transactions4.0-cil (>= 2.10.8.1)' -d 'libmono-security4.0-cil (>= 2.10.8.1)' -d 'libmono-system-ldap4.0-cil (>= 2.10.8.1)'</DebianDependencyFpmFlags>
     <RpmPackageName>pgdbsc</RpmPackageName>
     <RpmDependencyFpmFlags>-d 'mono-core >= 2.10.8'</RpmDependencyFpmFlags>
     <RpmLicense>Apache Software License</RpmLicense>
