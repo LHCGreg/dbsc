@@ -141,6 +141,7 @@ If a table matches multiple lines, some of which are includes and others exclude
 If the file consists only of exclusions, then a table not matching any specification will be imported.
 Otherwise a table that does not match any inclusion rules is not imported.
 A custom SELECT statement may be specified by adding ": SELECT foo, bar FROM baz" at the end of a line.
+Custom SELECT statements may span multiple lines by ending a line with a backslash (\).
 If -importTableList is not specified, all tables will be imported.
 .SH EXAMPLES
 .SS DIRECTORY CONTENTS
