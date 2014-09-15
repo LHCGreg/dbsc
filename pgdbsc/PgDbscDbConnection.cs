@@ -73,6 +73,18 @@ namespace dbsc.Postgres
             {
                 Connection.Execute(sql, commandTimeout: ScriptTimeoutInSeconds);
             }
+            catch (NpgsqlException ex)
+            {
+                // DbscExceptions show error message as is when caught at the top layer
+                if (!string.IsNullOrEmpty(ex.Detail))
+                {
+                    throw new DbscException(string.Format("Error: {0}. {1}", ex.BaseMessage, ex.Detail), ex);
+                }
+                else
+                {
+                    throw new DbscException(string.Format("Error: {0}", ex.BaseMessage), ex);
+                }
+            }
             finally
             {
                 Connection.Notice -= OnNotice;
