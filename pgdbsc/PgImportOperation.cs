@@ -15,7 +15,6 @@ namespace dbsc.Postgres
     {
         private PgUpdateSettings _options;
         private ICollection<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>> _tablesToImport;
-        private ICollection<PgTable> _allTablesExceptMetadata;
 
         private List<string> _fkCreationSql;
         private List<string> _pkCreationSql;
@@ -25,11 +24,10 @@ namespace dbsc.Postgres
         const int EnableConstraintTimeoutInSeconds = 60 * 60 * 6;
         const int VacuumTimeoutInSeconds = 60 * 60 * 6;
 
-        public PgImportOperation(PgUpdateSettings options, ICollection<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport, ICollection<PgTable> allTablesExceptMetadata)
+        public PgImportOperation(PgUpdateSettings options, ICollection<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport)
         {
             _options = options;
             _tablesToImport = tablesToImport;
-            _allTablesExceptMetadata = allTablesExceptMetadata;
         }
 
         private class ConstraintInfo

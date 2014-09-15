@@ -73,13 +73,7 @@ AND table_name = 'dbsc_metadata'";
 
         public override void ImportData(PgUpdateSettings updateSettings, ICollection<TableAndRule<PgTable, TableWithSchemaSpecificationWithCustomSelect>> tablesToImport)
         {
-            ICollection<PgTable> tablesExceptMetadata;
-            using (PgDbscDbConnection conn = OpenConnection(updateSettings.TargetDatabase))
-            {
-                tablesExceptMetadata = conn.GetTablesExceptMetadata();
-            }
-
-            PgImportOperation import = new PgImportOperation(updateSettings, tablesToImport, tablesExceptMetadata);
+            PgImportOperation import = new PgImportOperation(updateSettings, tablesToImport);
             import.Run();
         }
     }
