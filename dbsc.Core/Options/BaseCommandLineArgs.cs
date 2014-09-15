@@ -14,7 +14,7 @@ namespace dbsc.Core.Options
     /// </summary>
     public class BaseCommandLineArgs
     {
-        private BasicOptionBundle BasicOptions { get; set; }
+        public BasicOptionBundle BasicOptions { get; private set; }
 
         public string ScriptDirectory { get { return BasicOptions.ScriptDirectory; } }
         public int? Revison { get { return BasicOptions.Revision; } }

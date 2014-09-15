@@ -41,6 +41,7 @@ namespace dbsc.Mongo
         
         public MongoCommandLineArgs()
         {
+            base.BasicOptions.ScriptDirectoryDescription = "Directory with js scripts to run. If not specified, defaults to the current directory.";
             ExtraOptions.Add(_targetDB);
             ExtraOptions.Add(_targetDBPort);
             ExtraOptions.Add(_template);
