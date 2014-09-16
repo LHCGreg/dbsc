@@ -8,4 +8,4 @@ msbuild /t:Build /p:Configuration=Debug;Platform=AnyCPU dbsc.Core.Antlr.Tests/db
 
 nunit-console "dbsc.Core.Tests/bin/Debug_AnyCPU/dbsc.Core.Tests.dll" "dbsc.Core.Antlr.Tests/bin/Debug_AnyCPU/dbsc.Core.Antlr.Tests.dll" "mongodbsc.Integration/bin/Debug_AnyCPU/mongodbsc.Integration.dll" "pgdbsc.Integration/bin/Debug_AnyCPU/pgdbsc.Integration.dll" "mydbsc.Integration/bin/Debug_AnyCPU/mydbsc.Integration.dll" "oradbsc.Integration/bin/DebugDotNet_AnyCPU/oradbsc.Integration.dll" -nologo -noxml "-out=test_stdout.txt" "-err=test_stderr.txt"
 
-nunit-console-x86 "msdbsc.Integration/bin/Debug_x86/msdbsc.Integration.dll"
+nunit-console-x86 "msdbsc.Integration/bin/Debug_x86/msdbsc.Integration.dll" -nologo -noxml "-out=msdbsc_test_stdout.txt" "-err=msdbsc_test_stderr.txt"
