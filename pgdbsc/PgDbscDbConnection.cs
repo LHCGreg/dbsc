@@ -6,6 +6,7 @@ using Npgsql;
 using Dapper;
 using dbsc.Core;
 using dbsc.Core.Sql;
+using System.Globalization;
 
 namespace dbsc.Postgres
 {
@@ -76,20 +77,59 @@ namespace dbsc.Postgres
             catch (NpgsqlException ex)
             {
                 // DbscExceptions show error message as is when caught at the top layer
-                if (!string.IsNullOrEmpty(ex.Detail))
-                {
-                    throw new DbscException(string.Format("Error: {0}. {1}", ex.BaseMessage, ex.Detail), ex);
-                }
-                else
-                {
-                    throw new DbscException(string.Format("Error: {0}", ex.BaseMessage), ex);
-                }
+                string message = NpgsqlExceptionToErrorMessage(ex, sql);
+                throw new DbscException(message, ex);
             }
             finally
             {
                 Connection.Notice -= OnNotice;
                 Connection.Notification -= OnNotification;
             }
+        }
+
+        private static string NpgsqlExceptionToErrorMessage(NpgsqlException ex, string script)
+        {
+            // DON'T THROW FROM HERE
+            long? lineNumber = null;
+            if (!string.IsNullOrEmpty(ex.Position))
+            {
+                int position;
+                if (int.TryParse(ex.Position, System.Globalization.NumberStyles.None, CultureInfo.InvariantCulture, out position))
+                {
+                    lineNumber = Position2LineNumber(script, position);
+                }
+            }
+
+            string lineNumberText = "";
+            if(lineNumber != null)
+            {
+                lineNumberText = " on line " + lineNumber.Value.ToString();
+            }
+
+            string detailText = "";
+            if(!string.IsNullOrEmpty(ex.Detail))
+            {
+                detailText = ". " + ex.Detail;
+            }
+
+            string errorMessage = string.Format("Error{0}: {1}{2}", lineNumberText, ex.BaseMessage, detailText);
+            return errorMessage;
+        }
+
+        private static int Position2LineNumber(string script, int position)
+        {
+            // http://www.postgresql.org/docs/9.3/static/protocol-error-fields.html
+            // the field value is a decimal ASCII integer, indicating an error cursor position as an index into the original query string. The first character has index 1, and positions are measured in characters not bytes.
+
+            int lineNumber = 1;
+            for (int i = 1; i <= position && i - 1 < script.Length; i++)
+            {
+                if (script[i - 1] == '\n')
+                {
+                    lineNumber++;
+                }
+            }
+            return lineNumber;
         }
 
         private void OnNotification(object sender, NpgsqlNotificationEventArgs e)
