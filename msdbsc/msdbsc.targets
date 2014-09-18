@@ -14,7 +14,7 @@
   <PropertyGroup>
     <ZipNameWithoutVersion>DBSC for SQL Server</ZipNameWithoutVersion>
     <MajorVersion>2</MajorVersion>
-    <MinorVersion>1</MinorVersion>
+    <MinorVersion>2</MinorVersion>
     <FixVersion>0</FixVersion>
     <BuildVersion>0</BuildVersion>
   </PropertyGroup>

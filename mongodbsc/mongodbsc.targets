@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <MajorVersion>2</MajorVersion>
-    <MinorVersion>1</MinorVersion>
+    <MinorVersion>2</MinorVersion>
     <FixVersion>0</FixVersion>
     <BuildVersion>0</BuildVersion>
     <ZipNameWithoutVersion>DBSC for MongoDB</ZipNameWithoutVersion>
