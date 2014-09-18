@@ -7,7 +7,7 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
   <!-- -ext WiXNetFxExtension -->
   <!-- -ext WixUIExtension -->
 
-  <Product Name='DBSC for Oracle' Id='{00A7C115-A0D4-4667-90F4-2B509527D26D}' UpgradeCode='{0107A20F-239B-4B96-8F1A-E403E12ED768}'
+  <Product Name='DBSC for Oracle' Id='{F3390A19-1DC2-4EE8-88E1-F1184B84031C}' UpgradeCode='{0107A20F-239B-4B96-8F1A-E403E12ED768}'
       Language='1033' Codepage='1252' Version='$(var.VersionWithoutBuild)' Manufacturer='Greg Najda'>
     <Package Id='*' Description="DBSC for Oracle $(var.VersionWithoutBuild)" Manufacturer='Greg Najda' Languages='1033'
              Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>

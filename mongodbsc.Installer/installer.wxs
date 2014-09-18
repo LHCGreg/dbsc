@@ -7,7 +7,7 @@ It could be run standalone but the user would get an error message if .NET 4.0 i
   <!-- -ext WiXNetFxExtension -->
   <!-- -ext WixUIExtension -->
 
-  <Product Name='DBSC for MongoDB' Id='{4A14DE27-314F-4091-93A6-989E57A27935}' UpgradeCode='{AC1688A9-433A-4462-80D9-88013B27E7DD}'
+  <Product Name='DBSC for MongoDB' Id='{509087AC-DAE5-442A-A624-2CEB5E06A626}' UpgradeCode='{AC1688A9-433A-4462-80D9-88013B27E7DD}'
       Language='1033' Codepage='1252' Version='$(var.VersionWithoutBuild)' Manufacturer='Greg Najda'>
     <Package Id='*' Description="DBSC for MongoDB $(var.VersionWithoutBuild)" Manufacturer='Greg Najda' Languages='1033'
              Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>

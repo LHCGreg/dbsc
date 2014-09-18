@@ -7,7 +7,7 @@ It could be run standalone but the user would get an error message if .NET 4.0 o
   <!-- -ext WixUIExtension -->
 
   <!-- TODO: One installer for everything, selectable features? -->
-  <Product Name='DBSC for Microsoft SQL Server' Id='{CAE279B4-35A7-4FB6-B047-AD29928DC714}' UpgradeCode='4ACC01B6-DC11-4D38-8191-2D53B2DCE204'
+  <Product Name='DBSC for Microsoft SQL Server' Id='{534DF1FB-4790-4A89-9AD2-462D77589CD3}' UpgradeCode='4ACC01B6-DC11-4D38-8191-2D53B2DCE204'
       Language='1033' Codepage='1252' Version='$(var.VersionWithoutBuild)' Manufacturer='Greg Najda'>
     <Package Id='*' Description="DBSC for Microsoft SQL Server $(var.VersionWithoutBuild)" Manufacturer='Greg Najda' Languages='1033'
              Compressed='yes' SummaryCodepage='1252' InstallScope='perMachine'/>
