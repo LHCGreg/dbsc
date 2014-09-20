@@ -98,8 +98,9 @@ If it was not, you can fake it by creating the dbsc_metadata table on the source
 Data will be imported when the target database's revision matches the source database's revision.
 This can be very useful for populating a development database with test data.
 
-Importing uses the mysqldump program on each table to be imported and is not guaranteed to be transactionally consistent.
+Importing uses the mysqldump and mysql programs on each table to be imported and is not guaranteed to be transactionally consistent.
 Importing from a database in use may result in importing inconsistent data.
+mysqldump and mysql (the command line client, not the server) must be installed and on your path to import data.
 .SH IMPORT OPTIONS
 .TP
 \fB-sourceDbServer, --sourceDbServer=VALUE\fP
