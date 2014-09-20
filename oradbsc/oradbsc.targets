@@ -15,6 +15,8 @@
 
   <!-- Used for Debian/rpm packaging. -->
   <ItemGroup>
-    <LicenseFiles Include="license.txt;notice.txt;..\linux_common\apache\copyright;..\licenses\Dapper\dapper_license.txt;..\licenses\NDesk.Options\ndesk_options_license.txt" />
+    <DebCopyrightFile Include="..\linux_common\apache\copyright" />
+    <RpmCopyrightFile Include="..\linux_common\apache\copyright" />
+    <LicenseFiles Include="license.txt;notice.txt;..\licenses\Dapper\dapper_license.txt;..\licenses\NDesk.Options\ndesk_options_license.txt" />
   </ItemGroup>
 </Project>

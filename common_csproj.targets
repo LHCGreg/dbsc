@@ -111,7 +111,7 @@
       <Output TaskParameter="Include" ItemName="UsrBinPackageFiles" />
     </CreateItem>
 
-    <CreateItem Include="@(LicenseFiles)">
+    <CreateItem Include="@(LicenseFiles);@(DebCopyrightFile)">
       <Output TaskParameter="Include" ItemName="UsrShareDocPackageFiles" />
     </CreateItem>
     
@@ -208,7 +208,7 @@
       <Output TaskParameter="Include" ItemName="UsrBinPackageFiles" />
     </CreateItem>
 
-    <CreateItem Include="@(LicenseFiles)">
+    <CreateItem Include="@(LicenseFiles);@(RpmCopyrightFile)">
       <Output TaskParameter="Include" ItemName="UsrShareDocPackageFiles" />
     </CreateItem>
     
