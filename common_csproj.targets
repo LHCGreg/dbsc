@@ -111,7 +111,7 @@
       <Output TaskParameter="Include" ItemName="UsrBinPackageFiles" />
     </CreateItem>
 
-    <CreateItem Include="@(LicenseFiles);@(DebCopyrightFile)">
+    <CreateItem Include="@(LicenseFiles)">
       <Output TaskParameter="Include" ItemName="UsrShareDocPackageFiles" />
     </CreateItem>
     
@@ -130,6 +130,7 @@
     
     <!-- Copy copyright and license files to deb/staging/$(DebianPackageName)_$(DebianPackageVersion)/usr/share/doc/$(DebianPackageName)/ -->
     <Copy SourceFiles="@(UsrShareDocPackageFiles)" DestinationFolder="$(DebStagingDir)usr/share/doc/$(DebianPackageName)/" />
+    <Copy SourceFiles="$(DebCopyrightFile)" DestinationFiles="$(DebStagingDir)usr/share/doc/$(DebianPackageName)/copyright" />
     
     <!-- Mark the .exe as executable as per packaging guidelines. It's not required to run it using "mono foo.exe" but it does allow
     it to be executed if the system is set to be able to execute CLR assemblies like regular binaries. -->
@@ -208,7 +209,7 @@
       <Output TaskParameter="Include" ItemName="UsrBinPackageFiles" />
     </CreateItem>
 
-    <CreateItem Include="@(LicenseFiles);@(RpmCopyrightFile)">
+    <CreateItem Include="@(LicenseFiles)">
       <Output TaskParameter="Include" ItemName="UsrShareDocPackageFiles" />
     </CreateItem>
     
@@ -227,7 +228,8 @@
     
     <!-- Copy copyright and license files to rpm/staging/$(RpmPackageName)_$(RpmPackageVersion)/usr/share/doc/$(RpmPackageName)/ -->
     <Copy SourceFiles="@(UsrShareDocPackageFiles)" DestinationFolder="$(RpmStagingDir)usr/share/doc/$(RpmPackageName)/" />
-    
+    <Copy SourceFiles="$(RpmCopyrightFile)" DestinationFiles="$(RpmStagingDir)usr/share/doc/$(RpmPackageName)/copyright" />
+
     <!-- Mark the .exe as executable as per packaging guidelines. It's not required to run it using "mono foo.exe" but it does allow
     it to be executed if the system is set to be able to execute CLR assemblies like regular binaries. -->
     <Exec Command="chmod +x $(RpmStagingDir)usr/lib/$(RpmPackageName)/*.exe" />

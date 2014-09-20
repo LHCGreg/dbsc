@@ -15,8 +15,10 @@
 
   <!-- Used for Debian packaging. -->
   <ItemGroup>
-    <DebCopyrightFile Include="..\linux_common\apache\copyright" />
-    <RpmCopyrightFile Include="..\linux_common\apache\copyright" />
     <LicenseFiles Include="..\licenses\Antlr\antlr_license.txt;..\licenses\Dapper\dapper_license.txt;license.txt;notice.txt;..\licenses\NDesk.Options\ndesk_options_license.txt;..\licenses\Mongo\mongo_license.txt" />
   </ItemGroup>
+  <PropertyGroup>
+    <DebCopyrightFile>..\linux_common\apache\copyright</DebCopyrightFile>
+    <RpmCopyrightFile>..\linux_common\apache\copyright</RpmCopyrightFile>
+  </PropertyGroup>
 </Project>

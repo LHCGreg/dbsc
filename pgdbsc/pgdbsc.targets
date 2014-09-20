@@ -15,10 +15,12 @@
 
   <!-- Used for Debian/rpm packaging. -->
   <ItemGroup>
-    <DebCopyrightFile Include="..\linux_common\apache\copyright" />
-    <RpmCopyrightFile Include="..\linux_common\apache\copyright" />
     <LicenseFiles Include="license.txt;notice.txt;..\licenses\Antlr\antlr_license.txt;..\licenses\Dapper\dapper_license.txt;..\licenses\NDesk.Options\ndesk_options_license.txt;..\licenses\Npgsql\npgsql_license.txt" />
   </ItemGroup>
+  <PropertyGroup>
+    <DebCopyrightFile>..\linux_common\apache\copyright</DebCopyrightFile>
+    <RpmCopyrightFile>..\linux_common\apache\copyright</RpmCopyrightFile>
+  </PropertyGroup>
 
   <PropertyGroup>
     <BuildDependsOn>
