@@ -1,5 +1,5 @@
 mongodbsc
-Copyright 2013 Greg Najda, licensed under the Apache License 2.0 (license.txt)
+Copyright 2014 Greg Najda, licensed under the Apache License 2.0 (license.txt)
 
 
 mongodbsc uses the following libraries:
