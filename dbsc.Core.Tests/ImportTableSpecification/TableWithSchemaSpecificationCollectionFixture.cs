@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using dbsc.Core.ImportTableSpecification;
-using NUnit.Framework;
+using Xunit;
 
 namespace dbsc.Core.Tests.ImportTableSpecification
 {
-    [TestFixture]
     public class TableWithSchemaSpecificationCollectionFixture
     {
         private List<TableWithSchema> EligibleTables = new List<TableWithSchema>()
@@ -18,7 +17,7 @@ namespace dbsc.Core.Tests.ImportTableSpecification
             new TableWithSchema("MySchema", "Table2")
         };
         
-        [Test]
+        [Fact]
         public void BasicTest()
         {
             TableWithSchemaSpecificationCollection<TableWithSchema> specs = new TableWithSchemaSpecificationCollection<TableWithSchema>(
@@ -52,10 +51,10 @@ namespace dbsc.Core.Tests.ImportTableSpecification
 
             var actualTables = specs.GetTablesToImport(EligibleTables);
 
-            Assert.That(actualTables, Is.EquivalentTo(expectedTables).Using<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>(Comparisons.TableAndRuleComparision));
+            Assert.Equal(expectedTables, actualTables, new TableAndRuleEqualityComparer());
         }
 
-        [Test]
+        [Fact]
         public void TestAllNegative()
         {
             // Test that a collection of only negative specifications gets treated as a blacklist
@@ -85,10 +84,10 @@ namespace dbsc.Core.Tests.ImportTableSpecification
 
             var actualTables = specs.GetTablesToImport(EligibleTables);
 
-            Assert.That(actualTables, Is.EquivalentTo(expectedTables).Using<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>(Comparisons.TableAndRuleComparision));
+            Assert.Equal(expectedTables, actualTables, new TableAndRuleEqualityComparer());
         }
 
-        [Test]
+        [Fact]
         public void TestOnePartNames()
         {
             TableWithSchemaSpecificationCollection<TableWithSchema> specs = new TableWithSchemaSpecificationCollection<TableWithSchema>(
@@ -116,10 +115,10 @@ namespace dbsc.Core.Tests.ImportTableSpecification
 
             var actualTables = specs.GetTablesToImport(EligibleTables);
 
-            Assert.That(actualTables, Is.EquivalentTo(expectedTables).Using<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>(Comparisons.TableAndRuleComparision));
+            Assert.Equal(expectedTables, actualTables, new TableAndRuleEqualityComparer());
         }
 
-        [Test]
+        [Fact]
         public void TestDefaultSchemaCaseSensitivity()
         {
                         TableWithSchemaSpecificationCollection<TableWithSchema> specs = new TableWithSchemaSpecificationCollection<TableWithSchema>(
@@ -143,7 +142,7 @@ namespace dbsc.Core.Tests.ImportTableSpecification
 
             var actualTables = specs.GetTablesToImport(EligibleTables);
 
-            Assert.That(actualTables, Is.EquivalentTo(expectedTables).Using<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>(Comparisons.TableAndRuleComparision));
+            Assert.Equal(expectedTables, actualTables, new TableAndRuleEqualityComparer());
 
 
             specs = new TableWithSchemaSpecificationCollection<TableWithSchema>(
@@ -161,10 +160,10 @@ namespace dbsc.Core.Tests.ImportTableSpecification
 
             actualTables = specs.GetTablesToImport(EligibleTables);
 
-            Assert.That(actualTables, Is.EquivalentTo(expectedTables).Using<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>(Comparisons.TableAndRuleComparision));
+            Assert.Equal(expectedTables, actualTables, new TableAndRuleEqualityComparer());
         }
 
-        [Test]
+        [Fact]
         public void TestFragmentCaseSensitivity()
         {
             TableWithSchemaSpecificationCollection<TableWithSchema> specs = new TableWithSchemaSpecificationCollection<TableWithSchema>(
@@ -182,10 +181,10 @@ new List<TableWithSchemaSpecification>()
 
             var actualTables = specs.GetTablesToImport(EligibleTables);
 
-            Assert.That(actualTables, Is.EquivalentTo(expectedTables).Using<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>(Comparisons.TableAndRuleComparision));
+            Assert.Equal(expectedTables, actualTables, new TableAndRuleEqualityComparer());
         }
 
-        [Test]
+        [Fact]
         public void TestLastMatchWins()
         {
             TableWithSchemaSpecificationCollection<TableWithSchema> specs = new TableWithSchemaSpecificationCollection<TableWithSchema>(
@@ -212,11 +211,10 @@ new List<TableWithSchemaSpecification>()
 
             var actualTables = specs.GetTablesToImport(EligibleTables);
 
-            Assert.That(actualTables, Is.EquivalentTo(expectedTables).Using<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>(Comparisons.TableAndRuleComparision));
-
+            Assert.Equal(expectedTables, actualTables, new TableAndRuleEqualityComparer());
         }
 
-        [Test]
+        [Fact]
         public void TestEmpty()
         {
             // Test that an empty list of specifications returns an empty list of tables to import
@@ -230,10 +228,10 @@ new List<TableWithSchemaSpecification>()
 
             ICollection<TableAndRule<TableWithSchema, TableWithSchemaSpecification>> actualTables = specs.GetTablesToImport(EligibleTables);
 
-            Assert.That(actualTables, Is.EquivalentTo(expectedTables).Using<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>(Comparisons.TableAndRuleComparision));
+            Assert.Equal(expectedTables, actualTables, new TableAndRuleEqualityComparer());
         }
 
-        [Test]
+        [Fact]
         public void TestGetNonWildcardTablesThatDontExist()
         {
             TableWithSchemaSpecificationCollection<TableWithSchema> specs = new TableWithSchemaSpecificationCollection<TableWithSchema>(
@@ -256,10 +254,10 @@ new List<TableWithSchemaSpecification>()
 
             ICollection<TableWithSchemaSpecification> actualSpecs = specs.GetNonWildcardTableSpecsThatDontExist(EligibleTables);
 
-            Assert.That(actualSpecs, Is.EquivalentTo(expectedSpecs).Using<TableWithSchemaSpecification>(Comparisons.TableWithSchemaSpecificationComparision));
+            Assert.Equal(expectedSpecs, actualSpecs, new TableWithSchemaSpecificationEqualityComparer());
         }
 
-        [Test]
+        [Fact]
         public void TestLongList()
         {
             List<TableWithSchema> eligibleTables = new List<TableWithSchema>();
@@ -282,24 +280,7 @@ new List<TableWithSchemaSpecification>()
 
             ICollection<TableAndRule<TableWithSchema, TableWithSchemaSpecification>> actualTables = specs.GetTablesToImport(eligibleTables);
 
-            Assert.That(actualTables, Is.EquivalentTo(expectedTables).Using<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>(Comparisons.TableAndRuleComparision));
+            Assert.Equal(expectedTables, actualTables, new TableAndRuleEqualityComparer());
         }
-
     }
 }
-
-/*
- Copyright 2014 Greg Najda
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/

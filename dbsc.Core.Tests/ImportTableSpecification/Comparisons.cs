@@ -28,6 +28,15 @@ namespace dbsc.Core.Tests.ImportTableSpecification
             return TableWithSchemaSpecificationComparision(x.Rule, y.Rule);
         }
 
+        public static int TableAndRuleHashcode(TableAndRule<TableWithSchema, TableWithSchemaSpecification> obj)
+        {
+            int hash = 23;
+            hash = hash * 17 + obj.Table.Schema.GetHashCode();
+            hash = hash * 17 + obj.Table.Table.GetHashCode();
+            hash = hash * 17 + TableWithSchemaSpecificationHashcode(obj.Rule);
+            return hash;
+        }
+
         public static int TableWithSchemaSpecificationComparision(TableWithSchemaSpecification x, TableWithSchemaSpecification y)
         {
             if (x == null && y == null)
@@ -60,6 +69,24 @@ namespace dbsc.Core.Tests.ImportTableSpecification
             }
 
             return 0;
+        }
+
+        public static int TableWithSchemaSpecificationHashcode(TableWithSchemaSpecification obj)
+        {
+            if (obj == null)
+            {
+                return 0;
+            }
+            int hash = 23;
+            hash = hash * 17 + obj.Negated.GetHashCode();
+            hash = hash * 17 + TableSpecificationFragmentHashcode(obj.Schema);
+            hash = hash * 17 + TableSpecificationFragmentHashcode(obj.Table);
+            if (obj.Schema == null)
+            {
+                hash = hash * 17 + obj.DefaultSchemaIsCaseSensitive.GetHashCode();
+            }
+
+            return hash;
         }
 
         public static int TableWithSchemaSpecificationWithCustomSelectComparison(TableWithSchemaSpecificationWithCustomSelect x, TableWithSchemaSpecificationWithCustomSelect y)
@@ -105,21 +132,21 @@ namespace dbsc.Core.Tests.ImportTableSpecification
 
             return 0;
         }
+
+        public static int TableSpecificationFragmentHashcode(TableSpecificationFragment obj)
+        {
+            if (obj == null)
+            {
+                return 0;
+            }
+
+            int hash = 23;
+            foreach (StringOrWildcard chunk in obj.Pattern)
+            {
+                hash = hash * 17 + chunk.GetHashCode();
+            }
+
+            return hash;
+        }
     }
 }
-
-/*
- Copyright 2014 Greg Najda
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/

@@ -3,53 +3,52 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using dbsc.Core.ImportTableSpecification;
-using NUnit.Framework;
+using Xunit;
 
 namespace dbsc.Core.Tests.ImportTableSpecification
 {
-    [TestFixture]
     public class TableSpecificationFragmentFixture
     {
-        [Test]
+        [Fact]
         public void TestNoWildcards()
         {
             TableSpecificationFragment frag = new TableSpecificationFragment(new List<StringOrWildcard>() { new StringOrWildcard("[abc") }, caseSensitive: false);
-            Assert.That(frag.Matches("[abc"), Is.True);
-            Assert.That(frag.Matches("[ABc"), Is.True);
-            Assert.That(frag.Matches("abc"), Is.False);
+            Assert.True(frag.Matches("[abc"));
+            Assert.True(frag.Matches("[ABc"));
+            Assert.False(frag.Matches("abc"));
         }
 
-        [Test]
+        [Fact]
         public void TestNoWildcardsCaseSensitive()
         {
             TableSpecificationFragment frag = new TableSpecificationFragment(new List<StringOrWildcard>() { new StringOrWildcard("[abc") }, caseSensitive: true);
-            Assert.That(frag.Matches("[abc"), Is.True);
-            Assert.That(frag.Matches("[ABc"), Is.False);
-            Assert.That(frag.Matches("abc"), Is.False);
+            Assert.True(frag.Matches("[abc"));
+            Assert.False(frag.Matches("[ABc"));
+            Assert.False(frag.Matches("abc"));
         }
 
-        [Test]
+        [Fact]
         public void TestOnlyWildcard()
         {
             TableSpecificationFragment frag = TableSpecificationFragment.Star;
-            Assert.That(frag.Matches("[abc"), Is.True);
-            Assert.That(frag.Matches("[ABc"), Is.True);
-            Assert.That(frag.Matches("abc"), Is.True);
+            Assert.True(frag.Matches("[abc"));
+            Assert.True(frag.Matches("[ABc"));
+            Assert.True(frag.Matches("abc"));
         }
 
-        [Test]
+        [Fact]
         public void TestWildcard()
         {
             // *abc
             TableSpecificationFragment frag = new TableSpecificationFragment(new List<StringOrWildcard>() { StringOrWildcard.Star, new StringOrWildcard("abc") }, caseSensitive: false);
-            Assert.That(frag.Matches("[abc"), Is.True);
-            Assert.That(frag.Matches("[ABc"), Is.True);
-            Assert.That(frag.Matches("abc"), Is.True);
-            Assert.That(frag.Matches("abcd"), Is.False);
-            Assert.That(frag.Matches("abcabcabc"), Is.True);
+            Assert.True(frag.Matches("[abc"));
+            Assert.True(frag.Matches("[ABc"));
+            Assert.True(frag.Matches("abc"));
+            Assert.False(frag.Matches("abcd"));
+            Assert.True(frag.Matches("abcabcabc"));
         }
 
-        [Test]
+        [Fact]
         public void TestMultipleWildcards()
         {
             // ab*c*d
@@ -62,14 +61,14 @@ namespace dbsc.Core.Tests.ImportTableSpecification
                 new StringOrWildcard("d")
             }, caseSensitive: false);
 
-            Assert.That(frag.Matches("abc"), Is.False);
-            Assert.That(frag.Matches("abcd"), Is.True);
-            Assert.That(frag.Matches("aabcd"), Is.False);
-            Assert.That(frag.Matches("ab  c  D"), Is.True);
-            Assert.That(frag.Matches("ab  c  D "), Is.False);
+            Assert.False(frag.Matches("abc"));
+            Assert.True(frag.Matches("abcd"));
+            Assert.False(frag.Matches("aabcd"));
+            Assert.True(frag.Matches("ab  c  D"));
+            Assert.False(frag.Matches("ab  c  D "));
         }
 
-        [Test]
+        [Fact]
         public void TestMultipleWildcardsCaseSensitive()
         {
             // ab*c*d
@@ -82,21 +81,21 @@ namespace dbsc.Core.Tests.ImportTableSpecification
                 new StringOrWildcard("d")
             }, caseSensitive: true);
 
-            Assert.That(frag.Matches("abc"), Is.False);
-            Assert.That(frag.Matches("abcd"), Is.True);
-            Assert.That(frag.Matches("aabcd"), Is.False);
-            Assert.That(frag.Matches("ab  c  D"), Is.False);
-            Assert.That(frag.Matches("ab  c  d "), Is.False);
+            Assert.False(frag.Matches("abc"));
+            Assert.True(frag.Matches("abcd"));
+            Assert.False(frag.Matches("aabcd"));
+            Assert.False(frag.Matches("ab  c  D"));
+            Assert.False(frag.Matches("ab  c  d "));
         }
 
-        [Test]
+        [Fact]
         public void TestHasWildcards()
         {
             TableSpecificationFragment noWildcards = new TableSpecificationFragment("[abc", caseSensitive: false);
-            Assert.That(noWildcards.HasWildcards, Is.False);
+            Assert.False(noWildcards.HasWildcards);
 
             noWildcards = new TableSpecificationFragment(new List<StringOrWildcard>() { new StringOrWildcard("[abc") }, caseSensitive: false);
-            Assert.That(noWildcards.HasWildcards, Is.False);
+            Assert.False(noWildcards.HasWildcards);
 
             TableSpecificationFragment wildcards = new TableSpecificationFragment(new List<StringOrWildcard>()
             {
@@ -105,23 +104,7 @@ namespace dbsc.Core.Tests.ImportTableSpecification
                 new StringOrWildcard("b")
             }, caseSensitive: false);
 
-            Assert.That(wildcards.HasWildcards, Is.True);
+            Assert.True(wildcards.HasWildcards);
         }
     }
 }
-
-/*
- Copyright 2014 Greg Najda
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
