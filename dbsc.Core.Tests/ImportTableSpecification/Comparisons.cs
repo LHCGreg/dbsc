@@ -25,7 +25,7 @@ namespace dbsc.Core.Tests.ImportTableSpecification
                 return result;
             }
 
-            return TableWithSchemaSpecificationComparision(x.Rule, y.Rule);
+            return TableWithSchemaSpecificationComparison(x.Rule, y.Rule);
         }
 
         public static int TableAndRuleHashcode(TableAndRule<TableWithSchema, TableWithSchemaSpecification> obj)
@@ -37,7 +37,7 @@ namespace dbsc.Core.Tests.ImportTableSpecification
             return hash;
         }
 
-        public static int TableWithSchemaSpecificationComparision(TableWithSchemaSpecification x, TableWithSchemaSpecification y)
+        public static int TableWithSchemaSpecificationComparison(TableWithSchemaSpecification x, TableWithSchemaSpecification y)
         {
             if (x == null && y == null)
             {
@@ -91,13 +91,29 @@ namespace dbsc.Core.Tests.ImportTableSpecification
 
         public static int TableWithSchemaSpecificationWithCustomSelectComparison(TableWithSchemaSpecificationWithCustomSelect x, TableWithSchemaSpecificationWithCustomSelect y)
         {
-            int result = TableWithSchemaSpecificationComparision(x, y);
+            int result = TableWithSchemaSpecificationComparison(x, y);
             if (result != 0)
             {
                 return result;
             }
 
             return string.Compare(x.CustomSelect, y.CustomSelect, StringComparison.Ordinal);
+        }
+
+        public static int TableWithSchemaSpecificationWithCustomSelectHashCode(TableWithSchemaSpecificationWithCustomSelect obj)
+        {
+            if (obj == null)
+            {
+                return 0;
+            }
+            int hash = TableWithSchemaSpecificationHashcode(obj);
+            hash = hash * 17;
+            if (obj.CustomSelect != null)
+            {
+                hash = hash + obj.CustomSelect.GetHashCode();
+            }
+
+            return hash;
         }
 
         public static int TableSpecificationFragmentComparision(TableSpecificationFragment x, TableSpecificationFragment y)

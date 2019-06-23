@@ -5,11 +5,11 @@ using System.Text;
 
 namespace dbsc.Core.Tests.ImportTableSpecification
 {
-    class TableWithSchemaSpecificationEqualityComparer : IEqualityComparer<TableWithSchemaSpecification>
+    public class TableWithSchemaSpecificationEqualityComparer : IEqualityComparer<TableWithSchemaSpecification>
     {
         public bool Equals(TableWithSchemaSpecification x, TableWithSchemaSpecification y)
         {
-            return Comparisons.TableWithSchemaSpecificationComparision(x, y) == 0;
+            return Comparisons.TableWithSchemaSpecificationComparison(x, y) == 0;
         }
 
         public int GetHashCode(TableWithSchemaSpecification obj)

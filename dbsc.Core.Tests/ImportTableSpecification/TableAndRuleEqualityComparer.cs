@@ -5,7 +5,7 @@ using System.Text;
 
 namespace dbsc.Core.Tests.ImportTableSpecification
 {
-    class TableAndRuleEqualityComparer : IEqualityComparer<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>
+    public class TableAndRuleEqualityComparer : IEqualityComparer<TableAndRule<TableWithSchema, TableWithSchemaSpecification>>
     {
         public bool Equals(TableAndRule<TableWithSchema, TableWithSchemaSpecification> x, TableAndRule<TableWithSchema, TableWithSchemaSpecification> y)
         {

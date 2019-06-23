@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using NUnit.Framework;
+using Xunit;
 using dbsc.Core.Antlr;
 using dbsc.Core.ImportTableSpecification;
 using dbsc.Core.Tests.ImportTableSpecification;
 
 namespace dbsc.Core.Antlr.Tests
 {
-    [TestFixture]
     public class TableWithSchemaSpecWithCustomSelectListParserFixture
     {
-        [Test]
+        [Fact]
         public void SqlServerBasicTest()
         {
             string inputString = @"
@@ -29,7 +28,7 @@ Hello . [World]
             BasicTest(inputString, Flavor.SqlServer);
         }
 
-        [Test]
+        [Fact]
         public void PostgresBasicTest()
         {
             string inputString = @"
@@ -78,7 +77,7 @@ Hello . ""World""
             Test(inputString, expectedSpecs, flavor);
         }
 
-        [Test]
+        [Fact]
         public void MySqlBasicTest()
         {
             string inputString = @"
@@ -146,7 +145,7 @@ Regular*
             Test(inputString, expectedSpecs, Flavor.MySql);
         }
 
-        [Test]
+        [Fact]
         public void MongoBasicTest()
         {
             Flavor flavor = Flavor.Mongo;
@@ -177,25 +176,25 @@ wild*cards*
             Test(inputString, expectedSpecs, flavor);
         }
 
-        [Test]
+        [Fact]
         public void SqlServerTestNonblankFirstLine()
         {
             TestNonblankFirstLine(Flavor.SqlServer);
         }
 
-        [Test]
+        [Fact]
         public void PostgresTestNonblankFirstLine()
         {
             TestNonblankFirstLine(Flavor.Postgres);
         }
 
-        [Test]
+        [Fact]
         public void MySqlTestNonblankFirstLine()
         {
             TestNonblankFirstLine(Flavor.MySql);
         }
 
-        [Test]
+        [Fact]
         public void MongoTestNonblankFirstLine()
         {
             TestNonblankFirstLine(Flavor.Mongo);
@@ -213,25 +212,25 @@ wild*cards*
             Test(inputString, expectedSpecs, flavor);
         }
 
-        [Test]
+        [Fact]
         public void SqlServerTestBlankFile()
         {
             TestBlankFile(Flavor.SqlServer);
         }
 
-        [Test]
+        [Fact]
         public void PostgresTestBlankFile()
         {
             TestBlankFile(Flavor.Postgres);
         }
 
-        [Test]
+        [Fact]
         public void MySqlTestBlankFile()
         {
             TestBlankFile(Flavor.MySql);
         }
 
-        [Test]
+        [Fact]
         public void MongoTestBlankFile()
         {
             TestBlankFile(Flavor.Mongo);
@@ -248,25 +247,25 @@ wild*cards*
             Test(inputString, expectedSpecs, flavor);
         }
 
-        [Test]
+        [Fact]
         public void SqlServerTestBareWildcard()
         {
             TestBareWildcard(Flavor.SqlServer);
         }
 
-        [Test]
+        [Fact]
         public void PostgresTestBareWildcard()
         {
             TestBareWildcard(Flavor.Postgres);
         }
 
-        [Test]
+        [Fact]
         public void MySqlTestBareWildcard()
         {
             TestBareWildcard(Flavor.MySql);
         }
 
-        [Test]
+        [Fact]
         public void MongoTestBareWildcard()
         {
             TestBareWildcard(Flavor.Mongo);
@@ -319,25 +318,25 @@ wild*cards*
             Test(inputString, expectedSpecs, flavor);
         }
 
-        [Test]
+        [Fact]
         public void SqlServerTestNegation()
         {
             TestNegation(Flavor.SqlServer);
         }
 
-        [Test]
+        [Fact]
         public void PostgresTestNegation()
         {
             TestNegation(Flavor.Postgres);
         }
 
-        [Test]
+        [Fact]
         public void MySqlTestNegation()
         {
             TestNegation(Flavor.MySql);
         }
 
-        [Test]
+        [Fact]
         public void MongoTestNegation()
         {
             TestNegation(Flavor.Mongo);
@@ -375,26 +374,26 @@ FROM Backslash WHERE 5 \ 2 = 1")
             Test(inputString, expectedSpecs, flavor);
         }
 
-        [Test]
+        [Fact]
         public void SqlServerTestCustomSelect()
         {
             TestCustomSelect(Flavor.SqlServer);
         }
 
-        [Test]
+        [Fact]
         public void PostgresTestCustomSelect()
         {
             TestCustomSelect(Flavor.Postgres);
         }
 
-        [Test]
+        [Fact]
         public void MySqlTestCustomSelectThrows()
         {
             string inputString = "tab : SELECT * FROM tab";
             TestThrows<TableSpecificationParseException>(inputString, Flavor.MySql);
         }
 
-        [Test]
+        [Fact]
         public void MongoTestCustomSelectThrows()
         {
             string inputString = "collection : would would even go here?";
@@ -406,31 +405,31 @@ FROM Backslash WHERE 5 \ 2 = 1")
             TestThrows<TableSpecificationParseException>(inputString, flavor);
         }
 
-        [Test]
+        [Fact]
         public void SqlServerTestSyntaxErrorThrows()
         {
             TestSyntaxErrorThrows("PeriodAtEnd.", Flavor.SqlServer);
         }
 
-        [Test]
+        [Fact]
         public void PostgresTestSyntaxErrorThrows()
         {
             TestSyntaxErrorThrows("PeriodAtEnd.", Flavor.Postgres);
         }
 
-        [Test]
+        [Fact]
         public void MySqlTestSyntaxErrorThrows()
         {
             TestSyntaxErrorThrows("PeriodAtEnd.", Flavor.MySql);
         }
 
-        [Test]
+        [Fact]
         public void MongoTestSyntaxErrorThrows()
         {
             TestSyntaxErrorThrows("$$dollars", Flavor.Mongo);
         }
 
-        [Test]
+        [Fact]
         public void MySqlTestSchemaThrows()
         {
             string inputString = "Sch.Tab";
@@ -443,7 +442,7 @@ FROM Backslash WHERE 5 \ 2 = 1")
             TestThrows<TableSpecificationParseException>(inputString, Flavor.MySql);
         }
 
-        [Test]
+        [Fact]
         public void MongoTestDotIsOk()
         {
             Flavor flavor = Flavor.Mongo;
@@ -474,33 +473,18 @@ FROM Backslash WHERE 5 \ 2 = 1")
             using (StringReader input = new StringReader(inputString))
             {
                 IList<TableWithSchemaSpecificationWithCustomSelect> actualSpecs = parser.Parse(input, flavor.Syntax, flavor.CustomSelectSupported, "test.txt");
-                Assert.That(actualSpecs, Is.EqualTo(expectedSpecs).Using<TableWithSchemaSpecificationWithCustomSelect>(Comparisons.TableWithSchemaSpecificationWithCustomSelectComparison));
+                Assert.Equal(expectedSpecs, actualSpecs, new TableWithSchemaSpecificationWithCustomSelectEqualityComparer());
             }
         }
 
         private void TestThrows<TException>(string inputString, Flavor flavor)
+            where TException : Exception
         {
             TableSpecListParser parser = new TableSpecListParser();
             using (StringReader input = new StringReader(inputString))
             {
-                Assert.Throws(Is.InstanceOf<TException>(), () => parser.Parse(input, flavor.Syntax, flavor.CustomSelectSupported, "test.txt"));
+                Assert.ThrowsAny<TException>(() => parser.Parse(input, flavor.Syntax, flavor.CustomSelectSupported, "test.txt"));
             }
         }
     }
 }
-
-/*
- Copyright 2014 Greg Najda
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/

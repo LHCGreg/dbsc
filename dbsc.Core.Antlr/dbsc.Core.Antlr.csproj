@@ -18,6 +18,6 @@
   <ItemGroup>
     <PackageReference Include="Antlr4" Version="4.6.6" />
     
-    <ProjectReference Include="..\dbsc.Core\dbsc.Core.csproj" />    
+    <ProjectReference Include="../dbsc.Core/dbsc.Core.csproj" />    
   </ItemGroup>
 </Project>
