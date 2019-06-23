@@ -2,14 +2,7 @@ BUILD DEPENDENCIES
 ------------------
 DBSC uses NuGet to fetch most dependencies when building.
 
-dbsc.Core.Antlr uses ANTLR 4 to generate a parser for import table list files. The generated lexer and parser are in the code repository. If you make changes to the grammar, you can regenerate the lexer and parser with
-
-msbuild /t:CompileGrammar dbsc.Core.Antlr.csproj
-
-(substitute xbuild for msbuild on non-Windows platforms)
-
-Generating the lexer and parser requires java to be installed and on your PATH.
-
+dbsc.Core.Antlr uses ANTLR 4 to generate a parser for import table list files. The lexer and parser are generated at build-time by Antlr. Antlr [recommends](https://github.com/tunnelvisionlabs/antlr4cs#step-1-install-java-recommended) that Java is installed and on your `PATH` to improve generation performance but the fallback C# generator seems to work just fine and and is pretty quick for the small grammar dbsc uses. The generated lexer and parser are in the obj/ folder and do not get committed.
 
 DEPLOYMENT CONSIDERATIONS
 -------------------------
