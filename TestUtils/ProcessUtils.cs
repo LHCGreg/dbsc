@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -65,41 +65,25 @@ namespace TestUtils
         public static void RunSuccessfulCommand(string exePath, string arguments, string workingDirectory)
         {
             int returnCode = RunCommand(exePath, arguments, workingDirectory);
-            Assert.That(returnCode, Is.EqualTo(0));
+            Assert.Equal(0, returnCode);
         }
 
         public static void RunSuccessfulCommand(string exePath, string arguments, string workingDirectory, out string stdout, out string stderr)
         {
             int returnCode = RunCommand(exePath, arguments, workingDirectory, out stdout, out stderr);
-            Assert.That(returnCode, Is.EqualTo(0));
+            Assert.Equal(0, returnCode);
         }
 
         public static void RunUnsuccessfulCommand(string exePath, string arguments, string workingDirectory)
         {
             int returnCode = RunCommand(exePath, arguments, workingDirectory);
-            Assert.That(returnCode, Is.Not.EqualTo(0));
+            Assert.NotEqual(0, returnCode);
         }
 
         public static void RunUnsuccessfulCommand(string exePath, string arguments, string workingDirectory, out string stdout, out string stderr)
         {
             int returnCode = RunCommand(exePath, arguments, workingDirectory, out stdout, out stderr);
-            Assert.That(returnCode, Is.Not.EqualTo(0));
+            Assert.NotEqual(0, returnCode);
         }
     }
 }
-
-/*
- Copyright 2014 Greg Najda
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/

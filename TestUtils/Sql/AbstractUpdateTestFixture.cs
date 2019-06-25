@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,7 +7,6 @@ using System.Text;
 
 namespace TestUtils.Sql
 {
-    [TestFixture]
     public abstract class AbstractUpdateTestFixture<THelper> : SqlBaseTestFixture<THelper>
         where THelper : SqlTestHelper, new()
     {
@@ -24,7 +23,7 @@ namespace TestUtils.Sql
             VerifyDatabase(AltTestDatabaseName, ExpectedRevision0People, null, ExpectedRevision0IsolationTestValues, expectedVersion: 0);
         }
 
-        [Test]
+        [Fact]
         public void BasicTest()
         {
             DropDatabase(TestDatabaseName);
@@ -33,7 +32,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedPeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [Fact]
         public void PartialUpdateTest()
         {
             DropDatabase(TestDatabaseName);
@@ -42,7 +41,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedRevision1People, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 1);
         }
 
-        [Test]
+        [Fact]
         public void UpdateNothingTest()
         {
             DropDatabase(TestDatabaseName);
@@ -52,7 +51,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedPeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [Fact]
         public void UpdateNothingTestWithExplicitRevision()
         {
             DropDatabase(TestDatabaseName);
@@ -62,7 +61,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedPeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [Fact]
         public void TestPartialUpdateWithTooHighRevision()
         {
             DropDatabase(TestDatabaseName);
@@ -71,7 +70,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedRevision0People, null, ExpectedRevision0IsolationTestValues, expectedVersion: 0);
         }
 
-        [Test]
+        [SkippableFact]
         public void BasicImportTest()
         {
             IgnoreIfImportNotSupported();
@@ -83,7 +82,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [SkippableFact]
         public void ImportOnlyTwoCollectionsTest()
         {
             IgnoreIfImportNotSupported();
@@ -95,7 +94,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [SkippableFact]
         public void ImportWithCustomSelectTest()
         {
             IgnoreIfCustomSelectImportNotSupported();
@@ -107,7 +106,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedSourcePeopleCustomSelect, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [SkippableFact]
         public void ImportWithOnlyNegationsTest()
         {
             IgnoreIfExtendedTableSpecsNotSupported();
@@ -119,7 +118,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedPeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [SkippableFact]
         public void ImportWithWildcardsAndNegationsTest()
         {
             IgnoreIfExtendedTableSpecsNotSupported();
@@ -131,7 +130,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedPeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [SkippableFact]
         public void TestTargetDb()
         {
             IgnoreIfImportNotSupported();
@@ -158,7 +157,7 @@ namespace TestUtils.Sql
             VerifyDatabase(AltTestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [Fact]
         public void TestErrorInScriptAborts()
         {
             DropDatabase(TestDatabaseName);
@@ -170,7 +169,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedRevision1People, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 1);
         }
 
-        [Test]
+        [SkippableFact]
         public void TestPartialUpdateWithImport()
         {
             IgnoreIfImportNotSupported();
@@ -182,7 +181,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [SkippableFact]
         public void TestPartialUpdateShortOfImport()
         {
             IgnoreIfImportNotSupported();
@@ -194,7 +193,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedRevision1People, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 1);
         }
 
-        [Test]
+        [SkippableFact]
         public void TestImportWhenAtSourceRevision()
         {
             IgnoreIfImportNotSupported();
@@ -206,7 +205,7 @@ namespace TestUtils.Sql
             VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
-        [Test]
+        [SkippableFact]
         public void TestUpdateContinuesAfterImport()
         {
             IgnoreIfImportNotSupported();
@@ -219,19 +218,3 @@ namespace TestUtils.Sql
         }
     }
 }
-
-/*
- Copyright 2014 Greg Najda
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/

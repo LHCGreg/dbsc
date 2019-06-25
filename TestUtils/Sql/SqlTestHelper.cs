@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -175,45 +175,29 @@ namespace TestUtils.Sql
                 List<Person> people = conn.Query<Person>("SELECT * FROM person").ToList();
                 List<script_isolation_test> isolationTest = conn.Query<script_isolation_test>("SELECT * FROM script_isolation_test").ToList();
 
-                Assert.That(people, Is.EquivalentTo(expectedPeople));
+                Assert.Equal(expectedPeople, people);
 
                 if (getExpectedBooks != null)
                 {
                     List<Book> books = conn.Query<Book>("SELECT * FROM book").ToList();
                     List<Book> expectedBooks = getExpectedBooks(people);
-                    Assert.That(books, Is.EquivalentTo(expectedBooks));
+                    Assert.Equal(expectedBooks, books);
                 }
 
-                Assert.That(isolationTest, Is.EquivalentTo(expectedIsolationTestValues));
+                Assert.Equal(expectedIsolationTestValues, isolationTest);
 
                 VerifyPersonNameIndexExists(conn);
 
                 string metadataQuerySql = @"SELECT * FROM dbsc_metadata";
                 Dictionary<string, string> metadata = conn.Query<dbsc_metadata>(metadataQuerySql)
                     .ToDictionary(md => md.property_name, md => md.property_value);
-                Assert.That(int.Parse(metadata["Version"]), Is.EqualTo(expectedVersion));
-                Assert.That(metadata["MasterDatabaseName"], Is.EqualTo(TestDatabaseName));
+                Assert.Equal(expectedVersion, int.Parse(metadata["Version"]));
+                Assert.Equal(TestDatabaseName, metadata["MasterDatabaseName"]);
 
                 DateTime lastChangeUtc = DateTime.ParseExact(metadata["LastChangeUTC"], "s", CultureInfo.InvariantCulture);
-                Assert.That(lastChangeUtc, Is.LessThan(DateTime.UtcNow + TimeSpan.FromMinutes(5)));
-                Assert.That(lastChangeUtc, Is.GreaterThan(DateTime.UtcNow - TimeSpan.FromMinutes(5)));
+                Assert.True(DateTime.UtcNow + TimeSpan.FromMinutes(5) > lastChangeUtc);
+                Assert.True(DateTime.UtcNow - TimeSpan.FromMinutes(5) < lastChangeUtc);
             }
         }
     }
 }
-
-/*
- Copyright 2014 Greg Najda
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/

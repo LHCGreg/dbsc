@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using NUnit.Framework;
+using Xunit;
 
 namespace TestUtils.Sql
 {
-    [TestFixture]
     public abstract class SqlBaseTestFixture<THelper>
         where THelper : SqlTestHelper, new()
     {
@@ -30,42 +29,27 @@ namespace TestUtils.Sql
 
         protected void IgnoreIfImportNotSupported()
         {
-            if (!ImportSupported)
-            {
-                Assert.Ignore("Import not supported.");
-            }
+            Skip.IfNot(ImportSupported, "Import not supported.");
         }
 
         protected void IgnoreIfCustomSelectImportNotSupported()
         {
-            if (!CustomSelectImportSupported)
-            {
-                Assert.Ignore("Custom select import not supported.");
-            }
+            Skip.IfNot(CustomSelectImportSupported, "Custom select import not supported.");
         }
 
         protected void IgnoreIfExtendedTableSpecsNotSupported()
         {
-            if (!ExtendedTableSpecsSupported)
-            {
-                Assert.Ignore("Extended table spec syntax not supported.");
-            }
+            Skip.IfNot(ExtendedTableSpecsSupported, "Extended table spec syntax not supported.");
         }
 
         protected void IgnoreIfTemplateNotSupported()
         {
-            if (!TemplateSupported)
-            {
-                Assert.Ignore("Creation template not supported.");
-            }
+            Skip.IfNot(TemplateSupported);
         }
 
         protected void IgnoreIfPortNotSupported()
         {
-            if (Port == null)
-            {
-                Assert.Ignore("Port not relevant for this DB engine.");
-            }
+            Skip.If(Port == null, "Port not relevant for this DB engine.");
         }
 
         protected string TestDatabaseName { get { return Helper.TestDatabaseName; } }
@@ -138,19 +122,3 @@ namespace TestUtils.Sql
         }
     }
 }
-
-/*
- Copyright 2014 Greg Najda
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
