@@ -12,6 +12,8 @@ namespace dbsc.Postgres.Integration
 {
     public class PgTestHelper : SqlTestHelper
     {
+        public override string DatabaseNameFromScripts { get { return "pgdbsc_test"; } }
+
         private string _testDatabaseHost;
         public override string TestDatabaseHost { get { return _testDatabaseHost; } }
 
@@ -48,7 +50,8 @@ namespace dbsc.Postgres.Integration
         private string _altSourceDatabaseName;
         public override string AltSourceDatabaseName { get { return _altSourceDatabaseName; } }
 
-        public override string DbscExeName { get { return "pgdbsc.exe"; } }
+        public override string DbscProjectName { get { return "pgdbsc"; } }
+        public override string DbscExeDllName { get { return "pgdbsc.dll"; } }
 
         public string IntegratedSecurityTargetDatabaseName { get { return "pgdbsc_integrated_security_test"; } }
         public string IntegratedSecurityPostgresUsername { get { return "dbsc_test_user_sspi"; } }
@@ -70,9 +73,9 @@ namespace dbsc.Postgres.Integration
             _altSourceDatabaseName = Environment.GetEnvironmentVariable("PGDBSC_INTEGRATION_TEST_SOURCE_DB2") ?? "pgdbsc_test_source_2";
         }
 
-        public override void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection)
+        public override void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnectionForDbName)
         {
-            using (IDbConnection conn = getDbConnection("postgres"))
+            using (IDbConnection conn = getDbConnectionForDbName("postgres"))
             {
                 conn.Execute(string.Format("DROP DATABASE IF EXISTS {0}", dbName));
             }
@@ -80,9 +83,9 @@ namespace dbsc.Postgres.Integration
 
         private const int ExpectedCreateTemplateConnLimit = 19;
 
-        public override void VerifyCreationTemplateRan(string dbName)
+        public override void VerifyCreationTemplateRan(string dbName, Func<string, IDbConnection> getDbConnectionForDbName)
         {
-            using (IDbConnection conn = GetDbConnection(dbName))
+            using (IDbConnection conn = getDbConnectionForDbName(dbName))
             {
                 string connLimitSql = string.Format(@"SELECT datconnlimit FROM pg_database WHERE datname = '{0}'",
                     dbName);
@@ -91,21 +94,22 @@ namespace dbsc.Postgres.Integration
             }
         }
 
-        private IDbConnection GetDbConnection(string dbName, bool useIntegratedSecurity)
+        public override IDbConnection GetDbConnection(string host, int port, string username, string password, string dbName)
         {
             NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder();
             builder.Database = dbName;
-            builder.Host = "localhost";
+            builder.Host = host;
+            builder.Port = port;
 
-            if (useIntegratedSecurity)
+            if (password == null)
             {
-                builder.Username = IntegratedSecurityPostgresUsername;
+                builder.Username = username;
                 builder.IntegratedSecurity = true;
             }
             else
             {
-                builder.Password = Password;
-                builder.Username = Username;
+                builder.Username = username;
+                builder.Password = password;
             }
 
             // Turn off connection pooling so that connections don't hang around preventing the database from being able to be dropped
@@ -116,16 +120,6 @@ namespace dbsc.Postgres.Integration
             NpgsqlConnection conn = new NpgsqlConnection(connectionString);
             conn.Open();
             return conn;
-        }
-
-        public override IDbConnection GetDbConnection(string dbName)
-        {
-            return GetDbConnection(dbName, useIntegratedSecurity: false);
-        }
-
-        public IDbConnection GetDbConnectionWithIntegratedSecurity(string dbName)
-        {
-            return GetDbConnection(dbName, useIntegratedSecurity: true);
         }
 
         public override void VerifyPersonNameIndexExists(IDbConnection conn)

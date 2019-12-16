@@ -8,7 +8,6 @@ namespace dbsc.Postgres.Integration
 {
     public class ShowRevisionTestFixture : AbstractShowRevisionTestFixture<PgTestHelper>
     {
-        protected override int? Port { get { return 5432; } }
         protected override bool ExtendedTableSpecsSupported { get { return true; } }
         protected override bool CustomSelectImportSupported { get { return true; } }
     }

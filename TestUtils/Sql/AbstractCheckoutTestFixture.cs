@@ -14,11 +14,11 @@ namespace TestUtils.Sql
         [Fact]
         public void BasicTest()
         {
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
             RunSuccessfulCommand(args);
-            VerifyDatabase(DatabaseNameFromScripts, ExpectedPeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedPeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
 
         [SkippableFact]
@@ -26,7 +26,7 @@ namespace TestUtils.Sql
         {
             IgnoreIfImportNotSupported();
 
-            DropDatabase(TestDatabaseName);
+            DropDatabase(IntegrationTestDbHost.Destination, TestDatabaseName);
 
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
@@ -34,7 +34,7 @@ namespace TestUtils.Sql
             args.AddRange(GetSourceArgs());
             args.AddRange(new List<string>() { "-sourceDb", SourceDatabaseName });
             RunSuccessfulCommand(args);
-            VerifyDatabase(TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(IntegrationTestDbHost.Destination, TestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         [SkippableFact]
@@ -42,7 +42,7 @@ namespace TestUtils.Sql
         {
             IgnoreIfImportNotSupported();
 
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
 
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
@@ -50,7 +50,7 @@ namespace TestUtils.Sql
             args.AddRange(new List<string>() { "-sourceDb", SourceDatabaseName });
             args.AddRange(new List<string>() { "-importTableList", "tables_to_import.txt" });
             RunSuccessfulCommand(args);
-            VerifyDatabase(DatabaseNameFromScripts, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
 
         [SkippableFact]
@@ -58,7 +58,7 @@ namespace TestUtils.Sql
         {
             IgnoreIfCustomSelectImportNotSupported();
 
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
 
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
@@ -66,7 +66,7 @@ namespace TestUtils.Sql
             args.AddRange(new List<string>() { "-sourceDb", SourceDatabaseName });
             args.AddRange(new List<string>() { "-importTableList", "tables_to_import_custom_select.txt" });
             RunSuccessfulCommand(args);
-            VerifyDatabase(DatabaseNameFromScripts, ExpectedSourcePeopleCustomSelect, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedSourcePeopleCustomSelect, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         [SkippableFact]
@@ -74,7 +74,7 @@ namespace TestUtils.Sql
         {
             IgnoreIfExtendedTableSpecsNotSupported();
 
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
 
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
@@ -82,7 +82,7 @@ namespace TestUtils.Sql
             args.AddRange(new List<string>() { "-sourceDb", SourceDatabaseName });
             args.AddRange(new List<string>() { "-importTableList", "tables_to_import_only_negations.txt" });
             RunSuccessfulCommand(args);
-            VerifyDatabase(DatabaseNameFromScripts, ExpectedPeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedPeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         [SkippableFact]
@@ -90,7 +90,7 @@ namespace TestUtils.Sql
         {
             IgnoreIfExtendedTableSpecsNotSupported();
 
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
 
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
@@ -98,7 +98,7 @@ namespace TestUtils.Sql
             args.AddRange(new List<string>() { "-sourceDb", SourceDatabaseName });
             args.AddRange(new List<string>() { "-importTableList", "tables_to_import_wildcards_and_negations.txt" });
             RunSuccessfulCommand(args);
-            VerifyDatabase(DatabaseNameFromScripts, ExpectedPeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedPeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         [SkippableFact]
@@ -106,8 +106,8 @@ namespace TestUtils.Sql
         {
             IgnoreIfImportNotSupported();
 
-            DropDatabase(TestDatabaseName);
-            DropDatabase(AltTestDatabaseName);
+            DropDatabase(IntegrationTestDbHost.Destination, TestDatabaseName);
+            DropDatabase(IntegrationTestDbHost.Destination, AltTestDatabaseName);
 
             // First get the source database into the the main test database
             List<string> checkout1Args = new List<string>() { "checkout" };
@@ -125,13 +125,13 @@ namespace TestUtils.Sql
             // Then import from the main test database into the alt test database
             RunSuccessfulCommand(checkout2Args);
 
-            VerifyDatabase(AltTestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(IntegrationTestDbHost.Destination, AltTestDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         [Fact]
         public void TestNonexistantTargetDbServer()
         {
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
             List<string> args = new List<string>() { "checkout", "-u", TestDatabaseUsername, "-p", TestDatabasePassword,
                 "-targetDbServer", "doesnotexist.local" };
 
@@ -143,7 +143,7 @@ namespace TestUtils.Sql
         {
             IgnoreIfPortNotSupported();
 
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
             List<string> args = new List<string>()
             {
                 "checkout",
@@ -161,7 +161,7 @@ namespace TestUtils.Sql
             IgnoreIfImportNotSupported();
             IgnoreIfPortNotSupported();
             
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
 
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
@@ -175,37 +175,37 @@ namespace TestUtils.Sql
         {
             IgnoreIfTemplateNotSupported();
 
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
 
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
             args.AddRange(new List<string>() { "-dbCreateTemplate", "creation_template.sql" });
 
             RunSuccessfulCommand(args);
-            VerifyCreationTemplateRan(DatabaseNameFromScripts);
-            VerifyDatabase(DatabaseNameFromScripts, ExpectedPeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyCreationTemplateRan(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedPeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
 
         [Fact]
         public void TestErrorInScriptAborts()
         {
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
             args.AddRange(new List<string>() { "-dir", "../error_test_scripts" });
             RunUnsuccessfulCommand(args);
-            VerifyDatabase(DatabaseNameFromScripts, ExpectedRevision1People, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 1);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedRevision1People, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 1);
         }
 
         [Fact]
         public void TestPartialCheckout()
         {
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
             args.AddRange(new List<string>() { "-r", "1" });
             RunSuccessfulCommand(args);
-            VerifyDatabase(DatabaseNameFromScripts, ExpectedRevision1People, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 1);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedRevision1People, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 1);
         }
 
         [SkippableFact]
@@ -213,14 +213,14 @@ namespace TestUtils.Sql
         {
             IgnoreIfImportNotSupported();
 
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
             args.AddRange(new List<string>() { "-r", "2" });
             args.AddRange(GetSourceArgs());
             args.AddRange(new List<string>() { "-sourceDb", SourceDatabaseName });
             RunSuccessfulCommand(args);
-            VerifyDatabase(DatabaseNameFromScripts, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 
         [SkippableFact]
@@ -228,7 +228,7 @@ namespace TestUtils.Sql
         {
             IgnoreIfImportNotSupported();
 
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
             args.AddRange(new List<string>() { "-r", "1" });
@@ -236,13 +236,13 @@ namespace TestUtils.Sql
             args.AddRange(new List<string>() { "-sourceDb", SourceDatabaseName });
 
             RunSuccessfulCommand(args);
-            VerifyDatabase(DatabaseNameFromScripts, ExpectedRevision1People, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 1);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedRevision1People, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 1);
         }
 
         [Fact]
         public void TestPartialCheckoutWithTooHighRevision()
         {
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
 
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
@@ -255,14 +255,14 @@ namespace TestUtils.Sql
         {
             IgnoreIfImportNotSupported();
 
-            DropDatabase(DatabaseNameFromScripts);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
 
             List<string> args = new List<string>() { "checkout" };
             args.AddRange(GetDestinationArgs());
             args.AddRange(GetSourceArgs());
             args.AddRange(new List<string>() { "-sourceDb", AltSourceDatabaseName });
             RunSuccessfulCommand(args);
-            VerifyDatabase(TestDatabaseName, ExpectedAltSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(IntegrationTestDbHost.Destination, TestDatabaseName, ExpectedAltSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
     }
 }

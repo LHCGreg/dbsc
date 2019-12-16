@@ -63,15 +63,15 @@ namespace TestUtils.Sql
         protected string AltTestDatabaseName { get { return Helper.AltTestDatabaseName; } }
 
         protected string SourceDatabaseHost { get { return Helper.SourceDatabaseHost; } }
-        protected string SourceDatabasePort { get { return Helper.SourceDatabasePort; } }
+        protected int SourceDatabasePort { get { return Helper.SourceDatabasePort; } }
         protected string SourceDatabaseUsername { get { return Helper.SourceDatabaseUsername; } }
         protected string SourceDatabasePassword { get { return Helper.SourceDatabasePassword; } }
         protected string SourceDatabaseName { get { return Helper.SourceDatabaseName; } }
         protected string AltSourceDatabaseName { get { return Helper.AltSourceDatabaseName; } }
 
-        protected string DbscExeName { get { return Helper.DbscExeName; } }
+        protected string DbscExeDllName { get { return Helper.DbscExeDllName; } }
 
-        protected string DbscExePath { get { return Helper.DbscExePath; } }
+        protected string DbscExeDllPath { get { return Helper.DbscExeDllPath; } }
         protected string ScriptsDir { get { return Helper.ScriptsDir; } }
 
         protected List<string> GetDestinationArgs()
@@ -107,24 +107,24 @@ namespace TestUtils.Sql
             };
         }
 
-        protected void DropDatabase(string dbName)
+        protected void DropDatabase(IntegrationTestDbHost host, string dbName)
         {
-            Helper.DropDatabase(dbName);
+            Helper.DropDatabase(host, dbName);
         }
 
-        protected void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection)
+        protected void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnectionForDbName)
         {
-            Helper.DropDatabase(dbName, getDbConnection);
+            Helper.DropDatabase(dbName, getDbConnectionForDbName);
         }
 
-        protected void VerifyCreationTemplateRan(string dbName)
+        protected void VerifyCreationTemplateRan(IntegrationTestDbHost host, string dbName)
         {
-            Helper.VerifyCreationTemplateRan(dbName);
+            Helper.VerifyCreationTemplateRan(dbName, databaseName => GetDbConnection(host, databaseName));
         }
 
-        protected IDbConnection GetDbConnection(string dbName)
+        protected IDbConnection GetDbConnection(IntegrationTestDbHost host, string dbName)
         {
-            return Helper.GetDbConnection(dbName);
+            return Helper.GetDbConnection(host, dbName);
         }
 
         protected void VerifyPersonNameIndexExists(IDbConnection conn)
@@ -153,16 +153,16 @@ namespace TestUtils.Sql
             Helper.RunUnsuccessfulCommand(arguments);
         }
 
-        protected void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
-            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
+        protected void VerifyDatabase(IntegrationTestDbHost host, string dbName, List<Person> expectedPeople,
+            Func<List<Person>, List<Book>> getExpectedBooks, List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
-            Helper.VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion);
+            Helper.VerifyDatabase(host, dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion);
         }
 
-        protected void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
-            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion, Func<string, IDbConnection> getDbConnection)
+        protected void VerifyDatabase(Func<IDbConnection> getDbConnection, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
+            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
-            Helper.VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion, getDbConnection);
+            Helper.VerifyDatabase(getDbConnection, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion);
         }
     }
 }

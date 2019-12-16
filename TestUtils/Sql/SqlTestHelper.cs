@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using Dapper;
 using System.Globalization;
+using FluentAssertions;
 
 namespace TestUtils.Sql
 {
@@ -29,15 +30,16 @@ namespace TestUtils.Sql
         public abstract string SourceDatabaseName { get; }
         public abstract string AltSourceDatabaseName { get; }
 
-        public abstract string DbscExeName { get; }
+        public abstract string DbscExeDllName { get; }
+        public abstract string DbscProjectName { get; }
 
-        public string DbscExePath { get; private set; }
+        public string DbscExeDllPath { get; private set; }
         public string ScriptsDir { get; private set; }
         public string ScriptsForOtherDBDir { get { return Path.Combine(ScriptsDir, "..", "scripts_for_other_db"); } }
 
-        public abstract void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection);
-        public abstract void VerifyCreationTemplateRan(string dbName);
-        // public abstract IDbConnection GetDbConnection(string dbName); // TODO: This needs to distinguish between source and destination!
+        public abstract void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnectionForDbName);
+        public abstract void VerifyCreationTemplateRan(string dbName, Func<string, IDbConnection> getDbConnectionForDbName);
+        public abstract IDbConnection GetDbConnection(string host, int port, string username, string password, string dbName);
         public abstract void VerifyPersonNameIndexExists(IDbConnection conn);
 
         public SqlTestHelper()
@@ -45,13 +47,34 @@ namespace TestUtils.Sql
             Uri thisAssemblyUri = new Uri(Assembly.GetExecutingAssembly().CodeBase);
             string thisAssemblyPath = thisAssemblyUri.LocalPath;
             string thisAssemblyDir = Path.GetDirectoryName(thisAssemblyPath);
-            DbscExePath = Path.Combine(thisAssemblyDir, DbscExeName);
+
+            // Pretty hacky...but can't just use the program dll that gets copied into the integration test project's bin folder.
+            // That might be built against a different version of the framework. Currently the integration test projects require
+            // .net core 3.0 for .net standard 2.1 support for ProcessStartInfo.ArgumentList, while the programs themselves only
+            // require .net core 2.0.
+            DbscExeDllPath = Path.Combine(thisAssemblyDir, "..", "..", "..", "..", DbscProjectName, "bin", "Debug", "netcoreapp2.0", DbscExeDllName);
             ScriptsDir = Path.Combine(thisAssemblyDir, "scripts");
         }
 
-        public void DropDatabase(string dbName)
+        public void DropDatabase(IntegrationTestDbHost host, string dbName)
         {
-            DropDatabase(dbName, databaseName => GetDbConnection(databaseName));
+            DropDatabase(dbName, (dbToConnectToForDrop) => GetDbConnection(host, dbToConnectToForDrop));
+        }
+
+        public IDbConnection GetDbConnection(IntegrationTestDbHost host, string dbName)
+        {
+            if (host == IntegrationTestDbHost.Destination)
+            {
+                return GetDbConnection(TestDatabaseHost, TestDatabasePort, TestDatabaseUsername, TestDatabasePassword, dbName);
+            }
+            else if (host == IntegrationTestDbHost.Source)
+            {
+                return GetDbConnection(SourceDatabaseHost, SourceDatabasePort, SourceDatabaseUsername, SourceDatabasePassword, dbName);
+            }
+            else
+            {
+                throw new Exception("oops, forgot to handle a db host.");
+            }
         }
 
         public List<Person> ExpectedPeople
@@ -153,48 +176,48 @@ namespace TestUtils.Sql
 
         public void RunSuccessfulCommand(IReadOnlyCollection<string> arguments)
         {
-            ProcessUtils.RunSuccessfulCommand(DbscExePath, arguments, ScriptsDir);
+            ProcessUtils.RunSuccessfulDbscCommand(DbscExeDllPath, arguments, ScriptsDir);
         }
 
         public void RunSuccessfulCommand(IReadOnlyCollection<string> arguments, out string stdout, out string stderr)
         {
-            ProcessUtils.RunSuccessfulCommand(DbscExePath, arguments, ScriptsDir, out stdout, out stderr);
+            ProcessUtils.RunSuccessfulDbscCommand(DbscExeDllPath, arguments, ScriptsDir, out stdout, out stderr);
         }
 
         public void RunUnsuccessfulCommand(IReadOnlyCollection<string> arguments)
         {
-            ProcessUtils.RunUnsuccessfulCommand(DbscExePath, arguments, ScriptsDir);
+            ProcessUtils.RunUnsuccessfulDbscCommand(DbscExeDllPath, arguments, ScriptsDir);
         }
 
         public void RunUnsuccessfulCommand(IReadOnlyCollection<string> arguments, out string stdout, out string stderr)
         {
-            ProcessUtils.RunUnsuccessfulCommand(DbscExePath, arguments, ScriptsDir, out stdout, out stderr);
+            ProcessUtils.RunUnsuccessfulDbscCommand(DbscExeDllPath, arguments, ScriptsDir, out stdout, out stderr);
         }
 
-        public void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
+        public void VerifyDatabase(IntegrationTestDbHost host, string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
             List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
-            VerifyDatabase(dbName, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion, GetDbConnection);
+            VerifyDatabase(() => GetDbConnection(host, dbName), expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion);
         }
 
-        public void VerifyDatabase(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
-            List<script_isolation_test> expectedIsolationTestValues, int expectedVersion, Func<string, IDbConnection> getDbConnection)
+        public void VerifyDatabase(Func<IDbConnection> getDbConnection, List<Person> expectedPeople, Func<List<Person>,
+            List<Book>> getExpectedBooks, List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
-            using (IDbConnection conn = getDbConnection(dbName))
+            using (IDbConnection conn = getDbConnection())
             {
                 List<Person> people = conn.Query<Person>("SELECT * FROM person").ToList();
                 List<script_isolation_test> isolationTest = conn.Query<script_isolation_test>("SELECT * FROM script_isolation_test").ToList();
 
-                Assert.Equal(expectedPeople, people);
+                people.Should().BeEquivalentTo(expectedPeople);
 
                 if (getExpectedBooks != null)
                 {
                     List<Book> books = conn.Query<Book>("SELECT * FROM book").ToList();
                     List<Book> expectedBooks = getExpectedBooks(people);
-                    Assert.Equal(expectedBooks, books);
+                    books.Should().BeEquivalentTo(expectedBooks);
                 }
 
-                Assert.Equal(expectedIsolationTestValues, isolationTest);
+                isolationTest.Should().BeEquivalentTo(expectedIsolationTestValues);
 
                 VerifyPersonNameIndexExists(conn);
 

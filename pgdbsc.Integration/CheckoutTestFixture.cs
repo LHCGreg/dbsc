@@ -5,6 +5,7 @@ using System.Text;
 using TestUtils.Sql;
 using dbsc.Core;
 using Xunit;
+using System.Data;
 
 namespace dbsc.Postgres.Integration
 {
@@ -29,14 +30,16 @@ namespace dbsc.Postgres.Integration
 
         private void DropDatabaseWithIntegratedSecurity(string dbName)
         {
-            DropDatabase(dbName, databaseName => Helper.GetDbConnectionWithIntegratedSecurity(databaseName));
+            Func<string, IDbConnection> getDbConnectionWithIntegratedSecurity = databaseName => Helper.GetDbConnection(TestDatabaseHost, TestDatabasePort, TestDatabaseUsername, password: null, dbName: databaseName);
+            DropDatabase(dbName, getDbConnectionWithIntegratedSecurity);
         }
 
         private void VerifyDatabaseWithIntegratedSecurity(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
             List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
-            VerifyDatabase(dbName, expectedPeople, getExpectedBooks,
-                expectedIsolationTestValues, expectedVersion, databaseName => Helper.GetDbConnectionWithIntegratedSecurity(databaseName));
+            Func<IDbConnection> getDbConnectionWithIntegratedSecurity = () => Helper.GetDbConnection(TestDatabaseHost, TestDatabasePort, TestDatabaseUsername, password: null, dbName: dbName);
+            VerifyDatabase(getDbConnectionWithIntegratedSecurity, expectedPeople, getExpectedBooks,
+                expectedIsolationTestValues, expectedVersion);
         }
     }
 }

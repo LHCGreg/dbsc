@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using dbsc.Core;
@@ -10,7 +11,6 @@ namespace dbsc.Postgres.Integration
 {
     public class UpdateTestFixture : AbstractUpdateTestFixture<PgTestHelper>
     {
-        protected override int? Port { get { return 5432; } }
         protected override bool ExtendedTableSpecsSupported { get { return true; } }
         protected override bool CustomSelectImportSupported { get { return true; } }
 
@@ -21,27 +21,55 @@ namespace dbsc.Postgres.Integration
             
             DropDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName);
             CheckoutZeroWithIntegratedSecurity();
-            RunSuccessfulCommand(string.Format("update -targetDb {0} -u {1} -SSPI -sourceDbServer localhost -sourceDb {2} -sourceUsername {1} -sourceSSPI ",
-                Helper.IntegratedSecurityTargetDatabaseName, Helper.IntegratedSecurityPostgresUsername, SourceDatabaseName));
+
+            List<string> args = new List<string>() { "update" };
+            args.AddRange(GetDestinationArgsWithIntegratedSecurity());
+            args.AddRange(GetSourceArgsWithIntegratedSecurity());
+
+            RunSuccessfulCommand(args);
             VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
+        }
+
+        private List<string> GetDestinationArgsWithIntegratedSecurity()
+        {
+            List<string> args = GetDestinationArgs();
+            int indexOfPasswordArg = args.IndexOf("-p");
+            args.RemoveAt(indexOfPasswordArg + 1);
+            args.RemoveAt(indexOfPasswordArg);
+            args.Add("-SSPI");
+            return args;
+        }
+
+        private List<string> GetSourceArgsWithIntegratedSecurity()
+        {
+            List<string> args = GetSourceArgs();
+            int indexOfSourcePasswordArg = args.IndexOf("-sourceDbPassword");
+            args.RemoveAt(indexOfSourcePasswordArg + 1);
+            args.RemoveAt(indexOfSourcePasswordArg);
+            args.Add("-sourceSSPI");
+            return args;
         }
 
         private void CheckoutZeroWithIntegratedSecurity()
         {
-            RunSuccessfulCommand(string.Format("checkout -r 0 -targetDb {0} -u {1} -SSPI", Helper.IntegratedSecurityTargetDatabaseName, Helper.IntegratedSecurityPostgresUsername));
+            List<string> args = new List<string>() { "checkout" };
+            args.AddRange(GetDestinationArgsWithIntegratedSecurity());
+            args.AddRange(new List<string>() { "-r", "0" });
+            RunSuccessfulCommand(args);
             VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedRevision0People, null, ExpectedRevision0IsolationTestValues, expectedVersion: 0);
         }
 
         private void VerifyDatabaseWithIntegratedSecurity(string dbName, List<Person> expectedPeople, Func<List<Person>, List<Book>> getExpectedBooks,
             List<script_isolation_test> expectedIsolationTestValues, int expectedVersion)
         {
-            VerifyDatabase(dbName, expectedPeople, getExpectedBooks,
-                expectedIsolationTestValues, expectedVersion, databaseName => Helper.GetDbConnectionWithIntegratedSecurity(databaseName));
+            Func<IDbConnection> getDbConnectionWithIntegratedSecurity = () => Helper.GetDbConnection(TestDatabaseHost, TestDatabasePort, TestDatabaseUsername, password: null, dbName: dbName);
+            VerifyDatabase(getDbConnectionWithIntegratedSecurity, expectedPeople, getExpectedBooks, expectedIsolationTestValues, expectedVersion);
         }
 
         private void DropDatabaseWithIntegratedSecurity(string dbName)
         {
-            DropDatabase(dbName, databaseName => Helper.GetDbConnectionWithIntegratedSecurity(databaseName));
+            Func<string, IDbConnection> getDbConnectionWithIntegratedSecurity = databaseName => Helper.GetDbConnection(TestDatabaseHost, TestDatabasePort, TestDatabaseUsername, password: null, dbName: databaseName);
+            DropDatabase(dbName, getDbConnectionWithIntegratedSecurity);
         }
     }
 }
