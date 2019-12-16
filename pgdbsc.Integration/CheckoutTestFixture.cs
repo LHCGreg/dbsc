@@ -1,30 +1,29 @@
-﻿using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TestUtils.Sql;
 using dbsc.Core;
+using Xunit;
 
 namespace dbsc.Postgres.Integration
 {
-    [TestFixture]
-    class CheckoutTestFixture : AbstractCheckoutTestFixture<PgTestHelper>
+    public class CheckoutTestFixture : AbstractCheckoutTestFixture<PgTestHelper>
     {
-        protected override int? Port { get { return 5432; } }
         protected override bool ExtendedTableSpecsSupported { get { return true; } }
         protected override bool CustomSelectImportSupported { get { return true; } }
 
-        [Test]
+        [Fact]
         public void TestIntegratedSecurity()
         {
-            if (!Utils.RunningOnWindows())
-            {
-                Assert.Ignore("Not running on Windows, skipping integrated security test.");
-            }
+            Skip.IfNot(Utils.RunningOnWindows(), "Not running on Windows, skipping integrated security test.");
             DropDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName);
-            RunSuccessfulCommand(string.Format("checkout -targetDb {0} -sourceDbServer localhost -sourceDb {1} -u {2} -SSPI -sourceUsername {2} -sourceSSPI",
-                Helper.IntegratedSecurityTargetDatabaseName, SourceDatabaseName, Helper.IntegratedSecurityPostgresUsername));
+
+            List<string> args = new List<string>() { "checkout", "-targetDbServer", Helper.TestDatabaseHost,
+                "-targetDb", Helper.IntegratedSecurityTargetDatabaseName, "-sourceDbServer", Helper.SourceDatabaseHost,
+                "-sourceDb", SourceDatabaseName, "-u", Helper.IntegratedSecurityPostgresUsername, "-SSPI",
+                "-sourceUsername", Helper.IntegratedSecurityPostgresUsername, "-sourceSSPI" };
+            RunSuccessfulCommand(args);
             VerifyDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName, ExpectedSourcePeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }
 

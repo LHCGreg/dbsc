@@ -1,0 +1,33 @@
+﻿version: '3.7'
+services:
+  pgdbsc_integration_test_destination_db:
+    build:
+      context: ./destination_db
+    environment:
+      POSTGRES_PASSWORD: postgres_password
+      PGDATA: /data
+    ports:
+      - target: 5432
+        published: 8610
+        protocol: tcp
+        mode: host
+    volumes:
+      - type: volume
+        source: pgdbsc_integration_test_destination_db
+        target: /data
+  pgdbsc_integratio_test_source_db:
+    build:
+      context: ./source_db
+    environment:
+      POSTGRES_PASSWORD: postgres_password
+      PGDATA: /data
+    ports:
+      - target: 5432
+        published: 8611
+    volumes:
+      - type: volume
+        source: pgdbsc_integration_test_source_db
+        target: /data
+volumes:
+  pgdbsc_integration_test_destination_db:
+  pgdbsc_integration_test_source_db:

@@ -1,27 +1,23 @@
-﻿using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using dbsc.Core;
 using TestUtils.Sql;
+using Xunit;
 
 namespace dbsc.Postgres.Integration
 {
-    [TestFixture]
-    class UpdateTestFixture : AbstractUpdateTestFixture<PgTestHelper>
+    public class UpdateTestFixture : AbstractUpdateTestFixture<PgTestHelper>
     {
         protected override int? Port { get { return 5432; } }
         protected override bool ExtendedTableSpecsSupported { get { return true; } }
         protected override bool CustomSelectImportSupported { get { return true; } }
 
-        [Test]
+        [Fact]
         public void TestIntegratedSecurity()
         {
-            if (!Utils.RunningOnWindows())
-            {
-                Assert.Ignore("Not running on Windows, skipping integrated security test.");
-            }
+            Skip.IfNot(Utils.RunningOnWindows(), "Not running on Windows, skipping integrated security test.");
             
             DropDatabaseWithIntegratedSecurity(Helper.IntegratedSecurityTargetDatabaseName);
             CheckoutZeroWithIntegratedSecurity();

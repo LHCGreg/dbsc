@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NUnit.Framework;
 using TestUtils.Sql;
 
 namespace dbsc.Postgres.Integration
 {
-    [TestFixture]
-    class ShowRevisionTestFixture : AbstractShowRevisionTestFixture<PgTestHelper>
+    public class ShowRevisionTestFixture : AbstractShowRevisionTestFixture<PgTestHelper>
     {
         protected override int? Port { get { return 5432; } }
         protected override bool ExtendedTableSpecsSupported { get { return true; } }

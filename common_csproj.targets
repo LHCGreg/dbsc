@@ -4,7 +4,7 @@
   <Import Project="$(MSBuildThisFileDirectory)common.targets"/>
 
   <!-- The default clean only removes files from the bin folder that it knows about. Make sure a clean totally cleans the bin folder.-->
-  <PropertyGroup>
+  <!-- <PropertyGroup>
     <CleanDependsOn>
       $(CleanDependsOn);
       ReallyCleanBinDir
@@ -13,19 +13,19 @@
 
   <Target Name="ReallyCleanBinDir">
     <RemoveDir Directories="$(OutputPath)" Condition="Exists('$(OutputPath)')" />
-  </Target>
+  </Target> -->
 
   <!-- Can't do up-to-date checking of creating the dynamic assembly info file until SetVersionProperties has run -->
-  <Target Name="CreateDynamicAssemblyInfo" DependsOnTargets="SetVersionProperties;_CreateDynamicAssemblyInfo">
+  <!-- <Target Name="CreateDynamicAssemblyInfo" DependsOnTargets="SetVersionProperties;_CreateDynamicAssemblyInfo">
 
   </Target>
 
   <Target Name="_CreateDynamicAssemblyInfo" Inputs="$(MSBuildThisFileFullPath)" Outputs="Properties\AssemblyInfo_$(Version).cs">
     <MSBuild.Community.Tasks.AssemblyInfo CodeLanguage="CS" OutputFile="Properties\AssemblyInfo_$(Version).cs"
-                  AssemblyVersion="$(Version)" AssemblyFileVersion="$(Version)" />
+                  AssemblyVersion="$(Version)" AssemblyFileVersion="$(Version)" /> -->
 
     <!-- Don't use an <ItemGroup> because mono's xbuild doesn't support dynamic items. -->
-    <CreateItem Include="Properties\AssemblyInfo_$(Version).cs">
+    <!-- <CreateItem Include="Properties\AssemblyInfo_$(Version).cs">
       <Output TaskParameter="Include" ItemName="Compile"/>
     </CreateItem>
   </Target>
@@ -50,9 +50,43 @@
       $(CleanDependsOn);
       CleanDynamicAssemblyInfo
     </CleanDependsOn>
-  </PropertyGroup>
+  </PropertyGroup> -->
+  
+  <!-- For producing zip releases -->
+  <!--<ItemGroup>
+    <PackageReference Include="Packaging.Targets" Version="0.1.155" />
+    <DotNetCliToolReference Include="dotnet-zip" Version="0.1.155" />
+  </ItemGroup>-->
+  
+  <!-- 
+  <ItemGroup>
+    <PackageReference Include="GitVersionTask" Version="4.0.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  -->
+  
+  <!-- Create a .zip of the built project.
+       
+       Input:
+       [property] ZipNameWithoutVersion - File name to create the .zip as, without a version number or .zip extension.
+                                          The resulting file will be named <ZipNameWithoutVersion>_<Version>.zip
+       [property] Version - Version number to put in the zip file name.
+  -->
+  <!-- <Target Name="BuildZipPackage" DependsOnTargets="_CheckZipProperties;Build">
+    <RemoveDir Directories="ZipReleases/Staging/$(ZipNameWithoutVersion)_$(Version)" Condition="Exists('ZipReleases/Staging/$(ZipNameWithoutVersion)_$(Version)')" />
 
-  <Target Name="BuildZipPackage" DependsOnTargets="_CheckZipProperties;SetVersionProperties;Build">
+    <CreateItem Include="$(OutputPath)/**/*" Exclude="**/*.pdb;**/*.mdb;**/*.xml;**/*vshost.exe*">
+      <Output TaskParameter="Include" ItemName="BuildOutput" />
+    </CreateItem>
+
+    <Copy SourceFiles="@(BuildOutput)" DestinationFolder="ZipReleases/Staging/$(ZipNameWithoutVersion)_$(Version)/%(RecursiveDir)" />
+    <MSBuild.ExtensionPack.Compression.Zip TaskAction="Create" ZipFileName="$(ZipNameWithoutVersion)_$(Version).zip" CompressPath="ZipReleases/Staging/$(ZipNameWithoutVersion)_$(Version)" />
+    <Move SourceFiles="$(ZipNameWithoutVersion)_$(Version).zip" DestinationFolder="ZipReleases" />
+    <RemoveDir Directories="ZipReleases/Staging" Condition="Exists('ZipReleases/Staging')" />
+  </Target> -->
+
+  <!-- <Target Name="BuildZipPackage" DependsOnTargets="_CheckZipProperties;SetVersionProperties;Build">
     <RemoveDir Directories="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)" Condition="Exists('ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)')" />
 
     <CreateItem Include="bin\$(Configuration)_$(Platform)\**\*" Exclude="**\*.pdb;**\*.mdb;**\*.xml;**\*vshost.exe*">
@@ -63,22 +97,23 @@
     <MSBuild.ExtensionPack.Compression.Zip TaskAction="Create" ZipFileName="$(ZipNameWithoutVersion)_$(Version).zip" CompressPath="ZipReleases\Staging\$(ZipNameWithoutVersion)_$(Version)" />
     <Move SourceFiles="$(ZipNameWithoutVersion)_$(Version).zip" DestinationFolder="ZipReleases" />
     <RemoveDir Directories="ZipReleases\Staging" Condition="Exists('ZipReleases\Staging')" />
-  </Target>
+  </Target> -->
 
-  <Target Name="_CheckZipProperties">
-    <Error Condition="'$(ZipNameWithoutVersion)' == ''" Text="ZipNameWithoutVersion not set" />
-  </Target>
+  <!-- <Target Name="_CheckZipProperties">
+    <Error Condition="'$(ZipNameWithoutVersion)' == ''" Text="ZipNameWithoutVersion not set." />
+    <Error Condition="'$(Version)' == ''" Text="Version not set." />
+  </Target> -->
 
-  <Target Name="CleanZipReleases">
+  <!-- <Target Name="CleanZipReleases">
     <RemoveDir Directories="ZipReleases" Condition="Exists('ZipReleases')" />
-  </Target>
+  </Target> -->
 
-  <PropertyGroup>
+  <!-- <PropertyGroup>
     <CleanDependsOn>
       $(CleanDependsOn);
       CleanZipReleases
     </CleanDependsOn>
-  </PropertyGroup>
+  </PropertyGroup> -->
 
   <PropertyGroup>
     <PackageMaintainer>Greg Najda &lt;gregnajda@gmail.com&gt;</PackageMaintainer>

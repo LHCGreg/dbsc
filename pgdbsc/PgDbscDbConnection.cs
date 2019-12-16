@@ -7,20 +7,20 @@ using Dapper;
 using dbsc.Core;
 using dbsc.Core.Sql;
 using System.Globalization;
+using System.IO;
 
 namespace dbsc.Postgres
 {
     class PgDbscDbConnection : BaseDbscDbConnection<NpgsqlConnection, NpgsqlTransaction>
     {
         public int ScriptTimeoutInSeconds { get; private set; }
-        public int ImportTableTimeoutInSeconds { get; private set; }
-        
+
         public PgDbscDbConnection(DbConnectionInfo connectionInfo)
             : base(OpenConnection(connectionInfo))
         {
             ScriptTimeoutInSeconds = connectionInfo.ScriptTimeoutInSeconds;
             CommandTimeoutInSeconds = connectionInfo.CommandTimeoutInSeconds;
-            ImportTableTimeoutInSeconds = connectionInfo.ImportTableTimeoutInSeconds;
+            // It seems there is now no way to set a timeout on the COPY command so ImportTimeoutInSeconds is not used.
         }
 
         private static NpgsqlConnection OpenConnection(DbConnectionInfo connectionInfo)
@@ -48,10 +48,7 @@ namespace dbsc.Postgres
                 builder.Port = connectionInfo.Port.Value;
             }
 
-            // Do not set this to true! Imports get weird threading issues if you do - probably a bug in Npgsql
-            builder.SyncNotification = false;
-
-            builder.UserName = connectionInfo.Username;
+            builder.Username = connectionInfo.Username;
 
             if (connectionInfo.UseIntegratedSecurity)
             {
@@ -65,91 +62,58 @@ namespace dbsc.Postgres
             string connectionString = builder.ToString();
             return connectionString;
         }
-        
+
         public override void ExecuteSqlScript(string sql)
         {
             Connection.Notice += OnNotice;
-            Connection.Notification += OnNotification; // When is this fired?
             try
             {
                 Connection.Execute(sql, commandTimeout: ScriptTimeoutInSeconds);
             }
-            catch (NpgsqlException ex)
+            catch (PostgresException ex)
             {
                 // DbscExceptions show error message as is when caught at the top layer
-                string message = NpgsqlExceptionToErrorMessage(ex, sql);
+                string message = NpgsqlExceptionToErrorMessage(ex);
                 throw new DbscException(message, ex);
             }
             finally
             {
                 Connection.Notice -= OnNotice;
-                Connection.Notification -= OnNotification;
             }
         }
 
-        private static string NpgsqlExceptionToErrorMessage(NpgsqlException ex, string script)
+        private static string NpgsqlExceptionToErrorMessage(PostgresException ex)
         {
             // DON'T THROW FROM HERE
-            long? lineNumber = null;
-            if (!string.IsNullOrEmpty(ex.Position))
-            {
-                int position;
-                if (int.TryParse(ex.Position, System.Globalization.NumberStyles.None, CultureInfo.InvariantCulture, out position))
-                {
-                    lineNumber = Position2LineNumber(script, position);
-                }
-            }
-
             string lineNumberText = "";
-            if(lineNumber != null)
+            if (ex.Line != null)
             {
-                lineNumberText = " on line " + lineNumber.Value.ToString();
+                lineNumberText = " on line " + ex.Line;
             }
 
             string detailText = "";
-            if(!string.IsNullOrEmpty(ex.Detail))
+            if (!string.IsNullOrEmpty(ex.Detail))
             {
                 detailText = ". " + ex.Detail;
             }
 
-            string errorMessage = string.Format("Error{0}: {1}{2}", lineNumberText, ex.BaseMessage, detailText);
+            string errorMessage = string.Format("Error{0}: {1}{2}", lineNumberText, ex.MessageText, detailText);
             return errorMessage;
-        }
-
-        private static int Position2LineNumber(string script, int position)
-        {
-            // http://www.postgresql.org/docs/9.3/static/protocol-error-fields.html
-            // the field value is a decimal ASCII integer, indicating an error cursor position as an index into the original query string. The first character has index 1, and positions are measured in characters not bytes.
-
-            int lineNumber = 1;
-            for (int i = 1; i <= position && i - 1 < script.Length; i++)
-            {
-                if (script[i - 1] == '\n')
-                {
-                    lineNumber++;
-                }
-            }
-            return lineNumber;
-        }
-
-        private void OnNotification(object sender, NpgsqlNotificationEventArgs e)
-        {
-            Console.WriteLine("NOTIFICATION: {0}", e.Condition);
         }
 
         private void OnNotice(object sender, NpgsqlNoticeEventArgs e)
         {
             if (!NoticeIsNoise(e))
             {
-                Console.WriteLine("{0}: {1}", e.Notice.Severity, e.Notice.Message);
+                Console.WriteLine("{0}: {1}", e.Notice.Severity, e.Notice.MessageText);
             }
         }
 
         private bool NoticeIsNoise(NpgsqlNoticeEventArgs e)
         {
             // Npgsql does not seem to actually return any sort of message number, so go by message text.
-            return e.Notice.Message.Contains("CREATE TABLE will create implicit sequence")
-                || e.Notice.Message.Contains("CREATE TABLE / PRIMARY KEY will create implicit index");
+            return e.Notice.MessageText.Contains("CREATE TABLE will create implicit sequence")
+                || e.Notice.MessageText.Contains("CREATE TABLE / PRIMARY KEY will create implicit index");
         }
 
         public NpgsqlTransaction BeginTransaction()
@@ -191,27 +155,21 @@ AND table_name <> 'dbsc_metadata'";
         /// <param name="sourceConn"></param>
         /// <param name="sourceDbTransaction">Required.</param>
         /// <param name="targetDbTransaction">Required.</param>
-        public void ImportTable(PgDbscDbConnection sourceConn, PgTable table, string select, NpgsqlTransaction targetDbTransaction, NpgsqlTransaction sourceDbTransaction)
+        public void ImportTable(PgDbscDbConnection sourceConn, PgTable table, string select)
         {
             string copyOutSql = string.Format("COPY ({0}) TO STDOUT WITH (FORMAT 'text', ENCODING 'utf-8')", select);
-            NpgsqlCommand copyOutCommand = new NpgsqlCommand(copyOutSql, sourceConn.Connection, sourceDbTransaction);
-            copyOutCommand.CommandTimeout = ImportTableTimeoutInSeconds;
-            NpgsqlCopyOut source = new NpgsqlCopyOut(copyOutCommand, sourceConn.Connection);
-            source.Start();
+            string copyInSql = string.Format("COPY {0} FROM STDIN WITH (FORMAT 'text', ENCODING 'utf-8')", table);
 
-            NpgsqlCommand targetCmd = new NpgsqlCommand();
-            targetCmd.CommandText = string.Format("COPY {0} FROM STDIN WITH (FORMAT 'text', ENCODING 'utf-8')", table);
-            targetCmd.Connection = this.Connection;
-            targetCmd.Transaction = targetDbTransaction;
-            targetCmd.CommandTimeout = ImportTableTimeoutInSeconds;
-
-            NpgsqlCopyIn target = new NpgsqlCopyIn(targetCmd, this.Connection);
-            target.Start();
-
-            source.CopyStream.CopyTo(target.CopyStream);
-
-            target.End();
-            source.End();
+            using (TextReader sourceReader = sourceConn.Connection.BeginTextExport(copyOutSql))
+            using (TextWriter destinationWriter = this.Connection.BeginTextImport(copyInSql))
+            {
+                string line;
+                while ((line = sourceReader.ReadLine()) != null)
+                {
+                    destinationWriter.Write(line);
+                    destinationWriter.Write("\n");
+                }
+            }
         }
     }
 }

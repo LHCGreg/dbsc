@@ -10,7 +10,7 @@ namespace TestUtils
 {
     public static class ProcessUtils
     {
-        public static int RunCommand(string exePath, string arguments, string workingDirectory)
+        public static int RunCommand(string exePath, IReadOnlyCollection<string> arguments, string workingDirectory)
         {
             string stdout;
             string stderr;
@@ -23,19 +23,16 @@ namespace TestUtils
         /// <param name="exePath"></param>
         /// <param name="arguments"></param>
         /// <returns>The return code of the process</returns>
-        public static int RunCommand(string exePath, string arguments, string workingDirectory, out string stdout, out string stderr)
+        public static int RunCommand(string exePath, IReadOnlyCollection<string> arguments, string workingDirectory, out string stdout, out string stderr)
         {
             using (Process dbsc = new Process())
             {
-                if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
+                dbsc.StartInfo.FileName = "dotnet";
+                dbsc.StartInfo.ArgumentList.Add(exePath);
+                dbsc.StartInfo.ArgumentList.Add("--");
+                foreach (string arg in arguments)
                 {
-                    dbsc.StartInfo.FileName = "mono";
-                    dbsc.StartInfo.Arguments = exePath + " " + arguments;
-                }
-                else
-                {
-                    dbsc.StartInfo.FileName = exePath;
-                    dbsc.StartInfo.Arguments = arguments;
+                    dbsc.StartInfo.ArgumentList.Add(arg);
                 }
 
                 dbsc.StartInfo.RedirectStandardOutput = true;
@@ -62,25 +59,25 @@ namespace TestUtils
             }
         }
 
-        public static void RunSuccessfulCommand(string exePath, string arguments, string workingDirectory)
+        public static void RunSuccessfulCommand(string exePath, IReadOnlyCollection<string> arguments, string workingDirectory)
         {
             int returnCode = RunCommand(exePath, arguments, workingDirectory);
             Assert.Equal(0, returnCode);
         }
 
-        public static void RunSuccessfulCommand(string exePath, string arguments, string workingDirectory, out string stdout, out string stderr)
+        public static void RunSuccessfulCommand(string exePath, IReadOnlyCollection<string> arguments, string workingDirectory, out string stdout, out string stderr)
         {
             int returnCode = RunCommand(exePath, arguments, workingDirectory, out stdout, out stderr);
             Assert.Equal(0, returnCode);
         }
 
-        public static void RunUnsuccessfulCommand(string exePath, string arguments, string workingDirectory)
+        public static void RunUnsuccessfulCommand(string exePath, IReadOnlyCollection<string> arguments, string workingDirectory)
         {
             int returnCode = RunCommand(exePath, arguments, workingDirectory);
             Assert.NotEqual(0, returnCode);
         }
 
-        public static void RunUnsuccessfulCommand(string exePath, string arguments, string workingDirectory, out string stdout, out string stderr)
+        public static void RunUnsuccessfulCommand(string exePath, IReadOnlyCollection<string> arguments, string workingDirectory, out string stdout, out string stderr)
         {
             int returnCode = RunCommand(exePath, arguments, workingDirectory, out stdout, out stderr);
             Assert.NotEqual(0, returnCode);

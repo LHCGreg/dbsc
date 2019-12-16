@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <MajorVersion>2</MajorVersion>
+    <!-- <MajorVersion>2</MajorVersion>
     <MinorVersion>2</MinorVersion>
     <FixVersion>0</FixVersion>
-    <BuildVersion>0</BuildVersion>
-    <ZipNameWithoutVersion>DBSC for PostgreSQL</ZipNameWithoutVersion>
+    <BuildVersion>0</BuildVersion>-->
+    <ZipNameWithoutVersion>DBSC_for_PostgreSQL</ZipNameWithoutVersion>
     <DebianPackageName>pgdbsc</DebianPackageName>
     <DebianDependencyFpmFlags>-d 'mono-runtime (>= 2.10.8.1)' -d 'libmono-corlib4.0-cil (>= 2.10.8.1)' -d 'libmono-system4.0-cil (>= 2.10.8.1)' -d 'libmono-system-core4.0-cil (>= 2.10.8.1)' -d 'libmono-microsoft-csharp4.0-cil (>= 2.10.8.1)' -d 'libmono-system-data4.0-cil (>= 2.10.8.1)' -d 'libmono-system-transactions4.0-cil (>= 2.10.8.1)' -d 'libmono-security4.0-cil (>= 2.10.8.1)' -d 'libmono-system-ldap4.0-cil (>= 2.10.8.1)'</DebianDependencyFpmFlags>
     <RpmPackageName>pgdbsc</RpmPackageName>
@@ -22,17 +22,17 @@
     <RpmCopyrightFile>..\linux_common\apache\copyright</RpmCopyrightFile>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <!-- <PropertyGroup>
     <BuildDependsOn>
       $(BuildDependsOn);
       RemoveMonoSecurity
     </BuildDependsOn>
-  </PropertyGroup>
+  </PropertyGroup> -->
 
   <!-- Mono builds should use the system Mono.Security instead of the one that comes with npgsql. But mono insists on copying
   the Mono.Security dll from the npgsql package folder even if the pgdbsc.csproj does not reference Mono.Security at all,
   simply because npgsql references it and it is there. So remove the dll after the build. -->
-  <Target Name="RemoveMonoSecurity">
+  <!-- <Target Name="RemoveMonoSecurity">
     <Delete Condition="'$(OS)' != 'Windows_NT'" Files="$(OutputPath)Mono.Security.dll" />
-  </Target>
+  </Target> -->
 </Project>

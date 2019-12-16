@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -12,7 +13,7 @@ namespace TestUtils.Sql
     {
         protected THelper Helper { get; private set; }
 
-        protected abstract int? Port { get; }
+        protected virtual bool PortsSupported { get { return true; } }
         protected virtual bool ImportSupported { get { return true; } }
         protected virtual bool TemplateSupported { get { return true; } }
         protected abstract bool CustomSelectImportSupported { get; }
@@ -49,19 +50,62 @@ namespace TestUtils.Sql
 
         protected void IgnoreIfPortNotSupported()
         {
-            Skip.If(Port == null, "Port not relevant for this DB engine.");
+            Skip.If(!PortsSupported, "Port not relevant for this DB engine.");
         }
 
+        protected string DatabaseNameFromScripts { get { return Helper.DatabaseNameFromScripts; } }
+        
+        protected string TestDatabaseHost { get { return Helper.TestDatabaseHost; } }
+        protected int TestDatabasePort { get { return Helper.TestDatabasePort; } }
+        protected string TestDatabaseUsername { get { return Helper.TestDatabaseUsername; } }
+        protected string TestDatabasePassword { get { return Helper.TestDatabasePassword; } }
         protected string TestDatabaseName { get { return Helper.TestDatabaseName; } }
         protected string AltTestDatabaseName { get { return Helper.AltTestDatabaseName; } }
+
+        protected string SourceDatabaseHost { get { return Helper.SourceDatabaseHost; } }
+        protected string SourceDatabasePort { get { return Helper.SourceDatabasePort; } }
+        protected string SourceDatabaseUsername { get { return Helper.SourceDatabaseUsername; } }
+        protected string SourceDatabasePassword { get { return Helper.SourceDatabasePassword; } }
         protected string SourceDatabaseName { get { return Helper.SourceDatabaseName; } }
         protected string AltSourceDatabaseName { get { return Helper.AltSourceDatabaseName; } }
-        protected string Username { get { return Helper.Username; } }
-        protected string Password { get { return Helper.Password; } }
+
         protected string DbscExeName { get { return Helper.DbscExeName; } }
 
         protected string DbscExePath { get { return Helper.DbscExePath; } }
         protected string ScriptsDir { get { return Helper.ScriptsDir; } }
+
+        protected List<string> GetDestinationArgs()
+        {
+            return new List<string>()
+            {
+                "-targetDbServer", TestDatabaseHost,
+                "-targetDbPort", TestDatabasePort.ToString(CultureInfo.InvariantCulture),
+                "-u", TestDatabaseUsername,
+                "-p", TestDatabasePassword
+            };
+        }
+
+        protected List<string> GetSourceArgs()
+        {
+            return new List<string>()
+            {
+                "-sourceDbServer", SourceDatabaseHost,
+                "-sourceDbPort", SourceDatabasePort.ToString(CultureInfo.InvariantCulture),
+                "-sourceDbUsername", SourceDatabaseUsername,
+                "-sourceDbPassword", SourceDatabasePassword
+            };
+        }
+
+        protected List<string> GetDestinationAsSourceArgs()
+        {
+            return new List<string>()
+            {
+                "-sourceDbServer", TestDatabaseHost,
+                "-sourceDbPort", TestDatabasePort.ToString(CultureInfo.InvariantCulture),
+                "-sourceDbUsername", TestDatabaseUsername,
+                "-sourceDbPassword", TestDatabasePassword
+            };
+        }
 
         protected void DropDatabase(string dbName)
         {
@@ -99,12 +143,12 @@ namespace TestUtils.Sql
         protected List<script_isolation_test> ExpectedRevision0IsolationTestValues { get { return Helper.ExpectedRevision0IsolationTestValues; } }
         protected List<script_isolation_test> ExpectedSourceIsolationTestValues { get { return Helper.ExpectedSourceIsolationTestValues; } }
 
-        protected void RunSuccessfulCommand(string arguments)
+        protected void RunSuccessfulCommand(IReadOnlyCollection<string> arguments)
         {
             Helper.RunSuccessfulCommand(arguments);
         }
 
-        protected void RunUnsuccessfulCommand(string arguments)
+        protected void RunUnsuccessfulCommand(IReadOnlyCollection<string> arguments)
         {
             Helper.RunUnsuccessfulCommand(arguments);
         }

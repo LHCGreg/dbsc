@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Contains MSBuild properties and targets common across projects, including installer projects. -->
-  <PropertyGroup>
+  <!-- <PropertyGroup> -->
     <!-- Tell extension pack to read dlls from the same directory as its .tasks file -->
-    <ExtensionTasksPath>.\</ExtensionTasksPath>
-    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)build\CommunityTasks\</MSBuildCommunityTasksPath>
+    <!-- <ExtensionTasksPath>./</ExtensionTasksPath>
+    <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)build/CommunityTasks/</MSBuildCommunityTasksPath>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)build\ExtensionPack\MSBuild.ExtensionPack.tasks"/>
-  <Import Project="$(MSBuildThisFileDirectory)build\CommunityTasks\MSBuild.Community.Tasks.Targets"/>
+  <Import Project="$(MSBuildThisFileDirectory)build/ExtensionPack/MSBuild.ExtensionPack.tasks"/>
+  <Import Project="$(MSBuildThisFileDirectory)build/CommunityTasks/MSBuild.Community.Tasks.Targets"/>
 
   <PropertyGroup>
     <BuildingOnWindows Condition="'$(OS)' == 'Windows_NT'">true</BuildingOnWindows>
     <BuildingOnWindows Condition="'$(OS)' != 'Windows_NT'">false</BuildingOnWindows>
   </PropertyGroup>
   
-  <Target Name="SetVersionProperties">
+  <Target Name="SetVersionProperties"> -->
     <!-- MajorVersion, MinorVersion, FixVersion, and BuildVersion should be set in the project's .targets file. -->
     
-    <Error Condition="'$(MajorVersion)' == ''" Text="MajorVersion not set." />
+    <!-- <Error Condition="'$(MajorVersion)' == ''" Text="MajorVersion not set." />
     <Error Condition="'$(MinorVersion)' == ''" Text="MinorVersion not set." />
     <Error Condition="'$(FixVersion)' == ''" Text="FixVersion not set." />
-    <Error Condition="'$(BuildVersion)' == ''" Text="BuildVersion not set." />
+    <Error Condition="'$(BuildVersion)' == ''" Text="BuildVersion not set." /> -->
     
     <!-- Don't use a <PropertyGroup> because mono's xbuild doesn't support dynamic properties. -->
-    <CreateProperty Value="$(MajorVersion).$(MinorVersion).$(FixVersion).$(BuildVersion)">
+    <!-- <CreateProperty Value="$(MajorVersion).$(MinorVersion).$(FixVersion).$(BuildVersion)">
       <Output TaskParameter="Value" PropertyName="Version" />
     </CreateProperty>
     <CreateProperty Value="$(MajorVersion).$(MinorVersion).$(FixVersion)">
       <Output TaskParameter="Value" PropertyName="VersionWithoutBuild" />
     </CreateProperty>
-  </Target>
+  </Target> -->
 </Project>

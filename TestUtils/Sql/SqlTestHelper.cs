@@ -13,12 +13,22 @@ namespace TestUtils.Sql
 {
     public abstract class SqlTestHelper
     {
+        public abstract string DatabaseNameFromScripts { get; }
+
+        public abstract string TestDatabaseHost { get; }
+        public abstract int TestDatabasePort { get; }
+        public abstract string TestDatabaseUsername { get; }
+        public abstract string TestDatabasePassword { get; }
         public abstract string TestDatabaseName { get; }
         public abstract string AltTestDatabaseName { get; }
+
+        public abstract string SourceDatabaseHost { get; }
+        public abstract int SourceDatabasePort { get; }
+        public abstract string SourceDatabaseUsername { get; }
+        public abstract string SourceDatabasePassword { get; }
         public abstract string SourceDatabaseName { get; }
         public abstract string AltSourceDatabaseName { get; }
-        public abstract string Username { get; }
-        public abstract string Password { get; }
+
         public abstract string DbscExeName { get; }
 
         public string DbscExePath { get; private set; }
@@ -27,7 +37,7 @@ namespace TestUtils.Sql
 
         public abstract void DropDatabase(string dbName, Func<string, IDbConnection> getDbConnection);
         public abstract void VerifyCreationTemplateRan(string dbName);
-        public abstract IDbConnection GetDbConnection(string dbName);
+        // public abstract IDbConnection GetDbConnection(string dbName); // TODO: This needs to distinguish between source and destination!
         public abstract void VerifyPersonNameIndexExists(IDbConnection conn);
 
         public SqlTestHelper()
@@ -141,22 +151,22 @@ namespace TestUtils.Sql
             }
         }
 
-        public void RunSuccessfulCommand(string arguments)
+        public void RunSuccessfulCommand(IReadOnlyCollection<string> arguments)
         {
             ProcessUtils.RunSuccessfulCommand(DbscExePath, arguments, ScriptsDir);
         }
 
-        public void RunSuccessfulCommand(string arguments, out string stdout, out string stderr)
+        public void RunSuccessfulCommand(IReadOnlyCollection<string> arguments, out string stdout, out string stderr)
         {
             ProcessUtils.RunSuccessfulCommand(DbscExePath, arguments, ScriptsDir, out stdout, out stderr);
         }
 
-        public void RunUnsuccessfulCommand(string arguments)
+        public void RunUnsuccessfulCommand(IReadOnlyCollection<string> arguments)
         {
             ProcessUtils.RunUnsuccessfulCommand(DbscExePath, arguments, ScriptsDir);
         }
 
-        public void RunUnsuccessfulCommand(string arguments, out string stdout, out string stderr)
+        public void RunUnsuccessfulCommand(IReadOnlyCollection<string> arguments, out string stdout, out string stderr)
         {
             ProcessUtils.RunUnsuccessfulCommand(DbscExePath, arguments, ScriptsDir, out stdout, out stderr);
         }

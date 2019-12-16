@@ -55,7 +55,7 @@ namespace dbsc.Postgres
                     using (PgDbscDbConnection sourceConn = new PgDbscDbConnection(_options.ImportOptions.SourceDatabase))
                     {
                         PrepareTargetForImport(targetConn, targetTransaction);
-                        DoImport(targetConn, targetTransaction, sourceConn);
+                        DoImport(targetConn, sourceConn);
                     }
 
                     DoPostImport(targetConn, targetTransaction);
@@ -142,7 +142,7 @@ AND tab.relname <> 'dbsc_metadata'";
             });
         }
 
-        private void DoImport(PgDbscDbConnection targetConn, NpgsqlTransaction targetTransaction, PgDbscDbConnection sourceConn)
+        private void DoImport(PgDbscDbConnection targetConn, PgDbscDbConnection sourceConn)
         {
             using (NpgsqlTransaction sourceTransaction = sourceConn.BeginTransaction())
             {
@@ -159,7 +159,7 @@ AND tab.relname <> 'dbsc_metadata'";
                         {
                             importSelect = tableAndRule.Rule.CustomSelect;
                         }
-                        targetConn.ImportTable(sourceConn, tableAndRule.Table, importSelect, targetDbTransaction: targetTransaction, sourceDbTransaction: sourceTransaction);
+                        targetConn.ImportTable(sourceConn, tableAndRule.Table, importSelect);
                     });
                 }
 

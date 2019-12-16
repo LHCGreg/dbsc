@@ -191,8 +191,7 @@ WHERE {2} = {3}name", MetadataPropertyValueColumn, MetadataTableName, MetadataPr
             using (TConnection conn = OpenConnection(connectionInfo))
             {
                 string revisionString = GetMetadataProperty(conn, RevisionPropertyName);
-                int revision;
-                if (!int.TryParse(revisionString, out revision))
+                if (!int.TryParse(revisionString, out int revision))
                 {
                     throw new DbscException(string.Format("error: {0} metadata property on database {1} has value \"{2}\" is not an integer.",
                         RevisionPropertyName, connectionInfo.ToDescriptionString(), revisionString));
