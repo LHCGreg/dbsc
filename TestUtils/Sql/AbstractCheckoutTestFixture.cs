@@ -106,13 +106,12 @@ namespace TestUtils.Sql
         {
             IgnoreIfImportNotSupported();
 
-            DropDatabase(IntegrationTestDbHost.Destination, TestDatabaseName);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
             DropDatabase(IntegrationTestDbHost.Destination, AltTestDatabaseName);
 
             // First get the source database into the the main test database
             List<string> checkout1Args = new List<string>() { "checkout" };
             checkout1Args.AddRange(GetDestinationArgs());
-            checkout1Args.AddRange(new List<string>() { "-targetDb", TestDatabaseName });
             checkout1Args.AddRange(GetSourceArgs());
             checkout1Args.AddRange(new List<string>() { "-sourceDb", SourceDatabaseName });
             RunSuccessfulCommand(checkout1Args);
@@ -262,7 +261,7 @@ namespace TestUtils.Sql
             args.AddRange(GetSourceArgs());
             args.AddRange(new List<string>() { "-sourceDb", AltSourceDatabaseName });
             RunSuccessfulCommand(args);
-            VerifyDatabase(IntegrationTestDbHost.Destination, TestDatabaseName, ExpectedAltSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
+            VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedAltSourcePeople, GetExpectedBooksFunc, ExpectedIsolationTestValues, expectedVersion: 2);
         }
     }
 }

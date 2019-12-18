@@ -225,7 +225,7 @@ namespace TestUtils.Sql
                 Dictionary<string, string> metadata = conn.Query<dbsc_metadata>(metadataQuerySql)
                     .ToDictionary(md => md.property_name, md => md.property_value);
                 Assert.Equal(expectedVersion, int.Parse(metadata["Version"]));
-                Assert.Equal(TestDatabaseName, metadata["MasterDatabaseName"]);
+                Assert.Equal(DatabaseNameFromScripts, metadata["MasterDatabaseName"]);
 
                 DateTime lastChangeUtc = DateTime.ParseExact(metadata["LastChangeUTC"], "s", CultureInfo.InvariantCulture);
                 Assert.True(DateTime.UtcNow + TimeSpan.FromMinutes(5) > lastChangeUtc);

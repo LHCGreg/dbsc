@@ -43,7 +43,7 @@ namespace dbsc.Postgres.Integration
         private List<string> GetSourceArgsWithIntegratedSecurity()
         {
             List<string> args = GetSourceArgs();
-            int indexOfSourcePasswordArg = args.IndexOf("-sourceDbPassword");
+            int indexOfSourcePasswordArg = args.IndexOf("-sourcePassword");
             args.RemoveAt(indexOfSourcePasswordArg + 1);
             args.RemoveAt(indexOfSourcePasswordArg);
             args.Add("-sourceSSPI");

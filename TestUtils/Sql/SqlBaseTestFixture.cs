@@ -91,8 +91,8 @@ namespace TestUtils.Sql
             {
                 "-sourceDbServer", SourceDatabaseHost,
                 "-sourceDbPort", SourceDatabasePort.ToString(CultureInfo.InvariantCulture),
-                "-sourceDbUsername", SourceDatabaseUsername,
-                "-sourceDbPassword", SourceDatabasePassword
+                "-sourceUsername", SourceDatabaseUsername,
+                "-sourcePassword", SourceDatabasePassword
             };
         }
 
@@ -102,8 +102,8 @@ namespace TestUtils.Sql
             {
                 "-sourceDbServer", TestDatabaseHost,
                 "-sourceDbPort", TestDatabasePort.ToString(CultureInfo.InvariantCulture),
-                "-sourceDbUsername", TestDatabaseUsername,
-                "-sourceDbPassword", TestDatabasePassword
+                "-sourceUsername", TestDatabaseUsername,
+                "-sourcePassword", TestDatabasePassword
             };
         }
 
