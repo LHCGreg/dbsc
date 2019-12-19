@@ -54,7 +54,7 @@ namespace TestUtils.Sql
         [Fact]
         public void PartialUpdateTest()
         {
-            DropDatabase(IntegrationTestDbHost.Destination, TestDatabaseName);
+            DropDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts);
             CheckoutZeroOnScriptsDatabase();
 
             List<string> args = new List<string>() { "update" };
@@ -120,6 +120,7 @@ namespace TestUtils.Sql
 
             List<string> args = new List<string>() { "update" };
             args.AddRange(GetDestinationArgs());
+            args.AddRange(new List<string>() { "-targetDb", TestDatabaseName });
             args.AddRange(GetSourceArgs());
             args.AddRange(new List<string>() { "-sourceDb", SourceDatabaseName });
             RunSuccessfulCommand(args);
@@ -189,7 +190,7 @@ namespace TestUtils.Sql
             args.AddRange(GetDestinationArgs());
             args.AddRange(GetSourceArgs());
             args.AddRange(new List<string>() { "-sourceDb", SourceDatabaseName });
-            args.AddRange(new List<string>() { "-importTableList", "tables_to_import_wildscards_and_negations.txt" });
+            args.AddRange(new List<string>() { "-importTableList", "tables_to_import_wildcards_and_negations.txt" });
             RunSuccessfulCommand(args);
             VerifyDatabase(IntegrationTestDbHost.Destination, DatabaseNameFromScripts, ExpectedPeople, GetExpectedBooksFunc, ExpectedSourceIsolationTestValues, expectedVersion: 2);
         }

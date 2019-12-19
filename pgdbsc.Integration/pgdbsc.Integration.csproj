@@ -22,6 +22,7 @@
     <ProjectReference Include="../TestUtils/TestUtils.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="docker_compose\destination_db\create_user.sql" />
     <Content Include="readme.txt" />
     <Content Include="error_test_scripts/pgdbsc_test.0000.init.sql">
